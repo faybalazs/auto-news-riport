@@ -2,7 +2,7 @@
 
 Havi sajtófigyelés, élő cikkfeltöltés és LinkedIn-posztgenerálás az Xperion (xperion.hu) számára, saját felülettel és MySQL-adatbázissal, több ügyfélre felkészítve.
 
-- **Állapot:** 3. lépés kész (adatátvétel ügyfelenkénti Google Sheetből). Részletek: [docs/project-state.md](docs/project-state.md)
+- **Állapot:** 5. lépés kész (havi futás Claude-értékeléssel, Havi cikkek döntésekkel). Részletek: [docs/project-state.md](docs/project-state.md)
 - **Technológia:** PHP 8.1+ (a szerveren 8.2), MySQL, függőség nélküli éles kód; Claude API, SMTP, a meglévő feltöltő program; a Google Sheetből egyszeri adatátvétel
 - **Követelmények:** [docs/product.md](docs/product.md) · **Felépítés:** [docs/architecture.md](docs/architecture.md)
 - **AI-ügynököknek:** [AGENTS.md](AGENTS.md)
@@ -36,7 +36,13 @@ Másold le a `config.example.php`-t `config.php` néven, és töltsd ki:
 4. **Szárazfuttatás:** lapról lapra megmutatja, mit találna (forrás, kulcsszó, havi lapok cikkei, posztok, szabályok, beállítások), de nem ír semmit.
 5. Ha rendben van: **Adatok átvétele**. Többször is futtatható: a meglévőt frissíti, nem duplikál. A posztszabályokat csak akkor tölti be, ha az ügyfélnél még nincs szabály.
 
-### 6. Időzítés (cron)
+### 6. Claude API-kulcs és havi futás
+1. A Claude Console-ban (console.anthropic.com → API Keys) hozz létre egy kulcsot, és írd be a `config.php` `claude_api_key` sorába.
+2. **Ügyfelek →** az ügyfél állapota legyen **Aktív** (szerkesztés): a havi cron csak az Aktív ügyfelekre fut élesben.
+3. **Vezérlőpult → Havi futás és cikkgyűjtés:** válaszd a hónapot. **Csak gyűjtés:** Claude nélkül megmutatja a források eredményét. **Havi futás szárazon:** gyűjtés és Claude-értékelés mentés nélkül (havonta néhány tized cent). **Havi futás élesben:** a hónap listája és a vezetői összefoglaló bekerül a **Havi cikkek** közé; egy hónapra egyszer (az átvett korábbi hónapok már meglévőnek számítanak).
+4. **Havi cikkek:** az ügyfél-adminisztrátor itt dönt (Mehet / LinkedIn poszt / Nem kell), soronként vagy több cikkre egyszerre, visszavonással.
+
+### 7. Időzítés (cron)
 A tárhely vezérlőpultjában két időzített feladat kell; a pontos címeket a **Vezérlőpult → Időzítés (cron)** kártyán másolhatod:
 - **Havi futás:** minden hónap 1-jén 06:00-kor (Europe/Budapest).
 - **Óránkénti futás:** minden órában.

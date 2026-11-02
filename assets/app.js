@@ -286,6 +286,10 @@ async function copyText(text, el){
 }
 document.addEventListener('click', e => { const b = e.target.closest('[data-copy]'); if (b) copyText(b.dataset.copy, b.previousElementSibling); });
 
+const REC = { 'Erősen javasolt':['b-success','arrow-up','Erősen javasolt'], 'Javasolt':['b-info','check','Javasolt'], 'Nem javasolt':['b-neutral','minus','Nem javasolt'], 'Nem javasolt (már fent)':['b-neutral','archive','Már fent van'] };
+const REC_ORDER = ['Erősen javasolt','Javasolt','Nem javasolt','Nem javasolt (már fent)',''];
+const recBadge = r => { const x = REC[r]; return x ? `<span class="badge ${x[0]}">${ic(x[1],'icon')}${esc(x[2])}</span>` : (r ? `<span class="badge b-neutral">${esc(r)}</span>` : '<span class="meta">–</span>'); };
+
 /* ==================================================================
    12/A. BELÉPÉS, BEÁLLÍTÁS, JELSZÓ (belépés nélküli oldalak)
    ================================================================== */
@@ -503,21 +507,93 @@ if (APP.page === 'vezerlo'){
   const colRows = [];
   const colTable = DataTable({ id:'gyujtes', caption:'Talált új cikkek', rows:colRows, labelKey:'title', selectable:false, table:$('#colItems'), pager:$('#colPager'), sort:{ key:'date', dir:'asc' }, pageSize:25,
     columns:[ { key:'date', label:'Dátum', render:r => esc(r.date ? r.date.replace(/-/g, '. ') + '.' : '–') }, { key:'source', label:'Forrás', render:r => esc(r.source) + (r.new_source ? ` <span class="badge b-ai">${ic('plus','icon')}új forrás</span>` : '') },
-      { key:'title', label:'Cím és leírás', render:r => `<div class="cell-title"><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a><span>${esc(r.description)}</span></div>` } ],
+      { key:'title', label:'Cím és leírás', render:r => `<div class="cell-title"><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a><span>${esc(r.desc || r.description)}</span></div>` },
+      { key:'recommendation', label:'Javaslat', render:r => r.recommendation ? recBadge(r.recommendation) : '<span class="meta">–</span>', sortValue:r => REC_ORDER.indexOf(r.recommendation || '') },
+      { key:'reason', label:'Indoklás', sortable:false, render:r => `<div class="cell-why">${esc(r.reason || '')}</div>` } ],
     emptyHtml:() => 'Ebben a hónapban nem találtam új cikket.' });
-  $('#colRun')?.addEventListener('click', async () => {
-    const b = $('#colRun'); busy(b, true); announce('A gyűjtés fut, ez 1–3 percig tarthat…');
+  async function collectRun(kind){
+    const month = $('#colMonth').value, live = kind === 'live';
+    if (live){ const ok = await confirmBox({ title:`Élesben futtatja a(z) ${$('#colMonth').selectedOptions[0].textContent} havi futást?`, body:'Begyűjti a cikkeket, a Claude értékeli őket, és a hónap listája a vezetői összefoglalóval bekerül a Havi cikkek közé. Egy hónapra csak egyszer készül lista.', confirm:'Havi futás élesben', danger:false }); if (!ok) return; }
+    const b = $(kind === 'collect' ? '#colRun' : live ? '#monLive' : '#monDry'); busy(b, true); ['#colRun','#monDry','#monLive'].forEach(s => { if ($(s) !== b) $(s).disabled = true; });
+    announce('A futás elindult, ez 1–3 percig tarthat…');
     try {
-      const r = await api('gyujtes', { month:$('#colMonth').value });
-      const d = r.data || { sources:[], items:[] };
+      const r = kind === 'collect' ? await api('gyujtes', { month }) : await api('havifutas', { month, dry:!live });
+      const d = Object.assign({ sources:[], items:[] }, r.data || {});
       $('#colMeta').innerHTML = (r.ok ? `<span class="badge b-success">${ic('check','icon')}Kész</span>` : `<span class="badge b-danger">${ic('x-circle','icon')}Hiba</span>`) + `<span>${esc(r.time_hu)} · ${HU.num.format(Math.round(r.duration_ms / 1000))} s · ${d.items.length} új cikk</span>` + (r.ok ? '' : `<span>${esc(r.lines.filter(l => l.level === 'error').map(l => l.text).join(' '))}</span>`);
       $('#colSources').innerHTML = d.sources.length ? `<table><caption class="sr-only">Források</caption><thead><tr><th scope="col">Forrás</th><th scope="col">Mód</th><th scope="col" class="num">Talált</th><th scope="col" class="num">A hónapban</th><th scope="col" class="num">Duplikátum</th><th scope="col" class="num">Kizárt</th><th scope="col" class="num">Marad</th><th scope="col">Megjegyzés</th></tr></thead><tbody>${d.sources.map(s => `<tr><td>${esc(s.name || s.url)}</td><td>${esc(s.method)}</td><td class="num">${s.found}</td><td class="num">${s.in_month}</td><td class="num">${s.duplicate}</td><td class="num">${s.excluded}</td><td class="num"><b>${s.kept}</b></td><td>${s.error ? `<span class="badge b-warning">${ic('alert','icon')}${esc(s.error)}</span>` : (s.undated ? `<span class="meta">${s.undated} dátum nélkül</span>` : '')}</td></tr>`).join('')}</tbody></table>` : `<div class="empty-state"><b>Nincs aktív forrás</b><span>${esc(r.lines.map(l => l.text).join(' '))}</span></div>`;
       colRows.splice(0, colRows.length, ...d.items.map((x, i) => ({ ...x, id:String(i) }))); colTable.render();
+      const sum = d.summary;
+      $('#monSum').innerHTML = sum ? `<div class="widget-head" style="margin-top:16px"><div><h3 class="sub-h" style="margin:0">Vezetői összefoglaló${live ? '' : ' (szárazon, nem mentve)'}</h3></div><span class="badge b-ai">${ic('sparkle','icon')}AI által generált</span></div><dl class="kv">${(sum.rows || []).map(x => `<div><dt>${esc(x.label)}</dt><dd>${esc(x.value)}</dd></div>`).join('')}</dl><p class="help" style="margin-top:8px">${esc(sum.details || '')}</p>` : (d.exists ? `<div class="empty-state" style="margin-top:12px"><b>Ehhez a hónaphoz már van lista</b><span>A Havi cikkek oldalon látható.</span></div>` : '');
+      $('#monSum').hidden = !$('#monSum').innerHTML;
+      if (!d.sources) d.sources = [];
       $('#colOut').hidden = false;
-      toast(r.ok ? `Gyűjtés kész: ${d.items.length} új cikk.` : 'A gyűjtés nem sikerült.', { type:r.ok ? 'success' : 'error' });
+      const lines = r.lines.filter(l => l.level === 'error').map(l => l.text).join(' ');
+      if (r.ok && d.exists){ toast('Ehhez a hónaphoz már van lista; új listát nem készítettem. A Havi cikkek oldalon látható.', { type:'info' }); return; }
+      toast(r.ok ? (kind === 'collect' ? `Gyűjtés kész: ${d.items.length} új cikk.` : live ? `A havi lista elkészült: ${d.items.length} cikk.` : `Szárazfuttatás kész: ${d.items.length} cikk értékelve, nem mentve.`) : 'A futás nem sikerült: ' + lines, { type:r.ok ? 'success' : 'error' });
     } catch(e){ toast(e.message, { type:'error' }); }
-    finally { busy(b, false); }
+    finally { busy(b, false); ['#colRun','#monDry','#monLive'].forEach(s => { if ($(s)) $(s).disabled = false; }); }
+  }
+  $('#colRun')?.addEventListener('click', () => collectRun('collect'));
+  $('#monDry')?.addEventListener('click', () => collectRun('dry'));
+  $('#monLive')?.addEventListener('click', () => collectRun('live'));
+}
+
+/* ==================================================================
+   12/G. HAVI CIKKEK: döntések soronként és tömegesen, visszavonással
+   ================================================================== */
+if (APP.page === 'cikkek' && $('#artTable')){
+  const DEC = { '':'Nincs döntés', mehet:'Mehet', linkedin:'LinkedIn poszt', nemkell:'Nem kell' };
+  const canDecide = can('decide');
+  const rows = (APP.data.articles || []).map(a => ({ ...a, id:String(a.id) }));
+  let view = 'todo';
+  const isTodo = r => !r.decision && !r.uploaded && !String(r.recommendation || '').startsWith('Nem javasolt');
+  const decCell = r => {
+    if (r.uploaded) return `<span class="badge b-success">${ic('check','icon')}Feltöltve</span>`;
+    if (!canDecide) return r.decision ? `<span class="badge b-neutral">${esc(DEC[r.decision])}</span>` : '<span class="meta">nincs döntés</span>';
+    return `<label class="sr-only" for="dec-${r.id}">Döntés: ${esc(r.title)}</label><select class="select sm dec" id="dec-${r.id}" data-dec="${r.id}">${Object.entries(DEC).map(([k, v]) => `<option value="${k}"${(r.decision || '') === k ? ' selected' : ''}>${v}</option>`).join('')}</select>`;
+  };
+  const upCell = r => {
+    if (r.uploaded) return r.url_hu || r.url_en ? `<div class="up-cell">${r.url_hu ? `<a href="${esc(r.url_hu)}" target="_blank" rel="noopener">HU</a>` : ''}${r.url_en ? `<a href="${esc(r.url_en)}" target="_blank" rel="noopener">EN</a>` : ''}</div>` : '';
+    if (r.upload_status) return `<span class="badge b-danger">${ic('x-circle','icon')}${esc(r.upload_status)}</span>`;
+    if (r.decision === 'mehet') return `<span class="badge b-warning">${ic('clock','icon')}feltöltésre vár</span>`;
+    if (r.decision === 'linkedin') return r.post_code ? `<span class="meta">${esc(r.post_code)}</span>` : `<span class="badge b-warning">${ic('clock','icon')}poszt készül</span>`;
+    return '';
+  };
+  const table = DataTable({
+    id:'cikkek', caption:'Havi cikkek', rows, labelKey:'title', selectable:canDecide, table:$('#artTable'), pager:$('#artPager'), sort:{ key:'no', dir:'asc' }, pageSize:50,
+    columns:[
+      { key:'no', label:'No', align:'right', render:r => r.no ?? '–', sortValue:r => (r.from_new_source ? 10000 : 0) + (r.no || 0) },
+      { key:'source_name', label:'Forrás és dátum', render:r => `<div class="src-cell">${esc(r.source_name)}<span class="meta">${esc(r.published_on ? r.published_on.replace(/-/g, '. ') + '.' : '–')}</span>${r.from_new_source ? `<span class="badge b-ai">${ic('plus','icon')}új forrás</span>` : ''}</div>`, sortValue:r => r.published_on || '' },
+      { key:'title', label:'Cím és leírás', render:r => `<div class="cell-title"><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a><span>${esc(r.description || '')}</span></div>` },
+      { key:'recommendation', label:'Javaslat és indoklás', render:r => `<div class="rec-cell">${recBadge(r.recommendation)}<span class="cell-why">${esc(r.reason || '')}</span></div>`, sortValue:r => REC_ORDER.indexOf(r.recommendation || '') },
+      { key:'decision', label:'Ügyfél döntése', sortable:false, render:r => `<div class="dec-cell">${decCell(r)}${upCell(r)}</div>` }
+    ],
+    emptyHtml:() => view === 'todo' ? 'Minden javasolt cikkről döntött. Köszönjük!' : 'Nincs a szűrésnek megfelelő cikk.',
+    onSelect:n => { $('#bulk').hidden = !n; $('#artToolbar').hidden = !!n; $('#bulkCount').textContent = `${n} kiválasztva`; },
+    onRender:() => { $('#cntTodo').textContent = rows.filter(isTodo).length; }
   });
+  const pred = () => {
+    const q = norm($('#artQ').value.trim()), rec = $('#artRec').value;
+    table.setPred(r => (!q || norm(`${r.title} ${r.description || ''} ${r.source_name}`).includes(q)) && (!rec || r.recommendation === rec) && ({ todo:isTodo(r), all:true, mehet:r.decision === 'mehet', linkedin:r.decision === 'linkedin', nemkell:r.decision === 'nemkell', new:!!r.from_new_source })[view]);
+  };
+  $$('#artViews [data-v]').forEach(b => b.addEventListener('click', () => { view = b.dataset.v; $$('#artViews [data-v]').forEach(x => x.setAttribute('aria-pressed', x === b)); pred(); }));
+  $('#artQ').addEventListener('input', pred); $('#artRec').addEventListener('change', pred);
+  $('#monthSel')?.addEventListener('change', e => { location.href = 'index.php?p=cikkek&honap=' + encodeURIComponent(e.target.value); });
+  async function decide(list, val){
+    const prev = list.filter(r => !r.uploaded).map(r => ({ id:+r.id, decision:r.decision || '' }));
+    if (!prev.length){ toast('Feltöltött cikk döntése nem módosítható.', { type:'info' }); return; }
+    try {
+      await api('dontes', { changes:prev.map(p => ({ id:p.id, decision:val })) });
+      list.forEach(r => { if (!r.uploaded) r.decision = val; }); table.clearSel(); table.render();
+      const n = prev.length;
+      const msg = !val ? `Döntés törölve: ${n} cikk.` : val === 'mehet' ? `Mehet: ${n} cikk. A következő óránkénti futás tölti fel.` : val === 'linkedin' ? `LinkedIn poszt: ${n} cikk. Poszt készül belőlük.` : `Nem kell: ${n} cikk.`;
+      toast(msg, { action:async () => { try { await api('dontes', { changes:prev }); prev.forEach(p => { const r = rows.find(x => +x.id === p.id); if (r) r.decision = p.decision; }); table.render(); toast('Visszavonva.', { type:'info' }); } catch(e){ toast(e.message, { type:'error' }); } } });
+    } catch(e){ toast(e.message, { type:'error' }); table.render(); }
+  }
+  $('#artTable').addEventListener('change', e => { const s = e.target.closest('[data-dec]'); if (!s) return; const r = rows.find(x => x.id === s.dataset.dec); decide([r], s.value).then(() => $(`#dec-${r.id}`)?.focus()); });
+  $$('[data-bulk]').forEach(b => b.addEventListener('click', () => decide(rows.filter(r => table.selected.includes(r.id)), b.dataset.bulk)));
+  $('#bulkClear').addEventListener('click', () => table.clearSel());
+  pred();
 }
 
 /* ==================================================================

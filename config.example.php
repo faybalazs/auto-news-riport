@@ -26,7 +26,9 @@ return [
     'google_service_account_file' => '',
     'google_service_account_json' => '',
 
-    // Claude API-kulcs (az 5. lépéstől kell: értékelés, összefoglaló, posztok).
+    // Claude API-kulcs (Claude Console → API Keys). A havi futás értékeléséhez és összefoglalójához kell.
+    // Modellek ügyfelenként felülírhatók (client_settings: modell_ertekeles, modell_poszt);
+    // alapértelmezés: értékelés claude-haiku-5-5, összefoglaló claude-sonnet-5-5.
     'claude_api_key' => '',
 
     // SMTP a havi e-mailhez, a meghívókhoz és az értesítésekhez (a 7. lépéstől kell; addig a meghívó link másolható).

@@ -35,7 +35,7 @@ final class TasksTest extends TestCase
         foreach ([new MonthlyTask(), new HourlyTask()] as $t) {
             $c = $this->ctx($f, false);
             $t->run($c);
-            self::assertTrue($t->readOnly());
+            self::assertSame($t instanceof HourlyTask, $t->readOnly(), "a havi futás élesben ír, az óránkénti még nem");
             self::assertFalse($c->hasErrors());
         }
         self::assertSame([], $f->http->requests);

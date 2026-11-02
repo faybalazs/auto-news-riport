@@ -611,9 +611,22 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 .collect-bar{ display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; }
 .collect-bar .field{ min-width:200px; }
 .sub-h{ font-size:var(--fs-sm); font-weight:600; margin:16px 0 8px; }
-.cell-title{ display:flex; flex-direction:column; gap:2px; min-width:260px; max-width:560px; white-space:normal; }
+.cell-title{ display:flex; flex-direction:column; gap:2px; min-width:220px; max-width:380px; white-space:normal; }
 .cell-title a{ font-weight:500; }
 .cell-title span{ color:var(--text-2); font-size:var(--fs-xs); }
+.cnt-badge{ display:inline-grid; place-items:center; min-width:20px; height:20px; padding:0 6px; margin-left:6px; border-radius:999px; background:var(--accent); color:#fff; font-size:12px; font-weight:600; }
+.cell-why{ min-width:150px; max-width:220px; white-space:normal; color:var(--text-2); font-size:var(--fs-xs); }
+.src-cell{ display:flex; flex-direction:column; gap:4px; align-items:flex-start; white-space:nowrap; }
+.dec{ min-width:150px; }
+.up-cell{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-size:var(--fs-xs); white-space:nowrap; }
+.sum-text{ display:flex; flex-direction:column; gap:6px; }
+.sum-text h3{ font-size:var(--fs-sm); font-weight:600; }
+.sum-text p{ font-size:var(--fs-sm); color:var(--text-2); max-width:75ch; }
+#artViews{ flex-wrap:wrap; }
+.rec-cell, .dec-cell{ display:flex; flex-direction:column; gap:6px; align-items:flex-start; }
+.rec-cell .cell-why{ min-width:160px; max-width:240px; }
+#artTable table{ min-width:860px; }
+#artTable .cell-title{ max-width:340px; }
 
 /* ================= 18. TÖRÉSPONTOK (mindig a CSS végén) ================= */
 @media (max-width:1279px){ .layout{ grid-template-columns:minmax(0,1fr); } .w-8, .w-4{ grid-column:span 12; } }

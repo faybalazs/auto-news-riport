@@ -98,6 +98,17 @@ try {
             @set_time_limit(900);
             return $app->collector()->run($access, $str('month'))->toArray() + ['time_hu' => date('Y. m. d. H:i')];
         })(),
+        'havifutas' => (function () use ($app, $access, $str, $in) {
+            $access->require('ops');
+            session_write_close();
+            ignore_user_abort(true);
+            @set_time_limit(1200);
+            return $app->monthly()->runForAccess($access, $str('month'), !empty($in['dry']))->toArray() + ['time_hu' => date('Y. m. d. H:i')];
+        })(),
+        'dontes' => (function () use ($app, $access, $in) {
+            $n = $app->articles()->decide($access, array_values(array_filter((array) ($in['changes'] ?? []), 'is_array')));
+            return ['ok' => true, 'changed' => $n];
+        })(),
         default => throw new \InvalidArgumentException('Ismeretlen művelet.'),
     };
     Http::json($out);

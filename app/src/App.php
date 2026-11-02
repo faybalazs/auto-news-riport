@@ -126,6 +126,21 @@ final class App
         return new \Xperion\Collect\CollectService($this->db(), new \Xperion\Collect\Collector($http), $this->log(), $this->storageDir . '/futas.lock');
     }
 
+    public function claude(): \Xperion\Claude\ClaudeClient
+    {
+        return new \Xperion\Claude\ClaudeClient(new CurlHttpClient(2, 180), $this->config->string('claude_api_key'));
+    }
+
+    public function monthly(): \Xperion\Monthly\MonthlyService
+    {
+        return new \Xperion\Monthly\MonthlyService($this->db(), $this->collector(), $this->claude(), $this->log(), $this->audit(), $this->storageDir . '/futas.lock');
+    }
+
+    public function articles(): \Xperion\Monthly\ArticleService
+    {
+        return new \Xperion\Monthly\ArticleService($this->db(), $this->audit());
+    }
+
     public function authenticator(): Authenticator
     {
         return new Authenticator($this->db());
@@ -145,9 +160,18 @@ final class App
     {
         return $this->runner ??= new Runner(
             [new MonthlyTask(function (\Xperion\Task\TaskContext $ctx, string $month): void {
-                foreach ($this->db()->all("SELECT id, name FROM clients WHERE status <> 'szunetel' ORDER BY name") as $c) {
+                $clients = $this->db()->all("SELECT id, name, status FROM clients WHERE status <> 'szunetel' ORDER BY name");
+                foreach ($clients as $c) {
                     $ctx->info('— ' . $c['name'] . ' —');
-                    $this->collector()->collectForClient((int) $c['id'], $month, $ctx);
+                    if ($c['status'] !== 'aktiv') {
+                        $ctx->info('„Beállítás alatt” állapotú ügyfél: kimarad (az Ügyfelek oldalon állítsa Aktívra).');
+                        continue;
+                    }
+                    try {
+                        $this->monthly()->run((int) $c['id'], $month, $ctx);
+                    } catch (\Throwable $e) {
+                        $ctx->error($c['name'] . ': ' . $e->getMessage()); // egy ügyfél hibája nem állítja meg a többit
+                    }
                 }
             }), new HourlyTask()],
             fn (): SheetsClient => $this->sheets(),

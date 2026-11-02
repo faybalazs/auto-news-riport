@@ -7,7 +7,7 @@ PHP 8.1+ (a szerveren 8.2), MySQL/MariaDB, éles függőség nélkül (PDO, cURL
 | Fájl | Mire | Védelem |
 |---|---|---|
 | `index.php` | Oldalak: `?p=attekintes`, `felhasznalok`, `ugyfelek`, `vezerlo`, `naplo`, `profil` (és a későbbi lépések helyőrzői); belépés nélkül: `belepes`, `meghivo&t=`, `jelszo&t=`, első indításkor beállítóoldal | munkamenet (e-mail + jelszó); jogosultság oldalanként; CSRF minden POST-on |
-| `api.php` | JSON-műveletek: `?m=felhasznalok`, `meghivas`, `felhasznalo`, `letiltas`, `torles`, `link`, `ugyfel`, `jelszocsere`, `futtatas`, `atvetel`, `gyujtes` | munkamenet + `X-CSRF-Token`; minden művelet a szerveren ellenőrzi a jogosultságot és az ügyfélhatárt |
+| `api.php` | JSON-műveletek: `?m=felhasznalok`, `meghivas`, `felhasznalo`, `letiltas`, `torles`, `link`, `ugyfel`, `jelszocsere`, `futtatas`, `atvetel`, `gyujtes`, `havifutas`, `dontes` | munkamenet + `X-CSRF-Token`; minden művelet a szerveren ellenőrzi a jogosultságot és az ügyfélhatárt |
 | `cron.php` | Időzített futás: `?feladat=havi\|orankenti&k=<cron_key>[&dry=1]`, vagy `php cron.php havi [--dry]` | cron-kulcs; hibánál HTTP 500 |
 
 Minden webes kérés elején a `Migrator` lefuttatja a még hiányzó adatbázis-migrációkat (`app/migrations/*.sql`, MySQL `GET_LOCK`-kal).
@@ -33,6 +33,10 @@ Minden webes kérés elején a `Migrator` lefuttatja a még hiányzó adatbázis
 | `Collect\Collector` | Egy forrás cikkei: RSS/Atom → a listaoldal által hirdetett hírcsatorna → HubSpot `/rss.xml` → listaoldal-elemzés; dátum nélküli cikknél a cikkoldal (legfeljebb 10) | `CollectService` |
 | `Collect\FeedParser`, `Collect\Html`, `Collect\DateText` | Hírcsatorna- és HTML-elemzés, dátumfelismerés (angol, magyar, gépi; Budapest szerinti nap) | `Collector` |
 | `Collect\CollectService` | Havi gyűjtés ügyfelenként: aktív források, hónapszűrés, duplikátum (az adatbázis cikkei + a futáson belül), kizáró kulcsszavak; most nem ment | `api.php?m=gyujtes`, `MonthlyTask` (cron, minden nem szüneteltetett ügyfél) |
+| `Claude\ClaudeClient` | Messages API közvetlen HTTP-vel (Composer nélkül): `anthropic-version: 2026-10-21`, strukturált JSON-kimenet (`output_config.format`), effort, gyorsítótárazott rendszerprompt, Sonnet/Opus esetén szerveroldali tartalék (`fallbacks: "default"`); elutasítás és `max_tokens` hibaként | `Evaluator`, `Summarizer` |
+| `Monthly\Evaluator`, `Monthly\Summarizer` | Értékelés 20-as csomagokban (leírás, javaslat, indoklás; ügyfélleírás, kulcsszavak, korábbi döntések és feltöltött címek a rendszerpromptban); vezetői összefoglaló | `MonthlyService` |
+| `Monthly\MonthlyService` | Havi futás ügyfelenként: gyűjtés → értékelés → összefoglaló → (élesben) mentés tranzakcióban; idempotens (összefoglaló vagy cikk a hónapban = kész); Claude-kulcs nélkül azonnal hibát ad | `api.php?m=havifutas`, `MonthlyTask` (cron: Aktív ügyfelek) |
+| `Monthly\ArticleService` | Havi listák, összefoglaló, döntések (csak az aktuális ügyfél cikkei, feltöltött cikk nem módosul, műveleti napló) | `index.php?p=cikkek`, `api.php?m=dontes` |
 | `Google\*`, `Sheets\*` | Szolgáltatásfiókos Sheets-olvasás (`App::sheetsFor(id)`, ügyfelenként) | `ImportService` |
 
 ## Adatbázis
@@ -40,6 +44,8 @@ Minden webes kérés elején a `Migrator` lefuttatja a még hiányzó adatbázis
 **001_alap:** `clients`, `users`, `memberships` (felhasználó × ügyfél × szerepkör), `user_tokens`, `login_attempts`, `audit_log`, `schema_migrations`. Az üzemeltető `users.is_operator = 1`, tagság nélkül minden ügyfélhez hozzáfér. A későbbi ügyféladatok (források, cikkek, posztok, szabályok) `client_id`-vel kapcsolódnak, és csak az `Access` által engedett ügyfélre kérdezhetők le.
 
 **002_ugyfeladatok:** `clients.spreadsheet_id`; `sources`, `keywords`, `articles` (egyedi: ügyfél + egységesített link lenyomata), `posts` (ügyfél + kód), `post_ideas`, `post_rules`, `client_settings`. Mind `client_id`-vel, ügyfél törlésekor kaszkádolva.
+
+**003_havi_futas:** `month_reports` (ügyfél + hónap: összefoglaló sorai, részletek, statisztika, modell); `articles.evaluated_by`.
 
 ## Felület
 

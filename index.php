@@ -154,7 +154,7 @@ if ($perm !== null && !$access->can($perm)) {
     $template = 'pages/nincsjog';
 } else {
     $template = match ($page) {
-        'cikkek', 'posztok', 'otletek', 'szabalyok' => 'pages/hamarosan',
+        'posztok', 'otletek', 'szabalyok' => 'pages/hamarosan',
         default => 'pages/' . $page,
     };
     if ($page === 'felhasznalok') {
@@ -163,6 +163,10 @@ if ($perm !== null && !$access->can($perm)) {
         $data = ['clients' => $app->clients()->all($access), 'serviceEmail' => $app->serviceAccountEmail(), 'googleReady' => $app->config->serviceAccountJson() !== ''];
     } elseif ($page === 'naplo') {
         $data = ['runs' => array_map(static fn ($e) => $e->toArray() + ['time_hu' => $e->timeHu()], $app->log()->recent(300)), 'audit' => $app->audit()->recent(null)];
+    } elseif ($page === 'cikkek') {
+        $months = $app->articles()->months($access);
+        $month = preg_match('/^\d{4}$/', (string) ($_GET['honap'] ?? '')) ? (string) $_GET['honap'] : ($months[0]['month'] ?? '');
+        $data = ['months' => $months, 'month' => $month, 'articles' => $month !== '' ? $app->articles()->list($access, $month) : [], 'report' => $month !== '' ? $app->articles()->report($access, $month) : null];
     } elseif ($page === 'attekintes') {
         $cid = $access->clientId();
         $data = ['memberCount' => $cid ? (int) $app->db()->value('SELECT COUNT(*) FROM memberships WHERE client_id = ?', [$cid]) : 0];

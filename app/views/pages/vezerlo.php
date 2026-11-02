@@ -4,7 +4,7 @@ $sub = 'Futások kézi indítása, a beállítások állapota és az időzítés
 require __DIR__ . '/_head.php';
 $log = $app->log();
 $desc = [
-    'havi' => 'Minden hónap 1-jén 06:00-kor: az előző hónap cikkeinek gyűjtése minden aktív ügyfélnek. A mentés és az értékelés az 5. lépésben jön.',
+    'havi' => 'Minden hónap 1-jén 06:00-kor, minden Aktív ügyfélre: gyűjtés, Claude-értékelés, a havi lista és az összefoglaló mentése.',
     'orankenti' => 'Minden órában. A feltöltés, a posztgenerálás és az e-mail-küldés a későbbi lépésekben jön.',
 ];
 $cronKey = $app->config->string('cron_key');
@@ -20,16 +20,19 @@ for ($i = 1; $i <= 6; $i++) {
 ?>
 <section class="card widget" aria-labelledby="h-collect">
   <div class="widget-head">
-    <div><h2 id="h-collect">Cikkgyűjtés</h2><p class="meta"><?= $e($access->client()['name'] ?? 'Nincs kiválasztott ügyfél') ?> · szárazfuttatás: megmutatja, mit találna, de nem ment semmit</p></div>
+    <div><h2 id="h-collect">Havi futás és cikkgyűjtés</h2><p class="meta"><?= $e($access->client()['name'] ?? 'Nincs kiválasztott ügyfél') ?> · a cron minden hónap 1-jén élesben futtatja az Aktív ügyfelekre</p></div>
   </div>
   <div class="collect-bar">
     <div class="field"><label for="colMonth">Hónap</label><select class="select" id="colMonth"><?php foreach ($months as $k => $l): ?><option value="<?= $e($k) ?>"><?= $e($l) ?></option><?php endforeach; ?></select></div>
-    <button class="btn btn-primary" type="button" id="colRun"<?= $access->client() ? '' : ' disabled' ?>><?= $ic('flask') ?>Gyűjtés (szárazon)</button>
+    <button class="btn btn-secondary" type="button" id="colRun"<?= $access->client() ? '' : ' disabled' ?>><?= $ic('flask') ?>Csak gyűjtés</button>
+    <button class="btn btn-secondary" type="button" id="monDry"<?= $access->client() ? '' : ' disabled' ?>><?= $ic('sparkle') ?>Havi futás szárazon</button>
+    <button class="btn btn-primary" type="button" id="monLive"<?= $access->client() ? '' : ' disabled' ?>><?= $ic('play') ?>Havi futás élesben</button>
   </div>
-  <p class="help" id="colHint">Forrásonként néhány másodperc; dátum nélküli cikkeknél a cikkoldalt is megnyitja. Egy teljes gyűjtés 1–3 perc lehet.</p>
+  <p class="help" id="colHint"><b>Csak gyűjtés:</b> a források eredménye Claude nélkül. <b>Havi futás szárazon:</b> gyűjtés és Claude-értékelés, mentés nélkül (néhány tized cent). <b>Élesben:</b> a hónap listája és összefoglalója bekerül a Havi cikkek közé; egy hónapra egyszer. Egy futás 1–3 perc lehet.</p>
   <div id="colOut" hidden>
     <div class="result-meta" id="colMeta"></div>
     <div class="table-wrap mini-table" style="border:1px solid var(--border);border-radius:var(--r-lg);margin-top:12px" id="colSources"></div>
+    <div id="monSum" hidden></div>
     <h3 class="sub-h">Talált új cikkek</h3>
     <div class="card table-card" style="box-shadow:none"><div class="table-wrap" id="colItems"></div><div class="pager" id="colPager"></div></div>
   </div>

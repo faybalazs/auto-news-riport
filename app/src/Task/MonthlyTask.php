@@ -4,12 +4,12 @@ declare(strict_types=1);
 namespace Xperion\Task;
 
 /**
- * Havi futás (product.md 6.1): az előző hónap cikkeinek gyűjtése minden aktív
- * ügyfélnek (4. lépés, egyelőre mentés nélkül). Az értékelés és a mentés az 5. lépés.
+ * Havi futás (product.md 6.1): minden „Aktív” ügyfélnek az előző hónap cikkeinek
+ * gyűjtése, Claude-értékelése, és élesben a havi lista és az összefoglaló mentése.
  */
 final class MonthlyTask implements Task
 {
-    /** @var (callable(TaskContext, string):void)|null minden aktív ügyfél gyűjtése */
+    /** @var (callable(TaskContext, string):void)|null a havi futás minden aktív ügyfélre */
     private $collectAll;
 
     public function __construct(?callable $collectAll = null)
@@ -29,7 +29,7 @@ final class MonthlyTask implements Task
 
     public function readOnly(): bool
     {
-        return true;
+        return false;
     }
 
     /** Az előző hónap első napja (a havi futás az előző hónap cikkeit dolgozza fel). */
@@ -53,6 +53,5 @@ final class MonthlyTask implements Task
             return;
         }
         ($this->collectAll)($ctx, self::monthKey($month));
-        $ctx->warn('A gyűjtés eredménye még nem kerül mentésre: a mentés és a Claude-értékelés az 5. lépésben készül el.');
     }
 }
