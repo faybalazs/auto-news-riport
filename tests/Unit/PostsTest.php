@@ -234,6 +234,29 @@ final class PostsTest extends DbTestCase
         self::assertSame([], $this->claude->requests);
     }
 
+    public function testReferenceImageSurvivesSanitizerAndGuidesDesigner(): void
+    {
+        $sample = (string) file_get_contents(dirname(__DIR__, 2) . '/app/resources/poszt-kep-minta.svg');
+        $clean = \Xperion\Posts\SvgSanitizer::clean($sample);
+        self::assertNotNull($clean);
+        foreach (['<pattern', 'Mennyit ér egy', 'ILLUSZTRATÍV PÉLDA', '<polygon', 'xperion.hu', 'fill="url(#grid)"'] as $k) {
+            self::assertStringContainsString($k, $clean, 'a minta a tisztítás után is teljes');
+        }
+        $withFont = \Xperion\Posts\SvgFonts::embed($clean);
+        self::assertStringContainsString("@font-face{font-family:'Lato'", $withFont);
+        self::assertSame(6, substr_count($withFont, '@font-face'), 'Lato 400/700/900, latin és latin-ext');
+
+        $this->rules->save($this->op(), null, 'Hangnem', 'Tárgyilagos');
+        $a = $this->art('2610', 'Bank');
+        $code = $this->posts->request($this->op(), 'cikk', (string) $a);
+        $req = $this->claude->requests[1]['body'];
+        self::assertSame('high', $req['output_config']['effort']);
+        self::assertStringContainsString('Mennyit ér egy', $req['system'][0]['text'], 'a minta SVG a tervező utasításában');
+        self::assertStringContainsString('ELRENDEZÉSEK', $req['system'][0]['text']);
+        self::assertStringContainsString('@font-face', $this->posts->get($this->op(), $code)['image_svg'], 'megjelenítéskor beágyazott betű');
+        self::assertStringNotContainsString('@font-face', (string) $this->db->value('SELECT image_svg FROM posts WHERE code = ?', [$code]), 'az adatbázisban betű nélkül');
+    }
+
     public function testFullTextSkipsEmptyParts(): void
     {
         self::assertSame("A\n\nB", PostWriter::fullText(['opening' => 'A', 'context' => ' ', 'closing' => 'B', 'source_link' => 'https://x']));

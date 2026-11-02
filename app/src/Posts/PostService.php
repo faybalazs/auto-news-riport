@@ -480,7 +480,7 @@ final class PostService
             }
             $p['image'] = (is_array($img) ? $img : []) + ['title' => '', 'subtitle' => '', 'measured' => '', 'real' => ''];
             $p['full_text'] = PostWriter::fullText($p);
-            $p['image_svg'] = (string) ($r['image_svg'] ?? '');
+            $p['image_svg'] = SvgFonts::embed((string) ($r['image_svg'] ?? ''));
             $p['idea_topic'] = (string) ($r['idea_topic'] ?? '');
         }
         return $p;
