@@ -19,3 +19,5 @@ A dátum a rögzítés napja; a döntések a felhasználóval folytatott claude.
 | 2026-11-02 | Szerepkörök: Üzemeltető (minden ügyfél), Ügyfél-adminisztrátor, Tartalomkezelő, Olvasó; meghívás e-mailben | a prototípus jogosultságmátrixa szerint | felhasználói döntés | aktív |
 | 2026-11-02 | Cikkdöntések: Mehet / LinkedIn poszt / Nem kell; a „próbaidőszakos” források neve a felületen „Új források” | a felhasználó kérése | felhasználói döntés | aktív |
 | 2026-11-02 | A posztszabályok kiinduló tartalma a felhasználó által megadott 48 szabály (docs/adat/linkedin-szabalyok.tsv) | a Sheet „LinkedIn szabályok” lapjának aktuális állapota | felhasználói közlés | aktív |
+| 2026-11-02 | Adatbázis: MySQL (a tárhely saját MySQL-e), automatikus migrációval | a felhasználó választása; a tárhely mentése kezeli | felhasználói döntés | aktív |
+| 2026-11-02 | Belépés e-mail + jelszóval; az első üzemeltetői fiókot a `admin_key` beállítókulccsal lehet létrehozni; meghívó és jelszólink kézzel küldhető, amíg nincs SMTP | terminál nélküli telepítés; az SMTP még nincs meg | javaslat (2. lépés terve), jóváhagyva | aktív |

@@ -89,11 +89,12 @@ final class Config
         $cronKey = $this->string('cron_key');
         return [
             ['label' => 'Konfigurációs fájl', 'ok' => $this->isLoaded(), 'note' => $this->isLoaded() ? basename($this->source) : 'hiányzik'],
-            ['label' => 'Admin kulcs', 'ok' => strlen($adminKey) >= 16, 'note' => $adminKey === '' ? 'hiányzik' : (strlen($adminKey) < 16 ? 'túl rövid' : 'beállítva')],
+            ['label' => 'Adatbázis', 'ok' => $this->has('db.name') && $this->has('db.user'), 'note' => $this->has('db.name') ? 'beállítva' : 'hiányzik'],
+            ['label' => 'Beállítókulcs', 'ok' => strlen($adminKey) >= 16, 'note' => $adminKey === '' ? 'hiányzik' : (strlen($adminKey) < 16 ? 'túl rövid' : 'beállítva')],
             ['label' => 'Cron-kulcs', 'ok' => strlen($cronKey) >= 16, 'note' => $cronKey === '' ? 'hiányzik' : (strlen($cronKey) < 16 ? 'túl rövid' : 'beállítva')],
-            ['label' => 'Google-szolgáltatásfiók', 'ok' => $this->serviceAccountJson() !== '', 'note' => $this->serviceAccountJson() !== '' ? 'beállítva' : 'hiányzik'],
-            ['label' => 'Claude API-kulcs', 'ok' => $this->has('claude_api_key'), 'note' => $this->has('claude_api_key') ? 'beállítva' : 'a 3. lépéstől kell'],
-            ['label' => 'SMTP', 'ok' => $this->has('smtp.host') && $this->has('smtp.from_email'), 'note' => $this->has('smtp.host') ? 'beállítva' : 'a 4. lépéstől kell'],
+            ['label' => 'Google (adatátvételhez)', 'ok' => $this->serviceAccountJson() !== '', 'note' => $this->serviceAccountJson() !== '' ? 'beállítva' : 'hiányzik'],
+            ['label' => 'Claude API-kulcs', 'ok' => $this->has('claude_api_key'), 'note' => $this->has('claude_api_key') ? 'beállítva' : 'az 5. lépéstől kell'],
+            ['label' => 'SMTP', 'ok' => $this->has('smtp.host') && $this->has('smtp.from_email'), 'note' => $this->has('smtp.host') ? 'beállítva' : 'a 7. lépéstől kell'],
         ];
     }
 }

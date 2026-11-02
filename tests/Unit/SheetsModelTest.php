@@ -6,9 +6,7 @@ namespace Xperion\Tests\Unit;
 use PHPUnit\Framework\TestCase;
 use Xperion\Sheets\Keyword;
 use Xperion\Sheets\SheetNames;
-use Xperion\Sheets\Settings;
 use Xperion\Sheets\Source;
-use Xperion\Tests\SheetsFixture;
 
 final class SheetsModelTest extends TestCase
 {
@@ -44,25 +42,5 @@ final class SheetsModelTest extends TestCase
         self::assertTrue(SheetNames::isMonthly('2609'));
         self::assertFalse(SheetNames::isMonthly('2613'));
         self::assertFalse(SheetNames::isMonthly('Napló'));
-    }
-
-    public function testSettingsParseSkipsHeaderAndKeepsRows(): void
-    {
-        $p = Settings::parse([['Kulcs', 'Érték'], ['ugyfel_email', ' a@b.hu '], [], ['aktualis_honap', '2611']]);
-        self::assertSame(['row' => 2, 'value' => 'a@b.hu'], $p['ugyfel_email']);
-        self::assertSame(4, $p['aktualis_honap']['row']);
-    }
-
-    public function testSettingsSetUpdatesExistingOrAppends(): void
-    {
-        $f = new SheetsFixture([SheetNames::SETTINGS], [SheetNames::SETTINGS => [['Kulcs', 'Érték'], ['honap_email_allapot', 'Jóváhagyásra vár']]]);
-        $s = new Settings($f->client);
-        self::assertSame('Jóváhagyásra vár', $s->get('honap_email_allapot'));
-        $s->set('honap_email_allapot', 'Mehet');
-        $s->set('uj_kulcs', 'x');
-        [$put, $append] = $f->writes();
-        self::assertSame('PUT', $put['method']);
-        self::assertStringContainsString(rawurlencode("'Beállítások'!B2"), $put['url']);
-        self::assertStringContainsString(':append', $append['url']);
     }
 }

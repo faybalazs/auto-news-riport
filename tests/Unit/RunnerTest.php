@@ -47,10 +47,7 @@ final class RunnerTest extends TestCase
         $entry = (new LocalLog($this->dir . '/naplo.jsonl'))->last('proba');
         self::assertNotNull($entry);
         self::assertFalse($entry->ok);
-        // éles futás: a Napló lapra is kerül
-        $append = $f->writes()[0];
-        self::assertStringContainsString(rawurlencode("'Napló'!A:D"), $append['url']);
-        self::assertSame('Hiba', json_decode((string) $append['body'], true)['values'][0][2]);
+        self::assertSame([], $f->writes(), 'a futás nem ír a Google Sheetbe');
     }
 
     public function testDryRunNeverWritesToSheet(): void

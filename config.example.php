@@ -4,8 +4,18 @@
  * "xperion-config.php" néven), és töltsd ki. A config.php soha nem kerül a repóba.
  */
 return [
-    // Belépési kulcs az admin felülethez (legalább 16 karakter, véletlenszerű).
+    // Beállítókulcs (legalább 16 karakter, véletlenszerű). Csak az első indításkor kell:
+    // ezzel lehet létrehozni az első üzemeltetői fiókot.
     'admin_key' => '',
+
+    // MySQL-adatbázis (a tárhely vezérlőpultjában hozd létre, utf8mb4 kódolással).
+    'db' => [
+        'host' => 'localhost',
+        'port' => 3306,
+        'name' => '',
+        'user' => '',
+        'pass' => '',
+    ],
 
     // Kulcs a cron-hívásokhoz: cron.php?feladat=havi&k=<cron_key>
     'cron_key' => '',
@@ -13,15 +23,15 @@ return [
     // A Google Sheet azonosítója.
     'spreadsheet_id' => '1MuPaB3VG2LAkHntWJy7FmjTyzzDSx9thgeKjLkZSqPA',
 
-    // Google szolgáltatásfiók: VAGY a letöltött JSON-fájl elérési útja,
+    // Google szolgáltatásfiók (csak a korábbi adatok egyszeri átvételéhez): VAGY a letöltött JSON-fájl elérési útja,
     // VAGY a JSON teljes tartalma idézőjelek között (az egyik elég).
     'google_service_account_file' => '',
     'google_service_account_json' => '',
 
-    // Claude API-kulcs (a 3. lépéstől kell).
+    // Claude API-kulcs (az 5. lépéstől kell: értékelés, összefoglaló, posztok).
     'claude_api_key' => '',
 
-    // SMTP a havi e-mailhez és az értesítésekhez (a 4. lépéstől kell).
+    // SMTP a havi e-mailhez, a meghívókhoz és az értesítésekhez (a 7. lépéstől kell; addig a meghívó link másolható).
     'smtp' => [
         'host' => '',
         'port' => 465,

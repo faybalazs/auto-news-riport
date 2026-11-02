@@ -42,7 +42,7 @@ final class ConfigTest extends TestCase
         $flat = json_encode($c->checklist());
         self::assertStringNotContainsString('titkos-kulcs', (string) $flat);
         $byLabel = array_column($c->checklist(), null, 'label');
-        self::assertTrue($byLabel['Admin kulcs']['ok']);
+        self::assertTrue($byLabel['Beállítókulcs']['ok']);
         self::assertFalse($byLabel['Cron-kulcs']['ok']);
         self::assertSame('túl rövid', $byLabel['Cron-kulcs']['note']);
     }

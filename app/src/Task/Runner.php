@@ -7,7 +7,6 @@ use Xperion\Google\SheetsClient;
 use Xperion\Lock;
 use Xperion\Log\LocalLog;
 use Xperion\Log\LogEntry;
-use Xperion\Sheets\SheetNames;
 
 /**
  * Feladat futtatása zárolással, hibafogással és naplózással.
@@ -72,17 +71,6 @@ final class Runner
         $entry = new LogEntry($now, $id, $task->label(), $dry, $trigger, $result->ok, $result->summary(), $result->durationMs);
         $this->log->append($entry);
 
-        // A Napló lapra csak éles, író futás kerül (a szárazfuttatás semmit nem ír a táblába).
-        if (!$dry && !$task->readOnly()) {
-            try {
-                $sheets = ($this->sheetsFactory)();
-                if (isset($sheets->sheets()[SheetNames::LOG])) {
-                    $sheets->appendValues(SheetsClient::range(SheetNames::LOG, 'A:D'), [$entry->toSheetRow()]);
-                }
-            } catch (\Throwable $e) {
-                $this->log->append(new LogEntry($now, $id, $task->label() . ' – naplózás', $dry, $trigger, false, 'A Napló lapra írás sikertelen: ' . $e->getMessage(), 0));
-            }
-        }
         // SABLON: hiba esetén e-mail-értesítés az üzemeltetőnek (4. lépés, SMTP).
         return $result;
     }

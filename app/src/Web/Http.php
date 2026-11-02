@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Xperion\Admin;
+namespace Xperion\Web;
 
-/** Közös HTTP-fejlécek a webes belépési pontokhoz. */
+/** Közös HTTP-segédek a webes belépési pontokhoz. */
 final class Http
 {
     public static function securityHeaders(): void
@@ -16,6 +16,11 @@ final class Http
         header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
     }
 
+    public static function isHttps(): bool
+    {
+        return (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
+    }
+
     /** @param array<string,mixed> $data */
     public static function json(array $data, int $status = 200): never
     {
@@ -25,12 +30,17 @@ final class Http
         exit;
     }
 
+    public static function redirect(string $to): never
+    {
+        header('Location: ' . $to, true, 303);
+        exit;
+    }
+
     public static function baseUrl(): string
     {
-        $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
         $host = (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
         $dir = rtrim(str_replace('\\', '/', dirname((string) ($_SERVER['SCRIPT_NAME'] ?? '/'))), '/');
-        return ($https ? 'https' : 'http') . '://' . $host . $dir . '/';
+        return (self::isHttps() ? 'https' : 'http') . '://' . $host . $dir . '/';
     }
 
     public static function clientIp(): string

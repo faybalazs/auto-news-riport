@@ -3,15 +3,9 @@ declare(strict_types=1);
 
 namespace Xperion\Task;
 
-use Xperion\Google\SheetsClient;
-use Xperion\Sheets\Keyword;
-use Xperion\Sheets\SheetNames;
-use Xperion\Sheets\Source;
-
 /**
- * Havi futás (product.md 6.1). Az 1. lépésben csak az előkészítés van kész:
- * célhónap, idempotencia-ellenőrzés, források és kulcsszavak beolvasása.
- * A gyűjtés (2. lépés), az értékelés és a lap létrehozása (3. lépés) később jön.
+ * Havi futás (product.md 6.1). Most a célhónapot határozza meg; a gyűjtés
+ * (4. lépés) és az értékelés (5. lépés) később kerül bele, ügyfelenként.
  */
 final class MonthlyTask implements Task
 {
@@ -27,7 +21,7 @@ final class MonthlyTask implements Task
 
     public function readOnly(): bool
     {
-        return false;
+        return true;
     }
 
     /** Az előző hónap első napja (a havi futás az előző hónap cikkeit dolgozza fel). */
@@ -36,29 +30,16 @@ final class MonthlyTask implements Task
         return $now->modify('first day of previous month')->setTime(0, 0);
     }
 
+    /** Hónapazonosító: 2026. október → "2610". */
+    public static function monthKey(\DateTimeInterface $month): string
+    {
+        return $month->format('ym');
+    }
+
     public function run(TaskContext $ctx): void
     {
         $month = self::targetMonth($ctx->now);
-        $title = SheetNames::monthly($month);
-        $ctx->info('Célhónap: ' . $month->format('Y. m.') . ' → „' . $title . '” lap.');
-
-        $sheets = $ctx->sheets();
-        if (isset($sheets->sheets()[$title])) {
-            $ctx->info('A „' . $title . '” lap már létezik, új lapot nem hoz létre.');
-            return;
-        }
-
-        [$srcRows, $kwRows] = $sheets->batchGetValues([
-            SheetsClient::range(SheetNames::SOURCES, 'A:F'),
-            SheetsClient::range(SheetNames::KEYWORDS, 'A:D'),
-        ]);
-        $active = array_values(array_filter(Source::fromRows($srcRows), static fn (Source $s) => $s->active));
-        $trial = count(array_filter($active, static fn (Source $s) => $s->isTrial()));
-        $keywords = Keyword::fromRows($kwRows);
-        $excl = count(array_filter($keywords, static fn (Keyword $k) => $k->exclude));
-        $ctx->info(sprintf('Aktív források: %d (ebből próbaidőszakos: %d).', count($active), $trial));
-        $ctx->info(sprintf('Kulcsszavak: %d pozitív, %d kizáró.', count($keywords) - $excl, $excl));
-
-        $ctx->warn('A cikkgyűjtés, az értékelés és a havi lap létrehozása a következő lépésekben készül el; most nem történt írás.');
+        $ctx->info('Célhónap: ' . $month->format('Y. m.') . ' (' . self::monthKey($month) . ').');
+        $ctx->warn('A cikkgyűjtés és az értékelés a 4–5. lépésben készül el; most nem történt írás.');
     }
 }

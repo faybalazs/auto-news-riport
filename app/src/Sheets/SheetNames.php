@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Xperion\Sheets;
 
-/** A Google Sheet munkalapjainak neve (product.md 4.). */
+/** A Google Sheet munkalapjainak neve (product.md 4.); csak az egyszeri adatátvételhez. */
 final class SheetNames
 {
     public const SOURCES = 'Figyelendő oldalak';
@@ -19,8 +19,6 @@ final class SheetNames
     /** Meglévő lapok, amelyek nélkül nem lehet dolgozni. */
     public const REQUIRED = [self::SOURCES, self::KEYWORDS, self::LINKEDIN_POSTS, self::LINKEDIN_RULES, self::MONTHLY_TEMPLATE];
 
-    /** Új lapok, amelyeket a "Munkalapok előkészítése" hoz létre. */
-    public const CREATED = [self::SETTINGS, self::LOG, self::POST_IDEAS];
 
     /** Havi lap neve egy dátumból: 2026. október → "2610". */
     public static function monthly(\DateTimeInterface $month): string

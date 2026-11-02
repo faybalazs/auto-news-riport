@@ -9,7 +9,7 @@ PHP-alkalmazás, amely havonta lefuttatja az Xperion (xperion.hu) sajtófigyelé
    - [docs/roadmap.md](docs/roadmap.md): ütemek
    - [docs/decisions.md](docs/decisions.md): érvényes döntések
    - [docs/terminology.md](docs/terminology.md): a magyar szakkifejezések és jelentésük
-3. `docs/architecture.md` még nincs: az 1. ütem első kódja után kell létrehozni (modul | belépési pont | kapcsolódó részek).
+3. [docs/architecture.md](docs/architecture.md): modulok, belépési pontok, adatbázis.
 
 ## Mérvadó források
 - **Követelmények:** docs/product.md. Ha a kód vagy egy kérés ellentmond neki, jelezd, ne dönts helyette.

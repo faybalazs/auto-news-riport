@@ -12,7 +12,13 @@ use Xperion\Task\ConnectionCheckTask;
 use Xperion\Task\HourlyTask;
 use Xperion\Task\MonthlyTask;
 use Xperion\Task\Runner;
-use Xperion\Task\SetupSheetsTask;
+use Xperion\Auth\AuditLog;
+use Xperion\Auth\Authenticator;
+use Xperion\Auth\ClientAdmin;
+use Xperion\Auth\TokenService;
+use Xperion\Auth\UserAdmin;
+use Xperion\Db\Database;
+use Xperion\Db\Migrator;
 
 /** Egyszerű szolgáltatás-tároló: a konfigurációból építi fel a részeket. */
 final class App
@@ -21,6 +27,7 @@ final class App
     private ?ServiceAccountAuth $auth = null;
     private ?SheetsClient $sheets = null;
     private ?Runner $runner = null;
+    private ?Database $db = null;
 
     public function __construct(public readonly Config $config, public readonly string $storageDir)
     {
@@ -56,6 +63,52 @@ final class App
         return $this->sheets;
     }
 
+    public function dbConfigured(): bool
+    {
+        return $this->config->has('db.name') && $this->config->has('db.user');
+    }
+
+    public function db(): Database
+    {
+        if ($this->db === null) {
+            if (!$this->dbConfigured()) {
+                throw new \RuntimeException('Nincs beállítva az adatbázis (config.php: db).');
+            }
+            $this->db = Database::connect((array) $this->config->get('db', []));
+        }
+        return $this->db;
+    }
+
+    public function migrator(): Migrator
+    {
+        return new Migrator($this->db(), dirname(__DIR__) . '/migrations');
+    }
+
+    public function audit(): AuditLog
+    {
+        return new AuditLog($this->db());
+    }
+
+    public function users(): UserAdmin
+    {
+        return new UserAdmin($this->db(), new TokenService($this->db()), $this->audit());
+    }
+
+    public function clients(): ClientAdmin
+    {
+        return new ClientAdmin($this->db(), $this->audit());
+    }
+
+    public function authenticator(): Authenticator
+    {
+        return new Authenticator($this->db());
+    }
+
+    public function tokens(): TokenService
+    {
+        return new TokenService($this->db());
+    }
+
     public function log(): LocalLog
     {
         return new LocalLog($this->storageDir . '/naplo.jsonl');
@@ -71,7 +124,7 @@ final class App
                 // a kapcsolat-ellenőrzés jelzi a hibát
             }
             $this->runner = new Runner(
-                [new ConnectionCheckTask($email), new SetupSheetsTask(), new MonthlyTask(), new HourlyTask()],
+                [new ConnectionCheckTask($email), new MonthlyTask(), new HourlyTask()],
                 fn (): SheetsClient => $this->sheets(),
                 $this->log(),
                 $this->storageDir . '/futas.lock',

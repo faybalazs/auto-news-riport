@@ -43,10 +43,6 @@ final class ConnectionCheckTask implements Task
         if ($missing) {
             $ctx->error('Hiányzó munkalap: ' . implode(', ', $missing) . '.');
         }
-        $toCreate = array_values(array_diff(SheetNames::CREATED, $titles));
-        if ($toCreate) {
-            $ctx->warn('Még nincs létrehozva: ' . implode(', ', $toCreate) . '. Futtasd a „Munkalapok előkészítése” feladatot.');
-        }
         $monthly = array_values(array_filter($titles, [SheetNames::class, 'isMonthly']));
         sort($monthly);
         if ($monthly) {

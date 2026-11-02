@@ -8,7 +8,7 @@ declare(strict_types=1);
  * Feladatok: havi, orankenti.
  */
 
-use Xperion\Admin\Http;
+use Xperion\Web\Http;
 
 /** @var \Xperion\App $app */
 $app = require __DIR__ . '/app/bootstrap.php';
