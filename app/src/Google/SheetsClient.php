@@ -123,7 +123,11 @@ final class SheetsClient
             $body === null ? null : json_encode($body, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
         );
         if (!$response->ok()) {
-            $hint = $response->status === 403 ? ' (Meg van osztva a tábla a szolgáltatásfiókkal szerkesztőként?)' : '';
+            $hint = match ($response->status) {
+                403 => ' (Meg van osztva a tábla a szolgáltatásfiók e-mail-címével? Be van kapcsolva a Google Sheets API a Google Cloud projektben?)',
+                404 => ' (A tábla nem található: ellenőrizze az ügyfélnél megadott linket.)',
+                default => '',
+            };
             throw new HttpException('Google Sheets: ' . $response->errorMessage() . $hint, $response->status);
         }
         return $response->body === '' ? [] : $response->json();

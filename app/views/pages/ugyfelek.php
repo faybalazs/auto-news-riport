@@ -13,11 +13,9 @@ $cur = $access->client();
   <aside class="stack">
     <section class="card widget" aria-labelledby="h-imp" id="impCard">
       <div class="widget-head"><div><h2 id="h-imp">Adatátvétel a Google Sheetből</h2><p class="meta" id="impMeta"><?= $e($cur['name'] ?? 'Nincs kiválasztott ügyfél') ?></p></div></div>
-      <?php if (empty($data['googleReady'])): ?>
-      <div class="banner bn-info" role="note"><?= $ic('info', 'icon') ?><div class="b-body"><span>A config.php-ban nincs Google-szolgáltatásfiók; az adatátvételhez az kell (README).</span></div></div>
-      <?php else: ?>
+      <?php if (!empty($data['serviceEmail'])): ?>
       <p class="help">A táblát meg kell osztani ezzel a címmel (olvasóként elég):</p>
-      <div class="copy-box"><code id="svcEmail"><?= $e($data['serviceEmail'] ?? '') ?></code><button class="btn btn-ghost sm" type="button" data-copy="<?= $e($data['serviceEmail'] ?? '') ?>"><?= $ic('copy') ?>Másolás</button></div>
+      <div class="copy-box"><code id="svcEmail"><?= $e($data['serviceEmail']) ?></code><button class="btn btn-ghost sm" type="button" data-copy="<?= $e($data['serviceEmail']) ?>"><?= $ic('copy') ?>Másolás</button></div>
       <?php endif; ?>
       <dl class="kv" id="impKv"></dl>
       <div class="acts-row">

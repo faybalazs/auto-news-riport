@@ -458,22 +458,29 @@ if (APP.page === 'ugyfelek'){
   const LEVEL = { ok:['check','Kész'], info:['chev-right','Információ'], warn:['alert','Figyelmeztetés'], error:['x-circle','Hiba'], dry:['info','Szárazfuttatás'] };
   function renderImp(){
     const c = rows.find(r => +r.id === APP.me.clientId);
-    $('#impKv').innerHTML = !c ? '' : [['Google Sheet', c.spreadsheet_id ? `<a href="https://docs.google.com/spreadsheets/d/${esc(c.spreadsheet_id)}/edit" target="_blank" rel="noopener">megnyitás</a>` : '<span class="meta">nincs megadva</span>'], ['Források', c.sources], ['Kulcsszavak', c.keywords], ['Cikkek', HU.num.format(c.articles)], ['Posztok', c.posts], ['Posztszabályok', c.rules]].map(([a, b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join('');
-    const off = !c || !c.spreadsheet_id || !$('#svcEmail');
-    $('#impDry').disabled = $('#impLive').disabled = off;
-    $('#impDry').title = $('#impLive').title = !c ? 'Nincs kiválasztott ügyfél' : !c.spreadsheet_id ? 'Előbb adja meg az ügyfél Google Sheetjét (Szerkesztés)' : '';
+    const ok = t => `<span class="badge b-success">${ic('check','icon')}${t}</span>`, bad = t => `<span class="badge b-warning">${ic('alert','icon')}${t}</span>`;
+    const g = APP.data.googleReady ? (APP.data.serviceEmail ? ok('beállítva') : bad('a JSON nem olvasható')) : bad('nincs beállítva (config.php)');
+    const sheet = !c ? '–' : c.spreadsheet_id ? `<a href="https://docs.google.com/spreadsheets/d/${esc(c.spreadsheet_id)}/edit" target="_blank" rel="noopener">${ic('check')}megadva, megnyitás</a>` : `<button type="button" class="btn btn-secondary sm" id="impSetSheet">${ic('edit')}Link megadása</button>`;
+    $('#impKv').innerHTML = [['Kiválasztott ügyfél', c ? esc(c.name) : bad('nincs')], ['Google-fiók', g], ['Google Sheet', sheet]].concat(c ? [['Források', c.sources], ['Kulcsszavak', c.keywords], ['Cikkek', HU.num.format(c.articles)], ['Posztok', c.posts], ['Posztszabályok', c.rules]] : []).map(([a, b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join('');
+    $('#impSetSheet')?.addEventListener('click', () => { openDlg(c); setTimeout(() => $('#c-sheet').focus(), 50); });
+  }
+  function impError(msg){
+    $('#impLines').innerHTML = `<li class="l-error">${ic('x-circle')}<span><span class="sr-only">Hiba: </span>${esc(msg)}</span></li>`;
+    $('#impLines').hidden = false;
   }
   async function runImp(dry){
-    const c = rows.find(r => +r.id === APP.me.clientId); if (!c) return;
+    const c = rows.find(r => +r.id === APP.me.clientId);
+    if (!c){ impError('Nincs kiválasztott ügyfél. Válasszon ügyfelet a felső sávban.'); return; }
+    if (!c.spreadsheet_id){ impError('Ennél az ügyfélnél nincs megadva Google Sheet. Kattintson a „Link megadása” gombra, és másolja be a tábla linkjét.'); return; }
     if (!dry){ const ok = await confirmBox({ title:`Átveszi a(z) ${c.name} adatait a Google Sheetből?`, body:'A forrásokat, kulcsszavakat, a havi lapok cikkeit, a posztokat, az ötleteket és a beállításokat beírja az adatbázisba. Többször is futtatható: a meglévőt frissíti, nem duplikál. A szabályokat csak akkor tölti be, ha még nincs szabály.', confirm:'Adatok átvétele', danger:false }); if (!ok) return; }
-    const b = dry ? $('#impDry') : $('#impLive'); busy(b, true); $('#impDry').disabled = $('#impLive').disabled = true;
+    const b = dry ? $('#impDry') : $('#impLive'); busy(b, true);
     try {
       const r = await api('atvetel', { dry });
       $('#impLines').innerHTML = r.lines.map(l => { const L = LEVEL[l.level] || LEVEL.info; return `<li class="l-${esc(l.level)}">${ic(L[0])}<span><span class="sr-only">${L[1]}: </span>${esc(l.text)}</span></li>`; }).join('');
       $('#impLines').hidden = false;
       setRows(r.clients); table.render(); renderOnb();
       toast(r.ok ? (dry ? 'Szárazfuttatás kész. Nézze át az eredményt.' : 'Az adatok átvétele kész.') : 'Az adatátvétel nem sikerült. A részletek a kártyán.', { type:r.ok ? 'success' : 'error' });
-    } catch(e){ toast(e.message, { type:'error' }); }
+    } catch(e){ impError(e.message); toast(e.message, { type:'error' }); }
     finally { busy(b, false); renderImp(); }
   }
   $('#impDry').addEventListener('click', () => runImp(true));

@@ -42,7 +42,7 @@ final class SheetsClientTest extends TestCase
             $client->sheets();
             self::fail('kivételt vártunk');
         } catch (HttpException $e) {
-            self::assertStringContainsString('HTTP 403: The caller does not have permission', $e->getMessage());
+            self::assertStringContainsString('HTTP 403: The caller does not have permission", $e->getMessage());
             self::assertStringContainsString('szolgáltatásfiókkal', $e->getMessage());
         }
     }
