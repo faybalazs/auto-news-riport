@@ -15,9 +15,16 @@ final class SmtpMailer implements Mailer
     private array $cfg;
 
     /** @param array<string,mixed> $cfg config.php smtp része */
-    public function __construct(array $cfg, private SmtpConnection $conn = new StreamSmtpConnection())
+    private SmtpConnection $conn;
+
+    public function __construct(array $cfg, ?SmtpConnection $conn = null)
     {
         $this->cfg = self::normalize($cfg);
+        $verify = !in_array(strtolower(trim((string) ($this->cfg['verify_peer'] ?? 'true'))), ['0', 'false', 'no', 'nem', ''], true) || ($this->cfg['verify_peer'] ?? true) === true;
+        if (array_key_exists('verify_peer', $cfg) && $cfg['verify_peer'] === false) {
+            $verify = false;
+        }
+        $this->conn = $conn ?? new StreamSmtpConnection($verify, trim((string) ($this->cfg['peer_name'] ?? '')));
     }
 
     /**
@@ -147,6 +154,101 @@ final class SmtpMailer implements Mailer
         } finally {
             $this->conn->close();
         }
+    }
+
+    /**
+     * Kapcsolatpróba levélküldés nélkül: kapcsolódás, üdvözlés, (STARTTLS), belépés, kilépés.
+     *
+     * @return array{ok:bool, error:string, cert:list<string>}
+     */
+    public function check(): array
+    {
+        $host = (string) ($this->cfg['host'] ?? '');
+        $secure = (string) $this->cfg['secure'];
+        $port = (int) ($this->cfg['port'] ?? ($secure === 'ssl' ? 465 : 587));
+        $user = (string) ($this->cfg['user'] ?? '');
+        try {
+            $this->conn->open($host, $port, $secure === 'ssl', 10);
+            try {
+                $this->expect([220]);
+                $ehlo = $this->ehlo();
+                if ($secure === 'tls') {
+                    if (!preg_grep('/^STARTTLS/i', $ehlo)) {
+                        throw new MailException('a szerver ezen a porton nem kínál STARTTLS-t');
+                    }
+                    $this->cmd('STARTTLS', [220]);
+                    $this->conn->startTls();
+                    $ehlo = $this->ehlo();
+                }
+                if ($user !== '') {
+                    $pass = (string) ($this->cfg['pass'] ?? '');
+                    try {
+                        $this->cmd('AUTH PLAIN ' . base64_encode("\0" . $user . "\0" . $pass), [235], 'AUTH PLAIN ***');
+                    } catch (MailException $e) {
+                        throw new MailException('a kapcsolat él, de a belépés nem sikerült (felhasználó vagy jelszó): ' . preg_replace('/^.*?: (?=\d{3})/', '', $e->getMessage()));
+                    }
+                }
+                try {
+                    $this->cmd('QUIT', [221]);
+                } catch (MailException) {
+                }
+            } finally {
+                $this->conn->close();
+            }
+            return ['ok' => true, 'error' => '', 'cert' => $this->conn instanceof StreamSmtpConnection ? $this->conn->certNames : []];
+        } catch (MailException $e) {
+            return ['ok' => false, 'error' => (string) preg_replace('/^Nem sikerült kapcsolódni az SMTP-szerverhez \([^)]*\): /', '', $e->getMessage()), 'cert' => $this->conn instanceof StreamSmtpConnection ? $this->conn->certNames : []];
+        }
+    }
+
+    /**
+     * A szokásos beállítások végigpróbálása (levél nélkül), hogy a tárhelyen kiderüljön, melyik működik.
+     *
+     * @param array<string,mixed> $cfg a config.php smtp része
+     * @param (callable(array<string,mixed>):self)|null $factory tesztben helyettesíthető
+     * @return list<array{host:string, port:int, secure:string, verify:bool, ok:bool, error:string, cert:list<string>}>
+     */
+    public static function probe(array $cfg, ?callable $factory = null): array
+    {
+        $c = self::normalize($cfg);
+        $host = (string) ($c['host'] ?? '');
+        $factory ??= static fn (array $x) => new self($x);
+        $cands = [];
+        foreach (array_unique(array_filter([$host, 'localhost'])) as $h) {
+            foreach ([[465, 'ssl'], [587, 'tls'], [25, 'tls'], [25, 'none']] as [$port, $sec]) {
+                $cands[] = [$h, $port, $sec];
+            }
+        }
+        $out = [];
+        foreach ($cands as [$h, $port, $sec]) {
+            $r = $factory(['host' => $h, 'port' => $port, 'secure' => $sec] + $c)->check();
+            $row = ['host' => $h, 'port' => $port, 'secure' => $sec, 'verify' => true] + $r;
+            if (!$r['ok'] && $sec !== 'none' && preg_match('/tanúsítvány|SSL|titkosított/u', $r['error'])) {
+                // ugyanez tanúsítvány-ellenőrzés nélkül (a kapcsolat így is titkosított)
+                $r2 = $factory(['host' => $h, 'port' => $port, 'secure' => $sec, 'verify_peer' => false] + $c)->check();
+                if ($r2['ok'] || !str_contains($r2['error'], 'kapcsol')) {
+                    $out[] = $row;
+                    // a tanúsítványon szereplő gépnévvel, ellenőrzéssel (ez a jobb megoldás, ha működik)
+                    foreach (array_slice($r2['cert'], 0, 3) as $name) {
+                        $name = str_starts_with($name, '*.') ? 'mail.' . substr($name, 2) : $name;
+                        if ($name === $h || !preg_match('/^[a-z0-9.-]+$/i', $name)) {
+                            continue;
+                        }
+                        $r3 = $factory(['host' => $name, 'port' => $port, 'secure' => $sec] + $c)->check();
+                        $out[] = ['host' => $name, 'port' => $port, 'secure' => $sec, 'verify' => true] + $r3;
+                        if ($r3['ok']) {
+                            return $out;
+                        }
+                    }
+                    $row = ['host' => $h, 'port' => $port, 'secure' => $sec, 'verify' => false] + $r2;
+                }
+            }
+            $out[] = $row;
+            if ($row['ok'] && $row['verify']) {
+                break; // az első, teljesen rendben lévő változat elég
+            }
+        }
+        return $out;
     }
 
     /** A teljes levél (fejlécek + törzs), CRLF sorvégekkel. */

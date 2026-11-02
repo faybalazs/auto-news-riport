@@ -200,6 +200,12 @@ try {
             return ['email' => $gen, 'row' => $em->get($access, $str('month'))];
         })(),
         'emailmentes' => ['email' => $app->emails()->update($access, $str('month'), $str('subject'), (string) ($in['body'] ?? ''))],
+        'smtpproba' => (function () use ($app, $access) {
+            $access->require('ops');
+            session_write_close();
+            @set_time_limit(180);
+            return ['rows' => \Xperion\Mail\SmtpMailer::probe($app->config->smtp()), 'duplicate' => in_array('smtp', $app->config->duplicateKeys(), true)];
+        })(),
         'emailteszt' => ['to' => $app->emails()->sendTest($access, $str('month'))],
         'emailkuldes' => ['email' => $app->emails()->approveAndSend($access, $str('month'))],
         'emailbeallitas' => ['settings' => $app->emails()->saveSettings($access, $str('to'), $str('cc'), (string) ($in['style'] ?? ''))],

@@ -751,6 +751,19 @@ if (APP.page === 'vezerlo' && $('#mailCard')){
     try { const d = await api('emailteszt', { month: sel.value }); toast(`Teszt e-mail elküldve ide: ${d.to}`); }
     catch(e){ showErr(e.message); } finally { busy(btn, false); render(); }
   });
+  $('#smtpProbe')?.addEventListener('click', async () => {
+    const b = $('#smtpProbe'); busy(b, true); announce('Az SMTP-kapcsolat ellenőrzése folyamatban…'); $('#smtpOut').hidden = true;
+    try {
+      const d = await api('smtpproba'); const ok = d.rows.find(r => r.ok);
+      const rows = d.rows.map(r => `<tr><td>${esc(r.host)}</td><td class="num">${r.port}</td><td>${esc(r.secure)}${r.verify ? '' : ' <span class="meta">(tanúsítvány-ellenőrzés nélkül)</span>'}</td><td>${r.ok ? `<span class="badge b-success">${ic('check','icon')}működik</span>` : `<span class="badge b-danger">${ic('x-circle','icon')}nem</span> <span class="meta">${esc(r.error)}</span>`}${r.cert && r.cert.length ? `<div class="meta">Tanúsítvány: ${esc(r.cert.slice(0, 4).join(', '))}</div>` : ''}</td></tr>`).join('');
+      const snippet = ok ? `'host' => '${ok.host}',\n'port' => ${ok.port},\n'secure' => '${ok.secure}',` + (ok.verify ? '' : `\n'verify_peer' => false,`) : '';
+      $('#smtpOut').innerHTML = (d.duplicate ? `<div class="banner bn-error" role="alert">${ic('alert','icon')}<div class="b-body"><span>A config.php-ban kétszer szerepel az „smtp” rész; az alsó érvényes. Töröld a fölöslegeset.</span></div></div>` : '')
+        + `<div class="table-wrap mini-table" style="border:1px solid var(--border);border-radius:var(--r-lg);margin-top:12px"><table><caption class="sr-only">SMTP-próbák</caption><thead><tr><th scope="col">Szerver</th><th scope="col" class="num">Port</th><th scope="col">Titkosítás</th><th scope="col">Eredmény</th></tr></thead><tbody>${rows}</tbody></table></div>`
+        + (ok ? `<p class="help" style="margin-top:12px"><b>Működő beállítás.</b> A config.php „smtp” részében ezeket a sorokat írd át így (a user, pass, from_email maradhat):</p><div class="copy-box"><code style="white-space:pre">${esc(snippet)}</code><button class="btn btn-ghost sm" type="button" data-copy="${esc(snippet)}">${ic('copy')}Másolás</button></div>`
+              : `<p class="help" style="margin-top:12px"><b>Egyik változat sem működött.</b> A hibák alapján: ha mindenhol időtúllépés vagy elutasítás van, a tárhely tiltja a kimenő levelezést – kérdezd meg a tárhely ügyfélszolgálatát, melyik SMTP-szervert és portot használhatják a PHP-programok. Ha belépési hiba van, a felhasználó vagy a jelszó hibás.</p>`);
+      $('#smtpOut').hidden = false; toast(ok ? 'Találtam működő beállítást.' : 'Nem találtam működő beállítást; a részletek a kártyán.', { type: ok ? 'success' : 'error' });
+    } catch(e){ toast(e.message, { type:'error' }); } finally { busy(b, false); }
+  });
   $('#mailApprove').addEventListener('click', async () => {
     const ok = await confirmBox({ title:'Elküldi a levelet az ügyfélnek?', body:`Címzett: ${st.to}${st.cc ? '\nMásolat: ' + st.cc : ''}\nTárgy: ${email.subject}\n\nA levél azonnal kimegy, és utána nem módosítható.`, confirm:'Küldés most', danger:false });
     if (!ok) return;

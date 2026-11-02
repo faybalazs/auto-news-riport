@@ -90,6 +90,11 @@ for ($i = 1; $i <= 6; $i++) {
     <button class="btn btn-ghost" type="button" id="mailCancel" hidden>Mégse</button>
     <button class="btn btn-ghost" type="button" id="mailTest"><?= $ic('send') ?>Teszt e-mail nekem</button>
   </div>
+  <div class="smtp-check">
+    <button class="btn btn-secondary sm" type="button" id="smtpProbe"><?= $ic('globe') ?>SMTP-kapcsolat ellenőrzése</button>
+    <span class="help">Végigpróbálja a szokásos beállításokat (465/SSL, 587/STARTTLS, 25, localhost) belépésig, levél nélkül, és megmutatja, melyik működik a tárhelyen. Fél–egy perc.</span>
+    <div id="smtpOut" hidden></div>
+  </div>
 </section>
 <?php endif; ?>
 <div class="layout">

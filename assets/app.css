@@ -717,6 +717,9 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 .art-opt{ display:flex; gap:10px; align-items:flex-start; padding:8px 10px; border:1px solid var(--border-control); border-radius:var(--r-md); font-size:var(--fs-sm); cursor:pointer; }
 .art-opt:has(input:checked){ border-color:var(--accent); background:var(--accent-subtle); }
 .art-opt input{ margin-top:3px; }
+.smtp-check{ display:flex; flex-direction:column; gap:6px; border-top:1px solid var(--border); padding-top:12px; }
+.smtp-check > .btn{ align-self:flex-start; }
+#smtpOut td{ white-space:normal; vertical-align:top; } #smtpOut td .meta{ display:inline; overflow-wrap:anywhere; }
 
 /* ================= 18. TÖRÉSPONTOK (mindig a CSS végén) ================= */
 @media (max-width:1279px){ .layout{ grid-template-columns:minmax(0,1fr); } .w-8, .w-4{ grid-column:span 12; } }

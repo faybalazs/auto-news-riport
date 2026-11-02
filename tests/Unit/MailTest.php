@@ -147,6 +147,34 @@ final class MailTest extends TestCase
         self::assertSame([], \Xperion\Config::load([$f])->duplicateKeys(), 'belső kulcsok (host) nem számítanak');
     }
 
+    public function testConnectErrorsAreExplainedInHungarian(): void
+    {
+        $e = \Xperion\Mail\StreamSmtpConnection::explain('', ['SSL operation failed with code 1. OpenSSL Error messages: error:0A000086:SSL routines::certificate verify failed']);
+        self::assertStringContainsString("'verify_peer' => false", $e);
+        self::assertStringContainsString('localhost', \Xperion\Mail\StreamSmtpConnection::explain('php_network_getaddresses: getaddrinfo for x failed', []));
+        self::assertStringContainsString('kimenő', \Xperion\Mail\StreamSmtpConnection::explain('Connection timed out', []));
+        self::assertStringContainsString('SMTP-kapcsolat ellenőrzése', \Xperion\Mail\StreamSmtpConnection::explain('', []));
+    }
+
+    public function testProbeFindsWorkingVariantAndPrefersCertificateName(): void
+    {
+        $tried = [];
+        $factory = function (array $cfg) use (&$tried) {
+            $tried[] = $cfg['host'] . ':' . $cfg['port'] . ':' . $cfg['secure'] . (isset($cfg['verify_peer']) ? ':noverify' : '');
+            $ok = $cfg['port'] === 465 && ($cfg['host'] === 'srv.sunserver.hu' || isset($cfg['verify_peer']));
+            $err = $ok ? '' : ($cfg['port'] === 465 ? 'a szerver tanúsítványa nem erre a névre szól' : 'a szerver ezen a porton elutasította a kapcsolatot');
+            $conn = new ScriptedSmtp([]);
+            return new class ($cfg, $conn, $ok, $err) extends \stdClass {
+                public function __construct(public array $cfg, public $conn, private bool $ok, private string $err) {}
+                public function check(): array { return ['ok' => $this->ok, 'error' => $this->err, 'cert' => ['*.sunserver.hu', 'srv.sunserver.hu']]; }
+            };
+        };
+        $rows = SmtpMailer::probe(['host' => 'mail.sunserver.hu', 'user' => 'u@x.hu', 'pass' => 'p'], $factory);
+        $last = end($rows);
+        self::assertSame(['srv.sunserver.hu', 465, 'ssl', true, true], [$last['host'], $last['port'], $last['secure'], $last['verify'], $last['ok']], 'a tanúsítványon szereplő névvel, ellenőrzéssel működik');
+        self::assertContains('mail.sunserver.hu:465:ssl:noverify', $tried);
+    }
+
     public function testMessageValidationAndList(): void
     {
         self::assertSame(['a@b.hu', 'c@d.hu'], Message::parseList(' a@b.hu; c@d.hu , a@b.hu'));

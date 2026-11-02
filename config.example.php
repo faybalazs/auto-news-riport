@@ -42,6 +42,8 @@ return [
         'pass' => '',
         'from_email' => '',
         'from_name' => 'Xperion sajtófigyelés',
+        // Csak ha a Vezérlőpult „SMTP-kapcsolat ellenőrzése” ezt javasolja (a szerver tanúsítványa más névre szól):
+        // 'verify_peer' => false,
     ],
 
     // WordPress-feltöltés (8. lépés): webhelyenként egy sor; a kulcs az ügyfél weboldala (Ügyfelek oldal).
