@@ -10,7 +10,7 @@ Frissítve: 2026-11-02, a saját felületre és adatbázisra váltás után (lá
 | 4 | Cikkgyűjtés | kész (szárazon), valódi forrásokon nem ellenőrzött | RSS és listaoldalak, dátum-, duplikátum- és kizáró szűrés; szárazfuttatás forrásonkénti kimutatással |
 | 5 | Értékelés és Havi cikkek | kész, valódi Claude API-val nem ellenőrzött | Claude-értékelés (Desc, Javaslat, Indoklás), vezetői összefoglaló; Havi cikkek oldal döntésekkel (Mehet / LinkedIn poszt / Nem kell) |
 | 6 | Áttekintés | megvalósított, nem ellenőrzött | időszakválasztó, teendő-widgetek, összefoglaló, KPI-k, megoszlás, források |
-| 7 | Havi e-mail | tervezett | generálás hónap szerint, szerkesztés, jóváhagyás, küldés SMTP-vel |
+| 7 | Havi e-mail | tervezett (terv kész, döntések: decisions.md) | generálás hónap szerint, szerkesztés, teszt e-mail, jóváhagyás után azonnali küldés SMTP-vel |
 | 8 | Élő feltöltés | tervezett | óránkénti futás: Mehet cikkek feltöltése két nyelven (OAuth Bridge vagy MCP), újrapróbálás |
 | 9 | Posztok | tervezett | ötletek, generálás cikkekből és ötletekből a szabályok szerint, szerkesztés, jóváhagyás, előnézet és kép |
 | 10 | Napló, ügyfelek oldal | tervezett | felhasználói műveletek naplója, új ügyfél beállítási lépései |
