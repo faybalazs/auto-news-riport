@@ -10,7 +10,7 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 | Funkció | Állapot | Forrás |
 |---|---|---|
 | Alap: konfiguráció, zárolás, helyi napló, szárazfuttatás, cron-belépési pont | megvalósított, nem ellenőrzött élesben (PHPUnit + helyi böngészős teszt zöld) | 1. ütem, 1. lépés |
-| Sheets-kapcsolat (szolgáltatásfiók, JWT OpenSSL-lel; olvasás, írás, új lap) | megvalósított, nem ellenőrzött (Google innen nem érhető el, a tesztek helyettesítővel futnak) | product.md 5., 9. |
+| Sheets-kapcsolat (szolgáltatásfiók, JWT OpenSSL-lel; olvasás, írás, új lap) | olvasás: ellenőrzött élesben (a felhasználó „Kapcsolat ellenőrzése” futtatása, 2026-11-02); írás: nem ellenőrzött | product.md 5., 9. |
 | Admin felület (kulcsos belépés, Vezérlőpult, Napló) | megvalósított, ellenőrzött helyi böngészős füstteszttel (1366 és 390 px, sötét mód) | product.md 9. |
 | Munkalapok előkészítése (Beállítások, Napló, Posztötletek) | megvalósított, nem ellenőrzött élesben | product.md 4.2 |
 | Havi gyűjtés és havi lap | részben: célhónap, idempotencia, források/kulcsszavak beolvasása; a gyűjtés és a lap létrehozása hátravan | product.md 6.1 |
@@ -37,6 +37,6 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 A [product.md](product.md) 11. pontjának 1–4. kérdése: PHP-verzió és cron a sunserveren, a feltöltő program adatai (URL, eszközök, OAuth), a fordítás felelőse, SMTP-adatok.
 
 ## Következő lépések
-1. Felhasználó: telepítés a README szerint, „Kapcsolat ellenőrzése” és „Munkalapok előkészítése” élesben; a PHP-verzió leolvasása a Vezérlőpultról.
+1. Felhasználó: „Munkalapok előkészítése” szárazon, majd élesben (ez ellenőrzi az írást); a PHP-verzió leolvasása a Vezérlőpultról.
 2. 1. ütem 2. lépés: gyűjtés RSS-ből és listaoldalakról, dátum-, duplikátum- és kizáró szűrés (szárazon kipróbálható).
 3. 1. ütem 3. lépés: Claude-értékelés, a havi lap létrehozása a 2609-es szerkezettel, összefoglaló.
