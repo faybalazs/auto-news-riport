@@ -122,6 +122,18 @@ try {
             $app->clients()->update($access, (int) $c['id'], (string) $c['name'], (string) $c['website'], (string) $c['status'], $str('sheet'));
             return ['ok' => true, 'clients' => $app->clients()->all($access)];
         })(),
+        'wpellenorzes' => ['wp' => $app->uploads()->check($access)],
+        'feltoltes' => (function () use ($app, $access, $in) {
+            $access->require('ops');
+            session_write_close();
+            ignore_user_abort(true);
+            @set_time_limit(1200);
+            return ['result' => $app->uploads()->runForAccess($access, !empty($in['dry']))->toArray()];
+        })(),
+        'feltoltesujra' => (function () use ($app, $access, $int) {
+            $app->uploads()->retry($access, (int) $int('id'));
+            return ['ok' => true];
+        })(),
         'email' => (function () use ($app, $access, $str) {
             $access->require('ops');
             $em = $app->emails();
@@ -142,7 +154,7 @@ try {
     Http::json($out);
 } catch (AccessDenied $e) {
     Http::json(['error' => $e->getMessage()], 403);
-} catch (\InvalidArgumentException | \Xperion\Mail\MailException | \Xperion\Claude\ClaudeException $e) {
+} catch (\InvalidArgumentException | \Xperion\Mail\MailException | \Xperion\Claude\ClaudeException | \Xperion\Press\WpException $e) {
     Http::json(['error' => $e->getMessage()], 422);
 } catch (\Throwable $e) {
     error_log('Xperion API: ' . $e->getMessage());

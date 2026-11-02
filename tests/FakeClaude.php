@@ -35,6 +35,9 @@ final class FakeClaude implements HttpClient
                 array_pop($out);
             }
             $text = json_encode(['items' => $out], JSON_UNESCAPED_UNICODE);
+        } elseif (isset($props['hu'])) {
+            preg_match('/^Cím: (.*)$/m', $b['messages'][0]['content'], $m);
+            $text = json_encode(['hu' => ['title' => 'HU: ' . ($m[1] ?? ''), 'summary' => 'Magyar ajánló.'], 'en' => ['title' => 'EN: ' . ($m[1] ?? ''), 'summary' => 'English teaser.']], JSON_UNESCAPED_UNICODE);
         } elseif (isset($props['subject'])) {
             $text = json_encode(['subject' => 'Sajtófigyelés – 2026. október', 'body' => "Kedves Attila!\n\nElkészült az októberi lista:\nhttps://app.test/index.php?p=cikkek&honap=2610\n\n- Új forrás: Acrelec, egy cikkel.\n- Cikkek: 3\n\nÜdvözlettel: az Auris Dynamics csapata"], JSON_UNESCAPED_UNICODE);
         } else {

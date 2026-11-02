@@ -84,7 +84,7 @@ final class OverviewService
     private function todo(Access $a): array
     {
         $cid = $a->clientId();
-        $t = ['decide' => 0, 'decideMonth' => '', 'upload' => 0, 'postsClient' => [], 'postsApproved' => [], 'postsDraft' => [], 'ideas' => 0, 'missingRun' => '', 'members' => 0, 'mail' => []];
+        $t = ['decide' => 0, 'decideMonth' => '', 'upload' => 0, 'postsClient' => [], 'postsApproved' => [], 'postsDraft' => [], 'ideas' => 0, 'missingRun' => '', 'members' => 0, 'mail' => [], 'uploadErr' => 0];
         if ($cid === null) {
             return $t;
         }
@@ -94,7 +94,10 @@ final class OverviewService
             $t['decide'] = array_sum(array_map(static fn ($r) => (int) $r['n'], $open));
             $t['decideMonth'] = (string) ($open[0]['month'] ?? '');
         }
-        $t['upload'] = (int) $this->db->value("SELECT COUNT(*) FROM articles WHERE client_id = ? AND decision = 'mehet' AND uploaded = 0", [$cid]);
+        $t['upload'] = (int) $this->db->value("SELECT COUNT(*) FROM articles WHERE client_id = ? AND decision = 'mehet' AND uploaded = 0 AND wp_state <> 'hiba'", [$cid]);
+        if ($a->can('ops')) {
+            $t['uploadErr'] = (int) $this->db->value("SELECT COUNT(*) FROM articles WHERE client_id = ? AND decision = 'mehet' AND uploaded = 0 AND wp_state = 'hiba'", [$cid]);
+        }
         $posts = static fn (Database $db, string $status) => array_map(static fn ($r) => $r['code'] . ($r['topic'] !== '' ? ' · ' . $r['topic'] : ''), $db->all(
             'SELECT code, topic FROM posts WHERE client_id = ? AND status = ? ORDER BY code DESC LIMIT 5', [$cid, $status]));
         if ($a->can('approve')) {

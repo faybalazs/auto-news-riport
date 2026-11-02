@@ -35,10 +35,13 @@ final class TasksTest extends TestCase
         foreach ([new MonthlyTask(), new HourlyTask()] as $t) {
             $c = $this->ctx($f, false);
             $t->run($c);
-            self::assertSame($t instanceof HourlyTask, $t->readOnly(), "a havi futás élesben ír, az óránkénti még nem");
+            self::assertFalse($t->readOnly(), 'a havi futás és az óránkénti feltöltés is élesben ír');
             self::assertFalse($c->hasErrors());
         }
         self::assertSame([], $f->http->requests);
+        $seen = null;
+        (new HourlyTask(function (\Xperion\Task\TaskContext $c) use (&$seen): void { $seen = $c->dry; }))->run($this->ctx($f, true));
+        self::assertTrue($seen, 'az óránkénti futás a feltöltést hívja, a szárazfuttatás jelzőjével');
         self::assertSame('2610', MonthlyTask::monthKey(MonthlyTask::targetMonth(new \DateTimeImmutable('2026-11-01'))));
     }
 }

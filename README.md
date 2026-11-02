@@ -2,7 +2,7 @@
 
 Havi sajtófigyelés, élő cikkfeltöltés és LinkedIn-posztgenerálás az Xperion (xperion.hu) számára, saját felülettel és MySQL-adatbázissal, több ügyfélre felkészítve.
 
-- **Állapot:** 7. lépés kész (havi e-mail jóváhagyással). Részletek: [docs/project-state.md](docs/project-state.md)
+- **Állapot:** 8. lépés kész (élő feltöltés a weboldalra). Részletek: [docs/project-state.md](docs/project-state.md)
 - **Technológia:** PHP 8.1+ (a szerveren 8.2), MySQL, függőség nélküli éles kód; Claude API, SMTP, a meglévő feltöltő program; a Google Sheetből egyszeri adatátvétel
 - **Követelmények:** [docs/product.md](docs/product.md) · **Felépítés:** [docs/architecture.md](docs/architecture.md)
 - **AI-ügynököknek:** [AGENTS.md](AGENTS.md)
@@ -50,7 +50,17 @@ Másold le a `config.example.php`-t `config.php` néven, és töltsd ki:
 4. **Szöveg szerkesztése**, ha kell; **Teszt e-mail nekem**: csak neked megy ki, így az SMTP is kipróbálható.
 5. **Jóváhagyom, mehet:** a megerősítés után azonnal kimegy a címzettnek és a másolatnak, egyszer. Utána nem módosítható. Ha hiba van, a kártyán látszik, és javítás után újra megnyomható.
 
-### 8. Időzítés (cron)
+### 8. Élő feltöltés az xperion.hu-ra
+1. **WordPress-admin → Bővítmények → Új hozzáadása → Bővítmény feltöltése:** az Xperion OAuth Bridge 0.6.0 ZIP-je, „Csere a feltöltöttre”. Utána a bővítmény saját próbája (a csomag `docs/TEST_REPORT.md` leírása).
+2. **Felhasználók → Új felhasználó:** egy külön felhasználó (pl. `cikkfigyelo`) **Szerző** szerepkörrel. A profiljában **Alkalmazásjelszavak**: új jelszó (pl. „Sajtófigyelés”), és másold ki.
+3. **Beállítások → Xperion sajtószemle:** a magyar és az angol alapkategória.
+4. A `config.php` `wordpress` részébe az ügyfél weboldala szerint: `'xperion.hu' => ['user' => 'cikkfigyelo', 'app_password' => '<a kimásolt alkalmazásjelszó>']`. Az Ügyfelek oldalon az ügyfél weboldala legyen `xperion.hu`.
+5. **Vezérlőpult → Feltöltés a weboldalra → Kapcsolat ellenőrzése:** minden sor legyen zöld (bővítmény 0.6.x, publikálhat, képet tölthet fel, két alapkategória).
+6. **Feltöltés szárazon:** megmutatja a magyar és angol címet és ajánlót, semmit nem ír. Ha rendben van: **Feltöltés élesben** (vagy megvárod az óránkénti futást).
+
+A „Mehet” cikk a következő óránkénti futással kikerül magyarul és angolul, a forráscikk képével és linkjével. A Havi cikkek oldalon látszik az állapota és a két link; hiba esetén az oka. Ami már kint van, nem kerül fel újra.
+
+### 9. Időzítés (cron)
 A tárhely vezérlőpultjában két időzített feladat kell; a pontos címeket a **Vezérlőpult → Időzítés (cron)** kártyán másolhatod:
 - **Havi futás:** minden hónap 1-jén 06:00-kor (Europe/Budapest).
 - **Óránkénti futás:** minden órában.

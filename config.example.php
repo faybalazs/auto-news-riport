@@ -44,6 +44,17 @@ return [
         'from_name' => 'Xperion sajtófigyelés',
     ],
 
+    // WordPress-feltöltés (8. lépés): webhelyenként egy sor; a kulcs az ügyfél weboldala (Ügyfelek oldal).
+    // A felhasználó egy külön, nem admin WordPress-felhasználó (Szerző), a jelszó a profiljában létrehozott
+    // ALKALMAZÁSJELSZÓ (nem a belépési jelszó). Kell hozzá az Xperion OAuth Bridge 0.6.0 bővítmény.
+    'wordpress' => [
+        'xperion.hu' => [
+            'user' => '',
+            'app_password' => '',
+            // 'base_url' => 'https://xperion.hu',   // csak ha eltér a webhely címétől
+        ],
+    ],
+
     // Az alkalmazás webcíme a levelek linkjeihez (pl. https://pelda.hu/xperion/). Üresen hagyható:
     // böngészőből és URL-es cronból indított futásnál a program magától tudja.
     'app_url' => '',

@@ -18,6 +18,7 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 | Havi futás: Claude-értékelés (Haiku 5.5), vezetői összefoglaló (Sonnet 5.5), mentés; Havi cikkek oldal döntésekkel | megvalósított; ellenőrzött helyettesített Claude-dal (PHPUnit: kérésforma, elutasítás, idempotencia, hiányos válasz, ügyfélhatár) és böngészőből mintaadatokkal; valódi Claude API-val nem ellenőrzött | roadmap 5 |
 | Áttekintés valódi adatokkal: időszakválasztó, teendő-widgetek szerepkör szerint, vezetői összefoglaló, KPI-k trenddel, döntések megoszlása, cikkek forrásonként | ellenőrzött: PHPUnit és böngészős teszt; élesben a felhasználó kipróbálta (0.6.0, „Működik”) | roadmap 6 |
 | Havi e-mail: generálás (havi futáskor és kézzel), értesítés csak az üzemeltetőnek, szerkesztés, teszt e-mail, jóváhagyás után azonnali egyszeri küldés SMTP-vel; címzettek és stílus ügyfelenként | megvalósított; ellenőrzött PHPUnit-tal (SMTP-protokoll forgatókönyvvel, helyettesített Claude és küldő) és böngészőből helyi teszt-SMTP-szerverrel (a kézbesített levél fejléce, szövege és HTML-je ellenőrizve); valódi SMTP-vel és Claude-dal nem ellenőrzött | roadmap 7 |
+| Élő feltöltés (Xperion OAuth Bridge 0.6.0, deploy_pair): Mehet cikkek HU/EN ajánlópárként, Claude-fordítással, óránként és kézzel; kapcsolatpróba; hibakezelés a bővítmény táblája szerint | megvalósított; ellenőrzött PHPUnit-tal (a bővítmény válaszformáit utánzó helyettesítő: idempotencia, duplikátum, képhiba, 3 próba, 401 leállás) és böngészőből helyi hamis végponttal (valódi HTTP, Basic belépés); a valódi xperion.hu-n és Claude-dal nem ellenőrzött | roadmap 8 |
 | Áttekintés adatokkal | tervezett (most üres állapot és beállítási teendők) | roadmap 6 |
 | Havi e-mail, feltöltés, posztok | tervezett | roadmap 7–9 |
 
@@ -26,7 +27,7 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 |---|---|---|
 | Google Sheet (havi lapok 2408–2609, LinkedIn posztok, LinkedIn szabályok) | kézzel vezetve, használatban | felhasználói közlés |
 | Feltöltő MCP-szerver (ChatGPT-vel készült, távoli, OAuth) | használatban | felhasználói közlés, nem vizsgált |
-| Xperion OAuth Bridge WordPress-plugin (PHP 7.4) az xperion.hu-n | a sajtópublikálás élesben tesztelve | felhasználói közlés, nem vizsgált |
+| Xperion OAuth Bridge WordPress-plugin (PHP 7.4) az xperion.hu-n | 0.6.0 átadva (forrás és API-leírás: docs/integracio/); a telepítés és próbája a felhasználóra vár; a 0.6.0 új részei a bővítmény saját jelentése szerint még nem futottak PHP alatt | átadócsomag, 2026-11-02 |
 | xperion-linkedin skill (claude.ai) | használatban, a szabályokat a Sheetből olvassa | felhasználói közlés |
 
 ## Kockázatok
@@ -37,13 +38,14 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 - Amíg nincs SMTP (7. lépés), a meghívó és a jelszólinket kézzel kell elküldeni; a hibaértesítő e-mail is ekkor jön.
 
 ## Blokkolók
-A [product.md](product.md) 11. pontjának 1–4. kérdése (a PHP-verzió már megvan: 8.2.35): cron a sunserveren, a feltöltő program adatai (URL, eszközök, OAuth), a fordítás felelőse, SMTP-adatok.
+- Élő feltöltés: a bővítmény 0.6.0 telepítése és próbája az xperion.hu-n, külön Szerző felhasználó alkalmazásjelszóval, HU/EN alapkategória (README 8.).
+- A forráscikkek képeinek átvétele (képjog): Attilával tisztázandó (az átadócsomag nyitott kockázata).
 
 ## Terv
 - Kattintható prototípus (v3, többügyfeles, a valós posztszabályokkal): [terv/ugyfelfelulet-prototipus.html](terv/ugyfelfelulet-prototipus.html), publikálva: https://claude.ai/artifact/NuS6Vvt9oKrgHBjjJrvsxe. Állapot: a felhasználó átnézte, a saját felület mellett döntött.
 - Frissített ütemterv: [roadmap.md](roadmap.md).
 
 ## Következő lépések
-1. Felhasználó: feltöltés (0.7.0); postafiók a tárhelyen és az `smtp` adatok a `config.php`-ba; Ügyfelek → Havi e-mail beállításai (címzett, másolat).
-2. Claude API-kulcs a `config.php`-ba; Vezérlőpult → E-mail generálása egy átvett hónapra → Teszt e-mail nekem. Az ügyfélnek csak a szöveg átnézése után: Jóváhagyom, mehet.
-3. 8. lépés: élő feltöltés a „Mehet” cikkekből (a meglévő feltöltő programmal).
+1. Felhasználó: feltöltés (0.8.0); a bővítmény 0.6.0 telepítése, WordPress-felhasználó és alkalmazásjelszó, `config.php` `wordpress` rész; Vezérlőpult → Kapcsolat ellenőrzése, majd Feltöltés szárazon.
+2. Első éles feltöltés egy cikkel (elfogadási feltétel: mindkét nyelven kint, képpel, forráslinkkel, Polylang-párral; újrafuttatásra nincs duplikátum; a WordPress-admin „Xperion sajtószemle” naplójában látszik).
+3. 9. lépés: LinkedIn-posztok (generálás a szabályokból, jóváhagyás, ötletek).

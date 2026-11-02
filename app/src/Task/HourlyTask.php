@@ -4,11 +4,19 @@ declare(strict_types=1);
 namespace Xperion\Task;
 
 /**
- * Óránkénti futás (product.md 6.2). A teendők (feltöltés, posztgenerálás,
- * jóváhagyott e-mail küldése) a 7–9. lépésben kerülnek bele.
+ * Óránkénti futás (product.md 6.2): a „Mehet” cikkek élő feltöltése (8. lépés).
+ * A posztgenerálás a 9. lépésben kerül bele; a havi e-mail a jóváhagyáskor azonnal megy.
  */
 final class HourlyTask implements Task
 {
+    /** @var (callable(TaskContext):void)|null */
+    private $upload;
+
+    public function __construct(?callable $upload = null)
+    {
+        $this->upload = $upload;
+    }
+
     public function id(): string
     {
         return 'orankenti';
@@ -21,12 +29,16 @@ final class HourlyTask implements Task
 
     public function readOnly(): bool
     {
-        return true;
+        return false;
     }
 
     public function run(TaskContext $ctx): void
     {
         $ctx->info('Időpont: ' . $ctx->now->format('Y. m. d. H:i') . '.');
-        $ctx->warn('Még nincs óránkénti teendő: a feltöltés, a posztgenerálás és az e-mail-küldés a későbbi lépésekben készül el.');
+        if ($this->upload === null) {
+            $ctx->warn('A feltöltés nincs bekötve; most nem történt semmi.');
+            return;
+        }
+        ($this->upload)($ctx);
     }
 }

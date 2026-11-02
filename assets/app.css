@@ -642,6 +642,8 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 .mail-edit textarea{ font-family:inherit; line-height:1.5; min-height:280px; }
 #mailSettings textarea{ font-family:inherit; line-height:1.5; }
 #dlgDesc{ white-space:pre-line; }
+.up-err{ display:flex; flex-direction:column; align-items:flex-start; gap:4px; max-width:260px; }
+.up-err .meta{ font-size:var(--fs-xs); line-height:1.35; overflow-wrap:anywhere; }
 
 /* ================= 18. TÖRÉSPONTOK (mindig a CSS végén) ================= */
 @media (max-width:1279px){ .layout{ grid-template-columns:minmax(0,1fr); } .w-8, .w-4{ grid-column:span 12; } }

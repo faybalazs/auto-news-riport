@@ -35,11 +35,11 @@ final class ArticleService
             return [];
         }
         return array_map(static function ($r) {
-            foreach (['id', 'no', 'uploaded', 'from_new_source'] as $k) {
+            foreach (['id', 'no', 'uploaded', 'from_new_source', 'upload_attempts'] as $k) {
                 $r[$k] = $r[$k] === null ? null : (int) $r[$k];
             }
             return $r;
-        }, $this->db->all('SELECT id, no, source_name, published_on, title, description, url, recommendation, reason, decision, uploaded, upload_status, url_hu, url_en, post_code, from_new_source
+        }, $this->db->all('SELECT id, no, source_name, published_on, title, description, url, recommendation, reason, decision, uploaded, upload_status, url_hu, url_en, post_code, from_new_source, wp_state, upload_error, upload_attempts
             FROM articles WHERE client_id = ? AND month = ? ORDER BY from_new_source, COALESCE(no, 9999), published_on, id', [$cid, $month]));
     }
 

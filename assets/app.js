@@ -559,6 +559,38 @@ if (APP.page === 'vezerlo'){
     } catch(e){ toast(e.message, { type:'error' }); }
     finally { busy(b, false); ['#colRun','#monDry','#monLive'].forEach(s => { if ($(s)) $(s).disabled = false; }); }
   }
+  // Feltöltés a weboldalra
+  const UPST = { kint:['b-success','check','Kint'], szaraz:['b-info','flask','Szárazon kész'], duplikatum:['b-neutral','archive','Már fent volt'], hiba:['b-danger','x-circle','Hiba'], zarolt:['b-info','clock','Folyamatban'], reszben:['b-info','clock','Részben kint'], '':['b-danger','x-circle','Hiba'] };
+  $('#wpCheck')?.addEventListener('click', async () => {
+    const b = $('#wpCheck'); busy(b, true);
+    try {
+      const w = (await api('wpellenorzes')).wp; const yes = v => v ? `<span class="badge b-success">${ic('check','icon')}igen</span>` : `<span class="badge b-danger">${ic('x-circle','icon')}nem</span>`;
+      $('#wpKv').innerHTML = [['Webhely', esc(w.site)], ['Bővítmény', esc(w.version)], ['Nyelvkezelő', esc(w.language_engine || 'nincs')], ['Publikálhat', yes(w.can_publish)], ['Képet tölthet fel', yes(w.can_upload)],
+        ['Magyar alapkategória', w.hu_category ? esc(w.hu_category) : '<span class="badge b-warning">nincs beállítva</span>'], ['Angol alapkategória', w.en_category ? esc(w.en_category) : '<span class="badge b-warning">nincs beállítva</span>']]
+        .map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+      $('#wpKv').hidden = false;
+      const ok = w.can_publish && w.can_upload && w.hu_category && w.en_category && w.language_engine && String(w.version).startsWith('0.6');
+      toast(ok ? 'A WordPress-kapcsolat rendben van.' : 'A kapcsolat él, de nézze meg a sárga és piros sorokat.', { type:ok ? 'success' : 'warning' });
+    } catch(e){ $('#wpKv').hidden = true; toast(e.message, { type:'error' }); }
+    finally { busy(b, false); }
+  });
+  async function upRun(live){
+    if (live){ const ok = await confirmBox({ title:'Élesben feltölti a Mehet cikkeket?', body:'A cikkek magyarul és angolul azonnal megjelennek a weboldalon, a forráscikk képével és linkjével. Ami már kint van, nem kerül fel újra.', confirm:'Feltöltés élesben', danger:false }); if (!ok) return; }
+    const b = $(live ? '#upLive' : '#upDry'); busy(b, true); ['#upDry','#upLive','#wpCheck'].forEach(s => { if ($(s) !== b) $(s).disabled = true; });
+    announce('A feltöltés elindult, cikkenként néhány másodperc…');
+    try {
+      const r = (await api('feltoltes', { dry:!live })).result; const items = (r.data && r.data.items) || [];
+      $('#upMeta').innerHTML = (r.ok ? `<span class="badge b-success">${ic('check','icon')}Kész</span>` : `<span class="badge b-danger">${ic('x-circle','icon')}Hiba</span>`) + `<span class="badge ${r.dry ? 'b-info' : 'b-neutral'}">${ic(r.dry ? 'flask' : 'play','icon')}${r.dry ? 'szárazon' : 'élesben'}</span><span>${HU.num.format(Math.round(r.duration_ms / 1000))} s</span>`;
+      $('#upLines').innerHTML = r.lines.map(l => { const L = LEVEL[l.level] || LEVEL.info; return `<li class="l-${esc(l.level)}">${ic(L[0])}<span><span class="sr-only">${L[1]}: </span>${esc(l.text)}</span></li>`; }).join('');
+      $('#upItems').innerHTML = items.length ? `<table><caption class="sr-only">Feltöltött cikkek</caption><thead><tr><th scope="col">Cikk</th><th scope="col">Magyar cím és ajánló</th><th scope="col">Angol cím és ajánló</th><th scope="col">Állapot</th></tr></thead><tbody>${items.map(it => { const s = UPST[it.state] || UPST['']; return `<tr><td><div class="cell-title"><span>${esc(it.ref)}</span>${esc(it.title)}</div></td><td>${it.hu ? `<div class="cell-title"><b>${esc(it.hu.title)}</b><span>${esc(it.hu.summary)}</span></div>` : '–'}</td><td>${it.en ? `<div class="cell-title"><b>${esc(it.en.title)}</b><span>${esc(it.en.summary)}</span></div>` : '–'}</td><td><span class="badge ${s[0]}">${ic(s[1],'icon')}${s[2]}</span>${it.url_hu ? ` <a href="${esc(it.url_hu)}" target="_blank" rel="noopener">HU</a>` : ''}${it.url_en ? ` <a href="${esc(it.url_en)}" target="_blank" rel="noopener">EN</a>` : ''}${it.error ? `<div class="meta">${esc(it.error)}</div>` : ''}</td></tr>`; }).join('')}</tbody></table>` : '';
+      $('#upItems').hidden = !items.length; $('#upOut').hidden = false;
+      const up = items.filter(i => i.state === 'kint').length;
+      toast(r.ok ? (r.dry ? `Szárazfuttatás kész: ${items.length} cikk, semmi nem került fel.` : `Feltöltés kész: ${up} cikk kint van.`) : 'A feltöltés hibával zárult. A részletek a kártyán.', { type:r.ok ? 'success' : 'error' });
+    } catch(e){ toast(e.message, { type:'error' }); }
+    finally { busy(b, false); ['#upDry','#upLive','#wpCheck'].forEach(s => { if ($(s)) $(s).disabled = false; }); }
+  }
+  $('#upDry')?.addEventListener('click', () => upRun(false));
+  $('#upLive')?.addEventListener('click', () => upRun(true));
   $('#colRun')?.addEventListener('click', () => collectRun('collect'));
   $('#monDry')?.addEventListener('click', () => collectRun('dry'));
   $('#monLive')?.addEventListener('click', () => collectRun('live'));
@@ -580,8 +612,14 @@ if (APP.page === 'cikkek' && $('#artTable')){
   };
   const upCell = r => {
     if (r.uploaded) return r.url_hu || r.url_en ? `<div class="up-cell">${r.url_hu ? `<a href="${esc(r.url_hu)}" target="_blank" rel="noopener">HU</a>` : ''}${r.url_en ? `<a href="${esc(r.url_en)}" target="_blank" rel="noopener">EN</a>` : ''}</div>` : '';
+    if (r.decision === 'mehet'){
+      const st = r.wp_state || '';
+      if (st === 'duplikatum') return `<span class="badge b-neutral" title="${esc(r.upload_error || '')}">${ic('archive','icon')}már fent volt a weboldalon</span>`;
+      if (st === 'zarolt' || st === 'reszben') return `<span class="badge b-info" title="${esc(r.upload_error || '')}">${ic('clock','icon')}${st === 'reszben' ? 'részben kint, a következő futás befejezi' : 'folyamatban, a következő futás folytatja'}</span>`;
+      if (st === 'hiba') return `<div class="up-err"><span class="badge b-danger">${ic('x-circle','icon')}feltöltési hiba${r.upload_attempts >= 3 ? ' (3 próba)' : ''}</span><span class="meta">${esc(r.upload_error || '')}</span>${can('ops') && r.upload_attempts >= 3 ? `<button class="btn btn-ghost sm" type="button" data-retry="${r.id}">${ic('refresh','icon icon-sm')}Újrapróbálás</button>` : ''}</div>`;
+      return `<span class="badge b-warning">${ic('clock','icon')}feltöltésre vár</span>`;
+    }
     if (r.upload_status) return `<span class="badge b-danger">${ic('x-circle','icon')}${esc(r.upload_status)}</span>`;
-    if (r.decision === 'mehet') return `<span class="badge b-warning">${ic('clock','icon')}feltöltésre vár</span>`;
     if (r.decision === 'linkedin') return r.post_code ? `<span class="meta">${esc(r.post_code)}</span>` : `<span class="badge b-warning">${ic('clock','icon')}poszt készül</span>`;
     return '';
   };
@@ -618,6 +656,12 @@ if (APP.page === 'cikkek' && $('#artTable')){
   }
   $('#artTable').addEventListener('change', e => { const s = e.target.closest('[data-dec]'); if (!s) return; const r = rows.find(x => x.id === s.dataset.dec); decide([r], s.value).then(() => $(`#dec-${r.id}`)?.focus()); });
   $$('[data-bulk]').forEach(b => b.addEventListener('click', () => decide(rows.filter(r => table.selected.includes(r.id)), b.dataset.bulk)));
+  $('#artTable').addEventListener('click', async e => {
+    const b = e.target.closest('[data-retry]'); if (!b) return;
+    busy(b, true);
+    try { await api('feltoltesujra', { id:+b.dataset.retry }); const r = rows.find(x => x.id === b.dataset.retry); r.upload_attempts = 0; r.wp_state = ''; r.upload_error = ''; table.render(); toast('A következő óránkénti futás újra megpróbálja (vagy indítsa a Vezérlőpultról).'); }
+    catch(err){ toast(err.message, { type:'error' }); busy(b, false); }
+  });
   $('#bulkClear').addEventListener('click', () => table.clearSel());
   pred();
 }

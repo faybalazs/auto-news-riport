@@ -137,6 +137,48 @@ final class Config
     }
 
     /**
+     * Egy webhely WordPress-belépése a config.php „wordpress” részéből (kulcs: a webhely, pl. 'xperion.hu').
+     *
+     * @return array{base_url:string, user:string, app_password:string}|null
+     */
+    public function wordpressSite(string $website): ?array
+    {
+        $host = self::siteHost($website);
+        $all = $this->get('wordpress', []);
+        if ($host === '' || !is_array($all)) {
+            return null;
+        }
+        foreach ($all as $k => $v) {
+            if (!is_array($v) || self::siteHost((string) $k) !== $host) {
+                continue;
+            }
+            $user = trim((string) ($v['user'] ?? $v['username'] ?? ''));
+            $pass = trim((string) ($v['app_password'] ?? $v['password'] ?? ''));
+            if ($user === '' || $pass === '') {
+                return null;
+            }
+            $base = trim((string) ($v['base_url'] ?? ''));
+            return ['base_url' => rtrim($base !== '' ? $base : 'https://' . strtolower(trim((string) $k)), '/'), 'user' => $user, 'app_password' => $pass];
+        }
+        return null;
+    }
+
+    /** A beállított WordPress-webhelyek (kitöltött belépéssel). @return list<string> */
+    public function wordpressSites(): array
+    {
+        $all = $this->get('wordpress', []);
+        return is_array($all) ? array_values(array_filter(array_map('strval', array_keys($all)), fn ($k) => $this->wordpressSite($k) !== null)) : [];
+    }
+
+    /** „https://www.Xperion.hu/” → „xperion.hu” */
+    public static function siteHost(string $s): string
+    {
+        $s = strtolower(trim($s));
+        $h = parse_url(str_contains($s, '://') ? $s : 'https://' . $s, PHP_URL_HOST);
+        return is_string($h) ? (string) preg_replace('/^www\./', '', $h) : '';
+    }
+
+    /**
      * Beállítások állapota az admin felülethez (értéket nem ad ki).
      *
      * @return list<array{label:string, ok:bool, note:string}>
@@ -152,6 +194,7 @@ final class Config
             ['label' => 'Cron-kulcs', 'ok' => strlen($cronKey) >= 16, 'note' => $cronKey === '' ? 'hiányzik' : (strlen($cronKey) < 16 ? 'túl rövid' : 'beállítva')],
             ['label' => 'Google (adatátvételhez)', 'ok' => $this->serviceAccountJson() !== '', 'note' => $this->serviceAccountJson() !== '' ? 'beállítva' : 'hiányzik'],
             ['label' => 'Claude API-kulcs', 'ok' => $this->has('claude_api_key'), 'note' => $this->has('claude_api_key') ? 'beállítva' : 'a havi futáshoz kell'],
+            ['label' => 'WordPress (feltöltés)', 'ok' => ($wp = $this->wordpressSites()) !== [], 'note' => $wp ? implode(', ', $wp) : 'a feltöltéshez kell'],
             ['label' => 'SMTP (e-mail)', 'ok' => ($sp = \Xperion\Mail\SmtpMailer::problems($this->smtp())) === [], 'note' => $sp === [] ? 'beállítva' : implode('; ', $sp)],
         ];
     }

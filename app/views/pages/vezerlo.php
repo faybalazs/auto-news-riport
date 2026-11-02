@@ -5,7 +5,7 @@ require __DIR__ . '/_head.php';
 $log = $app->log();
 $desc = [
     'havi' => 'Minden hónap 1-jén 06:00-kor, minden Aktív ügyfélre: gyűjtés, Claude-értékelés, a havi lista és az összefoglaló mentése, majd a havi e-mail megírása (jóváhagyásra vár, értesítés csak az üzemeltetőnek).',
-    'orankenti' => 'Minden órában. A feltöltés és a posztgenerálás a későbbi lépésekben jön. (A havi e-mail a jóváhagyáskor azonnal megy.)',
+    'orankenti' => 'Minden órában: a Mehet cikkek feltöltése a weboldalra, magyarul és angolul (minden Aktív ügyfélre). A posztgenerálás a 9. lépésben jön.',
 ];
 $cronKey = $app->config->string('cron_key');
 $base = \Xperion\Web\Http::baseUrl() . 'cron.php?k=' . rawurlencode($cronKey !== '' ? $cronKey : '<cron_key>');
@@ -37,6 +37,28 @@ for ($i = 1; $i <= 6; $i++) {
     <div class="card table-card" style="box-shadow:none"><div class="table-wrap" id="colItems"></div><div class="pager" id="colPager"></div></div>
   </div>
 </section>
+<?php if ($access->client()): $wpSite = $app->config->wordpressSite((string) ($access->client()['website'] ?? '')); $waitUp = (int) $app->db()->value("SELECT COUNT(*) FROM articles WHERE client_id = ? AND decision = 'mehet' AND uploaded = 0", [$access->clientId()]); ?>
+<section class="card widget" aria-labelledby="h-up" id="upCard">
+  <div class="widget-head">
+    <div><h2 id="h-up">Feltöltés a weboldalra</h2><p class="meta"><?= $e($access->client()['name']) ?> · <?= $wpSite ? $e($wpSite['base_url']) : 'nincs WordPress-beállítás' ?> · <?= $waitUp ?> Mehet cikk vár · az óránkénti futás automatikusan feltölti</p></div>
+  </div>
+  <?php if (!$wpSite): ?>
+  <div class="banner bn-info" role="status"><?= $ic('info', 'icon') ?><div class="b-body"><span><b>Nincs WordPress-beállítás ehhez az ügyfélhez.</b> A config.php <code>wordpress</code> részébe kell az ügyfél weboldala (<?= $e(($access->client()['website'] ?? '') !== '' ? $access->client()['website'] : 'az Ügyfelek oldalon adható meg') ?>) szerint: felhasználó és alkalmazásjelszó.</span></div></div>
+  <?php endif; ?>
+  <div class="collect-bar">
+    <button class="btn btn-secondary" type="button" id="wpCheck"><?= $ic('globe') ?>Kapcsolat ellenőrzése</button>
+    <button class="btn btn-secondary" type="button" id="upDry"><?= $ic('flask') ?>Feltöltés szárazon</button>
+    <button class="btn btn-primary" type="button" id="upLive"><?= $ic('upload') ?>Feltöltés élesben</button>
+  </div>
+  <p class="help"><b>Kapcsolat ellenőrzése:</b> a bővítmény verziója, jogok, alapkategóriák; semmit nem ír. <b>Szárazon:</b> a Claude megírja a magyar és angol címet és ajánlót (cikkenként 2–3 cent), a WordPressbe nem ír. <b>Élesben:</b> a Mehet cikkek kikerülnek a weboldalra, magyarul és angolul; futásonként legfeljebb <?= \Xperion\Press\UploadService::PER_RUN ?> cikk.</p>
+  <dl class="kv" id="wpKv" hidden></dl>
+  <div id="upOut" hidden>
+    <div class="result-meta" id="upMeta"></div>
+    <ol class="run-lines" id="upLines"></ol>
+    <div class="table-wrap mini-table" id="upItems" style="border:1px solid var(--border);border-radius:var(--r-lg);margin-top:12px"></div>
+  </div>
+</section>
+<?php endif; ?>
 <?php if ($access->client()): $mail = $data['mail'] ?? []; ?>
 <section class="card widget" aria-labelledby="h-mail" id="mailCard">
   <div class="widget-head">

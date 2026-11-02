@@ -7,7 +7,7 @@ PHP 8.1+ (a szerveren 8.2), MySQL/MariaDB, éles függőség nélkül (PDO, cURL
 | Fájl | Mire | Védelem |
 |---|---|---|
 | `index.php` | Oldalak: `?p=attekintes`, `felhasznalok`, `ugyfelek`, `vezerlo`, `naplo`, `profil` (és a későbbi lépések helyőrzői); belépés nélkül: `belepes`, `meghivo&t=`, `jelszo&t=`, első indításkor beállítóoldal | munkamenet (e-mail + jelszó); jogosultság oldalanként; CSRF minden POST-on |
-| `api.php` | JSON-műveletek: `?m=felhasznalok`, `meghivas`, `felhasznalo`, `letiltas`, `torles`, `link`, `ugyfel`, `jelszocsere`, `futtatas`, `atvetel`, `gyujtes`, `havifutas`, `dontes`, `googlekulcs` (szolgáltatásfiók-kulcs feltöltése, üzemeltető), `sheetlink` (az aktuális ügyfél táblalinkje, üzemeltető), `email`, `emailgen`, `emailmentes`, `emailteszt`, `emailkuldes`, `emailbeallitas` (havi e-mail, üzemeltető) | munkamenet + `X-CSRF-Token`; minden művelet a szerveren ellenőrzi a jogosultságot és az ügyfélhatárt |
+| `api.php` | JSON-műveletek: `?m=felhasznalok`, `meghivas`, `felhasznalo`, `letiltas`, `torles`, `link`, `ugyfel`, `jelszocsere`, `futtatas`, `atvetel`, `gyujtes`, `havifutas`, `dontes`, `googlekulcs` (szolgáltatásfiók-kulcs feltöltése, üzemeltető), `sheetlink` (az aktuális ügyfél táblalinkje, üzemeltető), `email`, `emailgen`, `emailmentes`, `emailteszt`, `emailkuldes`, `emailbeallitas` (havi e-mail, üzemeltető), `wpellenorzes`, `feltoltes`, `feltoltesujra` (élő feltöltés, üzemeltető) | munkamenet + `X-CSRF-Token`; minden művelet a szerveren ellenőrzi a jogosultságot és az ügyfélhatárt |
 | `cron.php` | Időzített futás: `?feladat=havi\|orankenti&k=<cron_key>[&dry=1]`, vagy `php cron.php havi [--dry]` | cron-kulcs; hibánál HTTP 500 |
 
 Minden webes kérés elején a `Migrator` lefuttatja a még hiányzó adatbázis-migrációkat (`app/migrations/*.sql`, MySQL `GET_LOCK`-kal).
@@ -38,6 +38,8 @@ Minden webes kérés elején a `Migrator` lefuttatja a még hiányzó adatbázis
 | `Monthly\MonthlyService` | Havi futás ügyfelenként: gyűjtés → értékelés → összefoglaló → (élesben) mentés tranzakcióban; idempotens (összefoglaló vagy cikk a hónapban = kész); Claude-kulcs nélkül azonnal hibát ad | `api.php?m=havifutas`, `MonthlyTask` (cron: Aktív ügyfelek) |
 | `Mail\SmtpMailer`, `Mail\StreamSmtpConnection`, `Mail\Message`, `Mail\TextToHtml` | SMTP-küldés Composer nélkül (SSL 465 / STARTTLS 587, AUTH PLAIN/LOGIN), multipart sima szöveg + HTML, címellenőrzés (fejlécbefecskendezés ellen) | `EmailService` |
 | `Monthly\EmailService` | Havi e-mail: Claude (Sonnet 5.5) írja a hónap listájából, összefoglalójából és az ügyfél stílusából; élesben „Jóváhagyásra vár”, értesítés csak az üzemeltetőknek; szerkesztés, teszt e-mail a belépett felhasználónak; jóváhagyáskor azonnali, egyszeri küldés állapotváltásos zárolással; elküldött levél nem módosul | `api.php?m=email*`, `MonthlyService` (élő mentés után), Vezérlőpult, Ügyfelek |
+| `Press\PressKey`, `Press\WpBridgeClient`, `Press\SourceText`, `Press\PressWriter` | A bővítmény kulcsképzése (PRESS_API.md); JSON-RPC hívás a `/wp-json/xperion-bridge/v1/press` végpontra alkalmazásjelszóval, újrapróbálás nélkül (401/403 = auth, 5xx/időtúllépés = transport, `isError` = tool); a forráscikk főszövege; HU/EN cím és ajánló a Claude-dal (Sonnet 5.5), bájthatár-ellenőrzéssel | `UploadService` |
+| `Press\UploadService` | Élő feltöltés: Aktív ügyfelek Mehet cikkei sorban (futásonként ≤ 10, 1 mp szünet): get_pair → (fordítás, mentve) → deploy_pair → visszaírás; hibák a bővítmény táblája szerint (duplikátum, zárolt, részben kint, legfeljebb 3 próba); 401/403 vagy külső-link hiba esetén a futás megáll és az üzemeltető e-mailt kap; szárazon csak olvas és fordít | `HourlyTask` (cron), `api.php?m=feltoltes`, Vezérlőpult, Havi cikkek |
 | `Monthly\OverviewService` | Áttekintés: hónapok, a hónap számai (előző hónap, 6 havi trend), döntések megoszlása, cikkek forrásonként, teendők szerepkör szerint; csak az aktuális ügyfél adatai | `index.php?p=attekintes` |
 | `Monthly\ArticleService` | Havi listák, összefoglaló, döntések (csak az aktuális ügyfél cikkei, feltöltött cikk nem módosul, műveleti napló) | `index.php?p=cikkek`, `api.php?m=dontes` |
 | `Google\*`, `Sheets\*` | Szolgáltatásfiókos Sheets-olvasás (`App::sheetsFor(id)`, ügyfelenként) | `ImportService` |
@@ -51,6 +53,8 @@ Minden webes kérés elején a `Migrator` lefuttatja a még hiányzó adatbázis
 **003_havi_futas:** `month_reports` (ügyfél + hónap: összefoglaló sorai, részletek, statisztika, modell); `articles.evaluated_by`.
 
 **004_havi_email:** `month_emails` (ügyfél + hónap: tárgy, szöveg, állapot: jóváhagyásra vár / küldés / elküldve / hiba, generálás, szerkesztés, küldés ideje és címzettjei, hiba). A címzett, a másolat és a stílus a `client_settings` `ugyfel_email`, `ugyfel_cc`, `email_stilus` sora.
+
+**005_feltoltes:** `articles` új mezői: `press_key`, `wp_state` (kint / duplikátum / hiba / zárolt / részben), HU/EN cím és ajánló, `wp_hu_id`, `wp_en_id`, `published_at`, `upload_attempts`, `upload_error` (a már meglévő `uploaded`, `url_hu`, `url_en` mellett).
 
 ## Felület
 

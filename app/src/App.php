@@ -153,6 +153,24 @@ final class App
         return $url === '' ? '' : rtrim($url, '/') . '/';
     }
 
+    /** Az ügyfél WordPress-kliense a config.php „wordpress” részéből, az ügyfél weboldala szerint. @param array<string,mixed> $client */
+    public function wpFor(array $client): \Xperion\Press\WpBridgeClient
+    {
+        $site = $this->config->wordpressSite((string) ($client['website'] ?? ''));
+        if ($site === null) {
+            throw new \InvalidArgumentException('Nincs WordPress-beállítás ehhez az ügyfélhez (' . (($client['website'] ?? '') !== '' ? $client['website'] : 'nincs megadva weboldal') . '). A config.php „wordpress” részébe kell, az ügyfél weboldala szerint (pl. \'xperion.hu\' => [\'user\' => …, \'app_password\' => …]).');
+        }
+        // A WordPress-hívás nem ismételhető vakon: újrapróbálás nélküli kliens.
+        return new \Xperion\Press\WpBridgeClient(new CurlHttpClient(0, 90), $site['base_url'], $site['user'], $site['app_password']);
+    }
+
+    public function uploads(): \Xperion\Press\UploadService
+    {
+        return new \Xperion\Press\UploadService($this->db(), $this->claude(), fn (array $c) => $this->wpFor($c),
+            new \Xperion\Press\SourceText(new CurlHttpClient(1, 20, null, 'Mozilla/5.0 (compatible; XperionSajtofigyelo/0.8; +https://xperion.hu)')),
+            $this->mailer(), $this->audit(), $this->log(), $this->storageDir . '/futas.lock');
+    }
+
     public function mailer(): \Xperion\Mail\Mailer
     {
         return new \Xperion\Mail\SmtpMailer($this->config->smtp());
@@ -232,7 +250,7 @@ final class App
                         $ctx->error($c['name'] . ': ' . $e->getMessage()); // egy ügyfél hibája nem állítja meg a többit
                     }
                 }
-            }), new HourlyTask()],
+            }), new HourlyTask(fn (\Xperion\Task\TaskContext $ctx) => $this->uploads()->runAll($ctx))],
             fn (): SheetsClient => $this->sheets(),
             $this->log(),
             $this->storageDir . '/futas.lock',

@@ -35,7 +35,10 @@ if (($t['ideas'] ?? 0) > 0) {
     $todos[] = ['ai', 'sparkle', 'Posztötlet generálásra vár', $t['ideas'], 'Küldje posztgenerálásra, vagy egészítse ki.', 'index.php?p=otletek', 'Ötletek'];
 }
 if (($t['upload'] ?? 0) > 0) {
-    $todos[] = ['info', 'upload', 'Feltöltésre vár', $t['upload'], 'Mehet jelölésű cikk; a feltöltés a 8. lépésben készül el.', 'index.php?p=cikkek', 'Havi cikkek'];
+    $todos[] = ['info', 'upload', 'Feltöltésre vár', $t['upload'], 'Mehet jelölésű cikk; az óránkénti futás magyarul és angolul feltölti a weboldalra.', 'index.php?p=cikkek', 'Havi cikkek'];
+}
+if (($t['uploadErr'] ?? 0) > 0) {
+    $todos[] = ['warn', 'alert', 'Feltöltési hiba', $t['uploadErr'], 'Mehet cikk, amely nem került fel a weboldalra. Az okot a Havi cikkek oldalon látja.', 'index.php?p=cikkek', 'Havi cikkek'];
 }
 if (($t['missingRun'] ?? '') !== '') {
     $todos[] = ['info', 'play', 'A havi futás még nem készült el', null, $e($label($t['missingRun'])) . ' · a cron minden hónap 1-jén futtatja, vagy indítsa a Vezérlőpultról.', 'index.php?p=vezerlo', 'Vezérlőpult'];
