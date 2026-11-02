@@ -33,7 +33,7 @@ require __DIR__ . '/_head.php';
     </section>
     <section id="p-szerk" role="tabpanel" aria-labelledby="tab-szerk" hidden>
       <form class="card widget" id="postForm" novalidate aria-labelledby="h-pe">
-        <div class="widget-head"><div><h2 id="h-pe">A poszt szerkesztése</h2><p class="meta">Mezőnként; a kép szövegének javítása azonnal újrarajzolja a képet</p></div></div>
+        <div class="widget-head"><div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('edit', 'icon') ?></span><div><h2 id="h-pe">A poszt szerkesztése</h2><p class="meta">Mezőnként; a kép szövegének javítása azonnal újrarajzolja a képet</p></div></div></div>
         <p class="help">A poszt részei. A teljes szöveg ezekből áll össze (nyitó sor, kontextus, kiemelések, szemszög, zárás, hashtagek); a forráslink a szabályok szerint nem kerül bele.</p>
         <div class="grid-2">
           <div class="field full"><label for="pe-topic">Témakör</label><input class="input" id="pe-topic" maxlength="255"></div>
@@ -58,20 +58,20 @@ require __DIR__ . '/_head.php';
   </div>
   <aside class="stack">
     <section class="card widget" aria-labelledby="h-open">
-      <div class="widget-head"><div><h2 id="h-open">Nyitó sor</h2><p class="meta">A „…több” előtt csak ez látszik</p></div></div>
+      <div class="widget-head"><div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('msg', 'icon') ?></span><div><h2 id="h-open">Nyitó sor</h2><p class="meta">A „…több” előtt csak ez látszik</p></div></div></div>
       <fieldset class="open-choices" id="openChoices"><legend class="sr-only">Nyitó sor választása</legend></fieldset>
     </section>
     <section class="card widget" aria-labelledby="h-arts" id="artsCard" hidden>
-      <div class="widget-head"><div><h2 id="h-arts">Forráscikkek</h2><p class="meta">Melyik cikkekből készüljön a poszt</p></div></div>
+      <div class="widget-head"><div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('list', 'icon') ?></span><div><h2 id="h-arts">Forráscikkek</h2><p class="meta">Melyik cikkekből készüljön a poszt</p></div></div></div>
       <fieldset class="arts-list" id="artsList"><legend class="sr-only">Forráscikkek kiválasztása</legend></fieldset>
       <div class="acts-row" id="artsActs"><button class="btn btn-primary sm" type="button" id="artsRegen"><?= $ic('refresh') ?>Mentés és újraírás</button><button class="btn btn-ghost sm" type="button" id="artsSave">Csak mentés</button></div>
     </section>
     <section class="card widget" aria-labelledby="h-src">
-      <div class="widget-head"><div><h2 id="h-src">Adatok</h2><p class="meta">A poszt adatlapja</p></div></div>
+      <div class="widget-head"><div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('file', 'icon') ?></span><div><h2 id="h-src">Adatok</h2><p class="meta">A poszt adatlapja</p></div></div></div>
       <dl class="kv" id="postKv"></dl>
     </section>
     <section class="card widget" aria-labelledby="h-hist">
-      <div class="widget-head"><div><h2 id="h-hist">Előzmények</h2><p class="meta">Ki, mit, mikor</p></div></div>
+      <div class="widget-head"><div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('clock', 'icon') ?></span><div><h2 id="h-hist">Előzmények</h2><p class="meta">Ki, mit, mikor</p></div></div></div>
       <ol class="timeline" id="postHist"></ol>
     </section>
   </aside>

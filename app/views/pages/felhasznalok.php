@@ -22,7 +22,7 @@ require __DIR__ . '/_head.php';
   <div class="pager" id="userPager"></div>
 </div>
 <section class="card widget" aria-labelledby="h-roles">
-  <div class="widget-head"><div><h2 id="h-roles">Szerepkörök és jogosultságok</h2><p class="meta">Ügyfelenként adható; az üzemeltető minden ügyfélhez hozzáfér</p></div></div>
+  <div class="widget-head"><div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('users', 'icon') ?></span><div><h2 id="h-roles">Szerepkörök és jogosultságok</h2><p class="meta">Ügyfelenként adható; az üzemeltető minden ügyfélhez hozzáfér</p></div></div></div>
   <div class="table-wrap mini-table" style="border:1px solid var(--border);border-radius:var(--r-lg)" id="roleMatrix"></div>
 </section>
 

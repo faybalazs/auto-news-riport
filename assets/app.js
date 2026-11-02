@@ -1,6 +1,6 @@
 /*
   Sajtófigyelés – felület.
-  Forrás: Auris admin sablon v1.0.2 (JS 0–3., 9. és sorművelet-menü; DataTable kiegészítés: render, selectable:false, setLoading),
+  Forrás: Auris admin sablon v1.5.0 (JS 0–3., 9. és sorművelet-menü; DataTable kiegészítés: render, selectable:false, setLoading),
   projektrész: 12–14. szekció. Generált fájl.
 */
 (() => {
@@ -124,6 +124,19 @@ function confirmBox({ title, body = '', confirm, cancel = 'Mégse', danger = tru
   });
 }
 
+/* Űrlapdialógus: formBox({ title, html, confirm }) → FormData vagy false. Fókusz az első mezőn, Esc = Mégse. */
+function formBox({ title, html, confirm }){
+  const dlg = $('#fDlg'), form = $('#fDlgForm'), opener = document.activeElement;
+  $('#fDlgTitle').textContent = title; $('#fDlgBody').innerHTML = html; $('#fDlgOk').textContent = confirm;
+  return new Promise(res => {
+    const done = v => { form.onsubmit = null; $('#fDlgCancel').onclick = null; dlg.oncancel = null; dlg.close(); opener && opener.isConnected && opener.focus(); res(v); };
+    form.onsubmit = e => { e.preventDefault(); const bad = validatables(form).filter(el => !validate(el)); if (bad.length){ bad[0].focus(); return; } done(new FormData(form)); };
+    $('#fDlgCancel').onclick = () => done(false);
+    dlg.oncancel = e => { e.preventDefault(); done(false); };
+    dlg.showModal(); ($('input, select, textarea', $('#fDlgBody')) || $('#fDlgOk')).focus();
+  });
+}
+
 
 /* ==================================================================
    9. TÁBLÁZAT KOMPONENS (rendezés, lapozás, oldalméret, kijelölés,
@@ -142,10 +155,10 @@ function DataTable(cfg){
     if (c){ const d = st.sort.dir === 'asc' ? 1 : -1; view.sort((a,b) => { const x = c.sortValue ? c.sortValue(a) : a[c.key], y = c.sortValue ? c.sortValue(b) : b[c.key]; return (typeof x === 'string' ? x.localeCompare(y, 'hu') : (x > y) - (x < y)) * d; }); }
   }
   function cell(c, r){
-    if (c.render) return c.render(r);
+    if (c.render && c.type !== 'html') return c.render(r);
     const v = r[c.key];
     switch (c.type){
-      case 'link': return `<a class="cell-link" href="#szerkeszto" data-open="${esc(r.id)}">${esc(v)}</a>`;
+      case 'link': return `<a class="cell-link" href="${cfg.linkHref || '#szerkeszto'}" data-open="${esc(r.id)}">${esc(v)}</a>`;
       case 'money': return fmtMoney(v);
       case 'num': return HU.num.format(v);
       case 'date': return fmtDate(v);
@@ -153,6 +166,7 @@ function DataTable(cfg){
       case 'status': { const s = c.map[v]; return `<span class="badge ${s.cls}">${ic(s.icon,'icon')}${s.label}</span>`; }
       case 'file': return `<div class="file-cell"><span class="ftype ft-${r.kind}" aria-hidden="true">${r.ext.toUpperCase()}</span><a href="#dokumentumok" data-open="${esc(r.id)}">${esc(v)}</a></div>`;
       case 'size': return fmtSize(v);
+      case 'html': return c.render(r);
       default: return esc(v);
     }
   }
@@ -175,8 +189,8 @@ function DataTable(cfg){
     } else if (!rows.length){
       h += `<tr><td colspan="${span}" class="dt-empty-cell">${cfg.emptyHtml()}</td></tr>`;
     } else rows.forEach(r => {
-      const s = st.sel.has(r.id), lbl = esc(r[cfg.labelKey]);
-      h += `<tr${s ? ' class="is-sel"' : ''}>` + (sel ? `<td class="c-sel"><input type="checkbox" class="dt-row" data-id="${esc(r.id)}" aria-label="Kijelölés: ${lbl}" ${s ? 'checked' : ''}></td>` : '') + cols.map(c => `<td class="${c.align === 'right' ? 'num' : ''}">${cell(c, r)}</td>`).join('') + (cfg.rowMenu ? `<td class="c-act"><button type="button" class="icon-btn row-more" data-id="${esc(r.id)}" aria-haspopup="menu" aria-expanded="false" aria-label="Műveletek: ${lbl}">${ic('more')}</button></td>` : '') + '</tr>';
+      const s = st.sel.has(r.id), lbl = esc(r[cfg.labelKey]), rc = [s ? 'is-sel' : '', cfg.rowClass ? cfg.rowClass(r) : ''].filter(Boolean).join(' ');
+      h += `<tr${rc ? ` class="${rc}"` : ''}>` + (sel ? `<td class="c-sel"><input type="checkbox" class="dt-row" data-id="${esc(r.id)}" aria-label="Kijelölés: ${lbl}" ${s ? 'checked' : ''}></td>` : '') + cols.map(c => `<td class="${c.align === 'right' ? 'num' : ''}">${cell(c, r)}</td>`).join('') + (cfg.rowMenu ? `<td class="c-act"><button type="button" class="icon-btn row-more" data-id="${esc(r.id)}" aria-haspopup="menu" aria-expanded="false" aria-label="Műveletek: ${lbl}">${ic('more')}</button></td>` : '') + '</tr>';
     });
     wrap.innerHTML = h + '</tbody></table>';
     wrap.setAttribute('aria-busy', st.loading);
@@ -824,7 +838,7 @@ if (APP.page === 'szabalyok' && $('#ruleTable')){
   const render = () => {
     const q = norm($('#ruleQ').value.trim()), list = rules.filter(r => !q || norm(r.name + ' ' + r.value).includes(q));
     $('#ruleCount').textContent = `${list.length} / ${rules.length} szabály`;
-    $('#ruleTable').innerHTML = list.length ? `<table class="rules-table"><caption class="sr-only">Posztszabályok</caption><thead><tr><th scope="col" class="num">#</th><th scope="col">Megnevezés</th><th scope="col">Érték</th><th scope="col"><span class="sr-only">Műveletek</span></th></tr></thead><tbody>${list.map(r => { const i = rules.indexOf(r); return `<tr><td class="num">${i + 1}</td><td><b>${esc(r.name)}</b></td><td class="rule-val">${esc(r.value)}</td><td class="rule-acts"><button class="icon-btn" type="button" data-rmove="${r.id}" data-dir="-1" aria-label="${esc(r.name)}: feljebb"${i === 0 || q ? ' disabled' : ''}>${ic('arrow-up')}</button><button class="icon-btn" type="button" data-rmove="${r.id}" data-dir="1" aria-label="${esc(r.name)}: lejjebb"${i === rules.length - 1 || q ? ' disabled' : ''}>${ic('arrow-down')}</button><button class="icon-btn" type="button" data-redit="${r.id}" aria-label="${esc(r.name)} szerkesztése">${ic('edit')}</button><button class="icon-btn" type="button" data-rdel="${r.id}" aria-label="${esc(r.name)} törlése">${ic('trash')}</button></td></tr>`; }).join('')}</tbody></table>`
+    $('#ruleTable').innerHTML = list.length ? `<table class="rules-table"><caption class="sr-only">Posztszabályok</caption><thead><tr><th scope="col" class="num">#</th><th scope="col">Megnevezés</th><th scope="col">Érték</th><th scope="col"><span class="sr-only">Műveletek</span></th></tr></thead><tbody>${list.map(r => { const i = rules.indexOf(r); return `<tr><td class="num">${i + 1}</td><td><b>${esc(r.name)}</b></td><td class="rule-val">${esc(r.value)}</td><td class="rule-acts"><button class="icon-btn" type="button" data-rmove="${r.id}" data-dir="-1" aria-label="${esc(r.name)}: feljebb"${i === 0 || q ? ` disabled title="${q ? 'Kereséskor a sorrend nem módosítható' : 'Ez az első szabály'}"` : ''}>${ic('arrow-up')}</button><button class="icon-btn" type="button" data-rmove="${r.id}" data-dir="1" aria-label="${esc(r.name)}: lejjebb"${i === rules.length - 1 || q ? ` disabled title="${q ? 'Kereséskor a sorrend nem módosítható' : 'Ez az utolsó szabály'}"` : ''}>${ic('arrow-down')}</button><button class="icon-btn" type="button" data-redit="${r.id}" aria-label="${esc(r.name)} szerkesztése">${ic('edit')}</button><button class="icon-btn" type="button" data-rdel="${r.id}" aria-label="${esc(r.name)} törlése">${ic('trash')}</button></td></tr>`; }).join('')}</tbody></table>`
       : `<div class="empty-state"><b>${rules.length ? 'Nincs találat' : 'Még nincs szabály'}</b><span>${rules.length ? 'Módosítsa a keresést.' : 'Az „Új szabály” gombbal vegye fel az elsőt, vagy vegye át a Google Sheetből (Ügyfelek → Adatátvétel).'}</span></div>`;
   };
   const open = r => { editing = r; $('#ruleDlgTitle').textContent = r ? 'Szabály szerkesztése' : 'Új szabály'; $('#r-name').value = r?.name || ''; $('#r-value').value = r?.value || ''; $('#ruleErr').hidden = true; $('#ruleDlg').showModal(); $('#r-name').focus(); };
@@ -905,7 +919,7 @@ if (APP.page === 'posztok' && $('#postGrid')){
   const render = () => {
     const list = posts.filter(p => !f || p.status === f);
     const svgSrc = s => 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(s)));
-    $('#postGrid').innerHTML = list.map(p => `<a class="card widget post-card" href="index.php?p=poszt&amp;kod=${encodeURIComponent(p.code)}"><div class="row"><span class="id">${esc(p.code)}</span>${postBadge(p)}</div><h2>${esc(p.topic || '(téma nélkül)')}</h2>
+    $('#postGrid').innerHTML = list.map(p => `<a class="card post-card" href="index.php?p=poszt&amp;kod=${encodeURIComponent(p.code)}"><div class="row"><span class="id">${esc(p.code)}</span>${postBadge(p)}</div><h2>${esc(p.topic || '(téma nélkül)')}</h2>
       <div class="mini-li" aria-hidden="true"><div class="mini-head"><span class="mini-logo">${esc((APP.data.company || 'X').slice(0, 1))}</span><b>${esc(APP.data.company || '')}</b></div><p>${esc(p.opening)}</p>${p.thumb ? `<img src="${svgSrc(p.thumb)}" alt="" loading="lazy">` : '<div class="mini-noimg">kép még nincs</div>'}</div>
       <span class="meta">${esc({ cikkek:'Cikkekből', cikk:'Egy cikkből', otlet:'Ötletből' + (p.idea_code ? ': ' + p.idea_code : '') }[p.source_kind] || 'Átvett poszt')} · ${esc(p.created_hu)}</span></a>`).join('');
     $('#postEmpty').hidden = list.length > 0;
@@ -978,7 +992,7 @@ if (APP.page === 'poszt' && $('#liText')){
     const ev = P.events || [];
     $('#postHist').innerHTML = ev.length ? ev.map((e, i) => `<li class="tl-item${i === ev.length - 1 ? ' last' : ''}"><span class="tl-dot badge b-neutral">${ic('clock','icon')}</span><div class="tl-body"><div class="tl-title">${esc(e.action)}</div><div class="tl-desc">${esc(e.user)} · ${esc(e.time_hu)}${e.details ? ' · ' + esc(e.details) : ''}</div></div></li>`).join('') : '<li class="meta">Még nincs bejegyzés.</li>';
     $('#crBanner').hidden = !(P.change_request && P.status === 'tervezet'); $('#crText').textContent = P.change_request || '';
-    const st = POST_ST[P.status] || ['b-neutral','info']; $('#postStatus').className = 'badge ' + st[0]; $('#postStatus').textContent = P.status_label;
+    const st = POST_ST[P.status] || ['b-neutral','info']; $('#postStatus').className = 'badge ' + st[0]; $('#postStatus').innerHTML = ic(st[1],'icon') + esc(P.status_label);
     const acts = [];
     if (P.status === 'tervezet' && can('ops')) acts.push(['kuldes', 'Küldés jóváhagyásra', 'send', 'btn-primary']);
     if (P.status === 'ugyfelnel' && can('approve')){ acts.push(['modositas', 'Módosítást kérek', 'msg', 'btn-secondary']); acts.push(['jovahagyas', 'Jóváhagyom', 'check', 'btn-primary']); }
@@ -1064,10 +1078,10 @@ if (APP.page === 'naplo'){
   audit.forEach(r => r.iso = isoDay(r));
   const opts = (sel, vals) => { if (sel) sel.insertAdjacentHTML('beforeend', [...new Set(vals.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'hu')).map(v => `<option>${esc(v)}</option>`).join('')); };
   opts($('#aClient'), audit.map(r => r.client)); opts($('#aUser'), audit.map(r => r.who));
-  const CAT = { 'Döntések':'b-info', 'Posztok':'b-ai', 'Havi e-mail':'b-warning', 'Feltöltés':'b-success', 'Források':'b-neutral', 'Futások':'b-neutral', 'Felhasználók':'b-neutral', 'Belépés':'b-neutral', 'Beállítások':'b-neutral' };
+  const CAT = { 'Döntések':['b-info','check'], 'Posztok':['b-ai','linkedin'], 'Havi e-mail':['b-warning','send'], 'Feltöltés':['b-success','upload'], 'Források':['b-neutral','globe'], 'Futások':['b-neutral','play'], 'Felhasználók':['b-neutral','users'], 'Belépés':['b-neutral','login'], 'Beállítások':['b-neutral','settings'] };
   const at = DataTable({ id:'audit', caption:'Felhasználói műveletek', rows:audit, labelKey:'action', selectable:false, table:$('#auditTable'), pager:$('#auditPager'), sort:{ key:'created_at', dir:'desc' }, pageSize:25,
     columns:[ { key:'created_at', label:'Időpont', render:r => esc(r.time_hu || dtHu(r.created_at)), sortValue:r => -r.i, firstDir:'desc' }, { key:'who', label:'Ki' },
-      { key:'action', label:'Művelet', render:r => `<div class="cell-title"><span class="badge ${CAT[r.category] || 'b-neutral'}">${esc(r.category || '')}</span>${esc(r.action)}</div>` },
+      { key:'action', label:'Művelet', render:r => { const k = CAT[r.category] || ['b-neutral','info']; return `<div class="cell-title"><span class="badge ${k[0]}">${ic(k[1],'icon')}${esc(r.category || '')}</span>${esc(r.action)}</div>`; } },
       ...(APP.data.all ? [{ key:'client', label:'Ügyfél', render:r => esc(r.client || '–') }] : []), { key:'details', label:'Részletek', sortable:false } ],
     emptyHtml:() => audit.length ? 'Nincs a szűrésnek megfelelő művelet.' : 'Még nincs művelet.' });
   let aRows = audit;

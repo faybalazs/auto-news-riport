@@ -13,8 +13,8 @@ $pending = $app->migrator()->pending();
 ?>
 <section class="card widget" aria-labelledby="h-run" id="runState">
   <div class="widget-head">
-    <div><h2 id="h-run">Futások állapota</h2><p class="meta" id="rsMeta">Mi fut most, és a legutóbbi eredmények (akkor is, ha közben máshová navigált)</p></div>
-    <span id="rsBadge"></span>
+    <div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('clock', 'icon') ?></span><div><h2 id="h-run">Futások állapota</h2><p class="meta" id="rsMeta">Mi fut most, és a legutóbbi eredmények (akkor is, ha közben máshová navigált)</p></div></div>
+    <div class="head-actions" id="rsBadge"></div>
   </div>
   <div class="rs-now" id="rsNow" hidden role="status" aria-live="polite"></div>
   <ul class="rs-list" id="rsList"></ul>
@@ -28,7 +28,7 @@ for ($i = 1; $i <= 6; $i++) {
 ?>
 <section class="card widget" aria-labelledby="h-collect">
   <div class="widget-head">
-    <div><h2 id="h-collect">Havi futás és cikkgyűjtés</h2><p class="meta"><?= $e($access->client()['name'] ?? 'Nincs kiválasztott ügyfél') ?> · a cron minden hónap 1-jén élesben futtatja az Aktív ügyfelekre</p></div>
+    <div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('list', 'icon') ?></span><div><h2 id="h-collect">Havi futás és cikkgyűjtés</h2><p class="meta"><?= $e($access->client()['name'] ?? 'Nincs kiválasztott ügyfél') ?> · a cron minden hónap 1-jén élesben futtatja az Aktív ügyfelekre</p></div></div>
   </div>
   <div class="collect-bar">
     <div class="field"><label for="colMonth">Hónap</label><select class="select" id="colMonth"><?php foreach ($months as $k => $l): ?><option value="<?= $e($k) ?>"><?= $e($l) ?></option><?php endforeach; ?></select></div>
@@ -48,7 +48,7 @@ for ($i = 1; $i <= 6; $i++) {
 <?php if ($access->client()): $wpSite = $app->config->wordpressSite((string) ($access->client()['website'] ?? '')); $waitUp = (int) $app->db()->value("SELECT COUNT(*) FROM articles WHERE client_id = ? AND decision = 'mehet' AND uploaded = 0", [$access->clientId()]); ?>
 <section class="card widget" aria-labelledby="h-up" id="upCard">
   <div class="widget-head">
-    <div><h2 id="h-up">Feltöltés a weboldalra</h2><p class="meta"><?= $e($access->client()['name']) ?> · <?= $wpSite ? $e($wpSite['base_url']) : 'nincs WordPress-beállítás' ?> · <?= $waitUp ?> Mehet cikk vár · az óránkénti futás automatikusan feltölti</p></div>
+    <div class="wh"><span class="ic-tile t-green" aria-hidden="true"><?= $ic('upload', 'icon') ?></span><div><h2 id="h-up">Feltöltés a weboldalra</h2><p class="meta"><?= $e($access->client()['name']) ?> · <?= $wpSite ? $e($wpSite['base_url']) : 'nincs WordPress-beállítás' ?> · <?= $waitUp ?> Mehet cikk vár · az óránkénti futás automatikusan feltölti</p></div></div>
   </div>
   <?php if (!$wpSite): ?>
   <div class="banner bn-info" role="status"><?= $ic('info', 'icon') ?><div class="b-body"><span><b>Nincs WordPress-beállítás ehhez az ügyfélhez.</b> A config.php <code>wordpress</code> részébe kell az ügyfél weboldala (<?= $e(($access->client()['website'] ?? '') !== '' ? $access->client()['website'] : 'az Ügyfelek oldalon adható meg') ?>) szerint: felhasználó és alkalmazásjelszó.</span></div></div>
@@ -70,8 +70,8 @@ for ($i = 1; $i <= 6; $i++) {
 <?php if ($access->client()): $mail = $data['mail'] ?? []; ?>
 <section class="card widget" aria-labelledby="h-mail" id="mailCard">
   <div class="widget-head">
-    <div><h2 id="h-mail">Havi e-mail az ügyfélnek</h2><p class="meta" id="mailMeta"></p></div>
-    <span id="mailStatus"></span>
+    <div class="wh"><span class="ic-tile t-orange" aria-hidden="true"><?= $ic('send', 'icon') ?></span><div><h2 id="h-mail">Havi e-mail az ügyfélnek</h2><p class="meta" id="mailMeta"></p></div></div>
+    <div class="head-actions" id="mailStatus"></div>
   </div>
   <?php if (empty($mail['ready'])): ?>
   <div class="banner bn-info" role="status"><?= $ic('info', 'icon') ?><div class="b-body"><span><b>Az e-mail-küldés nincs beállítva:</b> <?= $e($mail['problem'] ?? '') ?>. Betöltött konfiguráció: <code><?= $e(basename($app->config->source()) ?: 'nincs') ?></code>. Generálni és szerkeszteni lehet; a küldés gombjai megmondják, mi hiányzik.</span></div></div>
@@ -110,20 +110,20 @@ for ($i = 1; $i <= 6; $i++) {
     <div class="task-grid" role="list" aria-label="Feladatok">
       <?php foreach ($app->runner()->tasks() as $t): $last = $log->last($t->id()); ?>
       <section class="card widget task" role="listitem" aria-labelledby="t-<?= $e($t->id()) ?>" data-task="<?= $e($t->id()) ?>" data-label="<?= $e($t->label()) ?>">
-        <div class="widget-head"><div><h2 id="t-<?= $e($t->id()) ?>"><?= $e($t->label()) ?></h2><p class="meta"><?= $e($desc[$t->id()] ?? '') ?></p></div></div>
+        <div class="widget-head"><div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('play', 'icon') ?></span><div><h2 id="t-<?= $e($t->id()) ?>"><?= $e($t->label()) ?></h2><p class="meta"><?= $e($desc[$t->id()] ?? '') ?></p></div></div></div>
         <div class="last" data-last><?php if ($last): ?><span>Legutóbb: <?= $e($last->timeHu()) ?> · <?= $last->dry ? 'száraz' : 'éles' ?> · <?= $e(\Xperion\Lock::duration((int) round($last->durationMs / 1000))) ?></span><?= $last->ok ? '<span class="badge b-success">' . $ic('check', 'icon') . 'OK</span>' : '<span class="badge b-danger">' . $ic('x-circle', 'icon') . 'Hiba</span>' ?><?php else: ?><span>Még nem futott</span><?php endif; ?></div>
         <div class="acts"><button class="btn btn-secondary sm" type="button" data-run="<?= $e($t->id()) ?>" data-dry="1"><?= $ic('flask') ?>Szárazfuttatás</button></div>
       </section>
       <?php endforeach; ?>
     </div>
     <section class="card widget" id="resultCard" aria-labelledby="h-result" hidden tabindex="-1">
-      <div class="widget-head"><div><h2 id="h-result">Eredmény</h2><p class="meta result-meta" id="resultMeta"></p></div><button class="btn btn-ghost sm" type="button" id="resultClose"><?= $ic('x') ?>Bezárás</button></div>
+      <div class="widget-head"><div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('list', 'icon') ?></span><div><h2 id="h-result">Eredmény</h2><p class="meta result-meta" id="resultMeta"></p></div></div><div class="head-actions"><button class="btn btn-ghost sm" type="button" id="resultClose"><?= $ic('x') ?>Bezárás</button></div></div>
       <ol class="run-lines" id="resultLines"></ol>
     </section>
   </div>
   <aside class="stack">
     <section class="card widget" aria-labelledby="h-sys">
-      <div class="widget-head"><div><h2 id="h-sys">Beállítások állapota</h2><p class="meta">config.php · értékek nélkül</p></div></div>
+      <div class="widget-head"><div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('settings', 'icon') ?></span><div><h2 id="h-sys">Beállítások állapota</h2><p class="meta">config.php · értékek nélkül</p></div></div></div>
       <dl class="kv">
         <?php foreach ($app->config->checklist() as $c): ?>
         <div><dt><?= $e($c['label']) ?></dt><dd><span class="badge <?= $c['ok'] ? 'b-success' : 'b-warning' ?>"><?= $ic($c['ok'] ? 'check' : 'alert', 'icon') ?><?= $e($c['note']) ?></span></dd></div>
@@ -134,7 +134,7 @@ for ($i = 1; $i <= 6; $i++) {
       </dl>
     </section>
     <section class="card widget" aria-labelledby="h-cron">
-      <div class="widget-head"><div><h2 id="h-cron">Időzítés (cron)</h2><p class="meta">A tárhely vezérlőpultjában kell beállítani</p></div></div>
+      <div class="widget-head"><div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('calendar', 'icon') ?></span><div><h2 id="h-cron">Időzítés (cron)</h2><p class="meta">A tárhely vezérlőpultjában kell beállítani</p></div></div></div>
       <p class="cron-hint">A címben a titkos cron-kulcs van: ne oszd meg.</p>
       <?php foreach (['Havi futás – minden hónap 1-jén 06:00' => $base . '&feladat=havi', 'Óránkénti futás – minden órában' => $base . '&feladat=orankenti'] as $name => $url): $id = 'cl-' . substr(md5($name), 0, 6); ?>
       <span class="copy-label" id="<?= $id ?>"><?= $e($name) ?></span>

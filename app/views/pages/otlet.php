@@ -9,7 +9,7 @@ require __DIR__ . '/_head.php';
 $genOk = $idea && $idea['status'] !== 'elvetve' && $idea['post_code'] === '';
 ?>
 <form class="card widget idea-form" id="ideaForm" novalidate aria-labelledby="h-if">
-    <div class="widget-head"><div><h2 id="h-if"><?= $idea ? 'Az ötlet adatai' : 'Új posztötlet' ?></h2><p class="meta">A *-gal jelölt mezők kötelezők</p></div></div>
+    <div class="widget-head"><div class="wh"><span class="ic-tile t-orange" aria-hidden="true"><?= $ic('bulb', 'icon') ?></span><div><h2 id="h-if"><?= $idea ? 'Az ötlet adatai' : 'Új posztötlet' ?></h2><p class="meta">A *-gal jelölt mezők kötelezők</p></div></div></div>
     <input type="hidden" id="f-code" value="<?= $e($v('code')) ?>">
     <div class="grid-2">
       <div class="field"><label for="f-from">Beküldő</label><input class="input" id="f-from" value="<?= $e($v('submitter')) ?>" maxlength="150" placeholder="a neve kerül ide, ha üres"></div>
