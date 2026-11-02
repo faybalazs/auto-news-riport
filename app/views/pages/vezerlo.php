@@ -5,7 +5,7 @@ require __DIR__ . '/_head.php';
 $log = $app->log();
 $desc = [
     'havi' => 'Minden hónap 1-jén 06:00-kor, minden Aktív ügyfélre: gyűjtés, Claude-értékelés, a havi lista és az összefoglaló mentése, majd a havi e-mail megírása (jóváhagyásra vár, értesítés csak az üzemeltetőnek).',
-    'orankenti' => 'Minden órában: a Mehet cikkek feltöltése a weboldalra, magyarul és angolul (minden Aktív ügyfélre). A posztgenerálás a 9. lépésben jön.',
+    'orankenti' => 'Minden órában: a Mehet cikkek feltöltése a weboldalra, magyarul és angolul (minden Aktív ügyfélre), és a sikertelen posztgenerálási kérések pótlása.',
 ];
 $cronKey = $app->config->string('cron_key');
 $base = \Xperion\Web\Http::baseUrl() . 'cron.php?k=' . rawurlencode($cronKey !== '' ? $cronKey : '<cron_key>');

@@ -35,6 +35,11 @@ final class FakeClaude implements HttpClient
                 array_pop($out);
             }
             $text = json_encode(['items' => $out], JSON_UNESCAPED_UNICODE);
+        } elseif (isset($props['opening'])) {
+            $c = $b['messages'][0]['content'];
+            $text = json_encode(['topic' => str_contains($c, '"kind": "otlet"') ? 'Ötletposzt' : 'Havi válogatás', 'opening' => 'Mit mér egy bankfiók, amikor a várakozást méri?', 'alt_opening_1' => 'Alt 1', 'alt_opening_2' => 'Alt 2',
+                'context' => 'Kontextus https://link.test/x a szövegben.', 'highlights' => "– egy\n– kettő", 'xperion_view' => 'Szemszög.', 'closing' => 'Zárás?', 'hashtags' => '#ügyfélélmény #retail',
+                'source_link' => 'https://src.test/a', 'note' => '', 'image' => ['title' => 'Mért várakozás', 'subtitle' => 'Alcím', 'measured' => '', 'real' => '']], JSON_UNESCAPED_UNICODE);
         } elseif (isset($props['hu'])) {
             preg_match('/^Cím: (.*)$/m', $b['messages'][0]['content'], $m);
             $text = json_encode(['hu' => ['title' => 'HU: ' . ($m[1] ?? ''), 'summary' => 'Magyar ajánló.'], 'en' => ['title' => 'EN: ' . ($m[1] ?? ''), 'summary' => 'English teaser.']], JSON_UNESCAPED_UNICODE);

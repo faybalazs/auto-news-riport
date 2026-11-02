@@ -2,7 +2,7 @@
 
 Havi sajtófigyelés, élő cikkfeltöltés és LinkedIn-posztgenerálás az Xperion (xperion.hu) számára, saját felülettel és MySQL-adatbázissal, több ügyfélre felkészítve.
 
-- **Állapot:** 8. lépés kész (élő feltöltés a weboldalra). Részletek: [docs/project-state.md](docs/project-state.md)
+- **Állapot:** 9. lépés kész (LinkedIn-posztok: szabályok, ötletek, generálás, jóváhagyás). Részletek: [docs/project-state.md](docs/project-state.md)
 - **Technológia:** PHP 8.1+ (a szerveren 8.2), MySQL, függőség nélküli éles kód; Claude API, SMTP, a meglévő feltöltő program; a Google Sheetből egyszeri adatátvétel
 - **Követelmények:** [docs/product.md](docs/product.md) · **Felépítés:** [docs/architecture.md](docs/architecture.md)
 - **AI-ügynököknek:** [AGENTS.md](AGENTS.md)
@@ -60,7 +60,16 @@ Másold le a `config.example.php`-t `config.php` néven, és töltsd ki:
 
 A „Mehet” cikk a következő óránkénti futással kikerül magyarul és angolul, a forráscikk képével és linkjével. A Havi cikkek oldalon látszik az állapota és a két link; hiba esetén az oka. Ami már kint van, nem kerül fel újra.
 
-### 9. Időzítés (cron)
+### 9. LinkedIn-posztok
+1. **Posztszabályok:** a Sheetből átvett szabályok itt szerkeszthetők (új, szerkesztés, törlés, sorrend). Minden generálás a friss állapotot használja.
+2. **Poszt a cikkekből:** a Havi cikkekben „LinkedIn poszt” jelölésű cikkekből a **LinkedIn-posztok → Poszt készítése** gomb egy havi posztot ír. Ha egy cikkből külön poszt kell, a Havi cikkek oldalon a cikk mellett: **Külön poszt ebből**.
+3. **Poszt ötletből:** **Posztötletek → Új ötlet**, mentés, majd **Küldés posztgenerálásra**.
+4. A generálás fél–egy perc (Claude Opus 5.5, posztonként kb. 15–25 cent). A poszt **Tervezet** állapotba kerül; ha a generálás nem sikerül, az óránkénti futás újrapróbálja.
+5. **A poszt oldala:** előnézet (zárt és kibontott nézet), **Szöveg másolása**, **Kép letöltése (PNG)**, forráslink az első kommenthez; a Szerkesztés fülön mezőnként javítható, a nyitó sor egy kattintással cserélhető.
+6. **Jóváhagyás:** az üzemeltető **Küldés jóváhagyásra** → Attila e-mailt kap, **Jóváhagyom** vagy **Módosítást kérek** (megjegyzéssel; ilyenkor az **Újragenerálás** figyelembe veszi) → jóváhagyás után Emi e-mailt kap, kimásolja, időzíti a LinkedInen, majd **Megjelent a LinkedInen**.
+7. Az előnézet fejlécéhez (nem kötelező) a Sheet „Beállítások” lapján: `linkedin_nev`, `linkedin_kovetok`. Más modell: `modell_linkedin` (pl. `claude-sonnet-5-5`).
+
+### 10. Időzítés (cron)
 A tárhely vezérlőpultjában két időzített feladat kell; a pontos címeket a **Vezérlőpult → Időzítés (cron)** kártyán másolhatod:
 - **Havi futás:** minden hónap 1-jén 06:00-kor (Europe/Budapest).
 - **Óránkénti futás:** minden órában.

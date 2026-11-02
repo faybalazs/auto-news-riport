@@ -122,6 +122,33 @@ try {
             $app->clients()->update($access, (int) $c['id'], (string) $c['name'], (string) $c['website'], (string) $c['status'], $str('sheet'));
             return ['ok' => true, 'clients' => $app->clients()->all($access)];
         })(),
+        'szabaly' => ['rules' => $app->rules()->save($access, $int('id'), $str('name'), (string) ($in['value'] ?? ''))],
+        'szabalytorles' => ['rules' => $app->rules()->delete($access, (int) $int('id'))],
+        'szabalysorrend' => ['rules' => $app->rules()->reorder($access, array_map('intval', (array) ($in['ids'] ?? [])))],
+        'otlet' => ['idea' => $app->ideas()->save($access, $str('code'), (array) ($in['idea'] ?? []))],
+        'otlettorles' => (function () use ($app, $access, $str) {
+            $app->ideas()->delete($access, $str('code'));
+            return ['ok' => true];
+        })(),
+        'posztkeres' => (function () use ($app, $access, $str) {
+            session_write_close();
+            ignore_user_abort(true);
+            @set_time_limit(600);
+            try {
+                return ['code' => $app->posts()->request($access, $str('kind'), $str('ref'))];
+            } catch (\RuntimeException $e) {
+                if ($e instanceof AccessDenied) {
+                    throw $e;
+                }
+                throw new \InvalidArgumentException($e->getMessage());
+            }
+        })(),
+        'poszt' => ['post' => $app->posts()->update($access, $str('code'), (array) ($in['post'] ?? []))],
+        'posztlepes' => ['post' => $app->posts()->transition($access, $str('code'), $str('action'), (string) ($in['comment'] ?? ''))],
+        'poszttorles' => (function () use ($app, $access, $str) {
+            $app->posts()->delete($access, $str('code'));
+            return ['ok' => true];
+        })(),
         'wpellenorzes' => ['wp' => $app->uploads()->check($access)],
         'feltoltes' => (function () use ($app, $access, $in) {
             $access->require('ops');

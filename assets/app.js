@@ -620,7 +620,8 @@ if (APP.page === 'cikkek' && $('#artTable')){
       return `<span class="badge b-warning">${ic('clock','icon')}feltöltésre vár</span>`;
     }
     if (r.upload_status) return `<span class="badge b-danger">${ic('x-circle','icon')}${esc(r.upload_status)}</span>`;
-    if (r.decision === 'linkedin') return r.post_code ? `<span class="meta">${esc(r.post_code)}</span>` : `<span class="badge b-warning">${ic('clock','icon')}poszt készül</span>`;
+    if (r.decision === 'linkedin') return r.post_code ? `<a class="badge b-ai" href="index.php?p=poszt&amp;kod=${encodeURIComponent(r.post_code)}">${ic('linkedin','icon')}${esc(r.post_code)}</a>`
+      : `<div class="up-err"><span class="meta">a havi posztba kerül (LinkedIn-posztok)</span>${can('ideas') ? `<button class="btn btn-ghost sm" type="button" data-single="${r.id}">${ic('sparkle','icon icon-sm')}Külön poszt ebből</button>` : ''}</div>`;
     return '';
   };
   const table = DataTable({
@@ -657,6 +658,14 @@ if (APP.page === 'cikkek' && $('#artTable')){
   $('#artTable').addEventListener('change', e => { const s = e.target.closest('[data-dec]'); if (!s) return; const r = rows.find(x => x.id === s.dataset.dec); decide([r], s.value).then(() => $(`#dec-${r.id}`)?.focus()); });
   $$('[data-bulk]').forEach(b => b.addEventListener('click', () => decide(rows.filter(r => table.selected.includes(r.id)), b.dataset.bulk)));
   $('#artTable').addEventListener('click', async e => {
+    const sp = e.target.closest('[data-single]');
+    if (sp){
+      if (!await confirmBox({ title:'Külön poszt készüljön ebből a cikkből?', body:'A cikk nem kerül a havi posztba. Fél–egy perc (Claude Opus, kb. 15–25 cent); a poszt Tervezet állapotba kerül.', confirm:'Poszt készítése', danger:false })) return;
+      busy(sp, true); announce('A poszt készül, ez fél–egy percig tart…');
+      try { const d = await api('posztkeres', { kind:'cikk', ref:sp.dataset.single }); location.href = 'index.php?p=poszt&kod=' + encodeURIComponent(d.code); }
+      catch(err){ toast(err.message, { type:'error' }); busy(sp, false); }
+      return;
+    }
     const b = e.target.closest('[data-retry]'); if (!b) return;
     busy(b, true);
     try { await api('feltoltesujra', { id:+b.dataset.retry }); const r = rows.find(x => x.id === b.dataset.retry); r.upload_attempts = 0; r.wp_state = ''; r.upload_error = ''; table.render(); toast('A következő óránkénti futás újra megpróbálja (vagy indítsa a Vezérlőpultról).'); }
@@ -744,6 +753,209 @@ if (APP.page === 'ugyfelek' && $('#msSave')){
     try { const d = await api('emailbeallitas', { to: $('#msTo').value, cc: $('#msCc').value, style: $('#msStyle').value }); $('#msTo').value = d.settings.to; $('#msCc').value = d.settings.cc; toast('A havi e-mail beállításai mentve.'); }
     catch(e){ toast(e.message, { type:'error' }); } finally { busy(btn, false); }
   });
+}
+
+/* ==================================================================
+   12/J. POSZTSZABÁLYOK: lista, felvétel, szerkesztés, törlés, sorrend
+   ================================================================== */
+if (APP.page === 'szabalyok' && $('#ruleTable')){
+  let rules = APP.data.rules || [], editing = null;
+  const render = () => {
+    const q = norm($('#ruleQ').value.trim()), list = rules.filter(r => !q || norm(r.name + ' ' + r.value).includes(q));
+    $('#ruleCount').textContent = `${list.length} / ${rules.length} szabály`;
+    $('#ruleTable').innerHTML = list.length ? `<table class="rules-table"><caption class="sr-only">Posztszabályok</caption><thead><tr><th scope="col" class="num">#</th><th scope="col">Megnevezés</th><th scope="col">Érték</th><th scope="col"><span class="sr-only">Műveletek</span></th></tr></thead><tbody>${list.map(r => { const i = rules.indexOf(r); return `<tr><td class="num">${i + 1}</td><td><b>${esc(r.name)}</b></td><td class="rule-val">${esc(r.value)}</td><td class="rule-acts"><button class="icon-btn" type="button" data-rmove="${r.id}" data-dir="-1" aria-label="${esc(r.name)}: feljebb"${i === 0 || q ? ' disabled' : ''}>${ic('arrow-up')}</button><button class="icon-btn" type="button" data-rmove="${r.id}" data-dir="1" aria-label="${esc(r.name)}: lejjebb"${i === rules.length - 1 || q ? ' disabled' : ''}>${ic('arrow-down')}</button><button class="icon-btn" type="button" data-redit="${r.id}" aria-label="${esc(r.name)} szerkesztése">${ic('edit')}</button><button class="icon-btn" type="button" data-rdel="${r.id}" aria-label="${esc(r.name)} törlése">${ic('trash')}</button></td></tr>`; }).join('')}</tbody></table>`
+      : `<div class="empty-state"><b>${rules.length ? 'Nincs találat' : 'Még nincs szabály'}</b><span>${rules.length ? 'Módosítsa a keresést.' : 'Az „Új szabály” gombbal vegye fel az elsőt, vagy vegye át a Google Sheetből (Ügyfelek → Adatátvétel).'}</span></div>`;
+  };
+  const open = r => { editing = r; $('#ruleDlgTitle').textContent = r ? 'Szabály szerkesztése' : 'Új szabály'; $('#r-name').value = r?.name || ''; $('#r-value').value = r?.value || ''; $('#ruleErr').hidden = true; $('#ruleDlg').showModal(); $('#r-name').focus(); };
+  $('#ruleAdd').addEventListener('click', () => open(null));
+  $('#ruleCancel').addEventListener('click', () => $('#ruleDlg').close());
+  $('#ruleForm').addEventListener('submit', async e => {
+    e.preventDefault(); const b = $('#ruleSubmit'); busy(b, true);
+    try { rules = (await api('szabaly', { id:editing?.id ?? null, name:$('#r-name').value, value:$('#r-value').value })).rules; $('#ruleDlg').close(); render(); toast(editing ? 'A szabály mentve.' : 'Az új szabály felkerült a lista végére.'); }
+    catch(err){ $('#ruleErr').textContent = err.message; $('#ruleErr').hidden = false; } finally { busy(b, false); }
+  });
+  $('#ruleTable').addEventListener('click', async e => {
+    const ed = e.target.closest('[data-redit]'), del = e.target.closest('[data-rdel]'), mv = e.target.closest('[data-rmove]');
+    if (ed) open(rules.find(r => r.id === +ed.dataset.redit));
+    if (del){ const r = rules.find(x => x.id === +del.dataset.rdel); if (!await confirmBox({ title:`Törli a(z) „${r.name}” szabályt?`, body:'A következő posztgenerálás már nélküle készül.', confirm:'Szabály törlése' })) return;
+      try { rules = (await api('szabalytorles', { id:r.id })).rules; render(); toast('A szabály törölve.'); } catch(err){ toast(err.message, { type:'error' }); } }
+    if (mv){ const i = rules.findIndex(r => r.id === +mv.dataset.rmove), j = i + +mv.dataset.dir; if (j < 0 || j >= rules.length) return;
+      const ids = rules.map(r => r.id); [ids[i], ids[j]] = [ids[j], ids[i]];
+      try { rules = (await api('szabalysorrend', { ids })).rules; render(); $(`[data-rmove="${ids[j]}"][data-dir="${mv.dataset.dir}"]`)?.focus(); } catch(err){ toast(err.message, { type:'error' }); } }
+  });
+  $('#ruleQ').addEventListener('input', render);
+  render();
+}
+
+/* ==================================================================
+   12/K. POSZTÖTLETEK: lista és űrlap (új, szerkesztés, elvetés, törlés, generálás)
+   ================================================================== */
+const IDEA_ST = { uj:['b-info','plus'], elkeszult:['b-success','check'], jovahagyva:['b-success','check'], utemezve:['b-info','calendar'], elvetve:['b-neutral','x'] };
+if (APP.page === 'otletek' && $('#ideaTable')){
+  const rows = (APP.data.ideas || []).map(r => ({ ...r, id:r.code }));
+  const table = DataTable({ id:'otletek', caption:'Posztötletek', rows, labelKey:'topic', selectable:false, table:$('#ideaTable'), pager:$('#ideaPager'), sort:{ key:'created_at', dir:'desc' }, pageSize:25,
+    columns:[
+      { key:'code', label:'ID', render:r => `<a href="index.php?p=otlet&amp;kod=${encodeURIComponent(r.code)}">${esc(r.code)}</a>` },
+      { key:'topic', label:'Téma és üzenet', render:r => `<div class="cell-title"><a href="index.php?p=otlet&amp;kod=${encodeURIComponent(r.code)}">${esc(r.topic)}</a><span>${esc(r.message)}</span></div>` },
+      { key:'type', label:'Típus' }, { key:'wanted_week', label:'Kívánt hét' }, { key:'submitter', label:'Beküldő' },
+      { key:'status', label:'Állapot', render:r => { const x = IDEA_ST[r.status] || ['b-neutral','info']; return `<span class="badge ${x[0]}">${ic(x[1],'icon')}${esc(r.status_label)}</span>${r.pending ? ` <span class="badge b-warning">${ic('clock','icon')}generálásra vár</span>` : ''}`; } },
+      { key:'post_code', label:'Poszt', sortable:false, render:r => r.post_code ? `<a href="index.php?p=poszt&amp;kod=${encodeURIComponent(r.post_code)}">${esc(r.post_code)}</a>` : '<span class="meta">–</span>' },
+      { key:'created_at', label:'Beküldve', render:r => esc(dtHu(r.created_at)) }
+    ], emptyHtml:() => rows.length ? 'Nincs a szűrésnek megfelelő ötlet.' : 'Még nincs beküldött ötlet. Az „Új ötlet” gombbal küldheti be az elsőt.' });
+  const pred = () => { const q = norm($('#ideaQ').value.trim()), st = $('#ideaSt').value; table.setPred(r => (!q || norm(`${r.topic} ${r.message} ${r.submitter} ${r.code}`).includes(q)) && (!st || r.status === st)); };
+  $('#ideaQ').addEventListener('input', pred); $('#ideaSt').addEventListener('change', pred); pred();
+}
+if (APP.page === 'otlet' && $('#ideaForm')){
+  const code = () => $('#f-code').value;
+  const values = () => ({ submitter:$('#f-from').value, type:$('#f-tipus').value, topic:$('#f-tema').value, message:$('#f-uzenet').value, link:$('#f-link').value, wanted_week:$('#f-het').value, note:$('#f-note').value, status:$('#f-allapot')?.value || '' });
+  async function save(extra = {}){
+    const req = [['#f-tema','A téma kötelező.'], ['#f-uzenet','A fő üzenet kötelező.'], ['#f-tipus','Válassza ki a poszttípust.']].find(([s]) => !$(s).value.trim());
+    if (req){ $(req[0]).setAttribute('aria-invalid','true'); $(req[0]).focus(); toast(req[1], { type:'error' }); return null; }
+    $$('[aria-invalid]', $('#ideaForm')).forEach(x => x.removeAttribute('aria-invalid'));
+    return (await api('otlet', { code:code(), idea:{ ...values(), ...extra } })).idea;
+  }
+  $('#ideaForm').addEventListener('submit', async e => {
+    e.preventDefault(); const b = $('#ideaSave'); busy(b, true);
+    try { const d = await save(); if (!d) return; if (!code()){ location.href = 'index.php?p=otlet&kod=' + encodeURIComponent(d.code); return; } toast('Az ötlet mentve.'); }
+    catch(err){ toast(err.message, { type:'error' }); } finally { busy(b, false); }
+  });
+  $('#ideaGen')?.addEventListener('click', async () => {
+    const b = $('#ideaGen'); busy(b, true); announce('A poszt készül, ez fél–egy percig tart…');
+    try { if (!await save()) return; const d = await api('posztkeres', { kind:'otlet', ref:code() }); location.href = 'index.php?p=poszt&kod=' + encodeURIComponent(d.code); }
+    catch(err){ toast(err.message, { type:'error' }); busy(b, false); }
+  });
+  $('#ideaReject')?.addEventListener('click', async () => {
+    if (!await confirmBox({ title:'Elveti az ötletet?', body:'Nem készül belőle poszt. Később visszaállíthatja az Állapot mezőben.', confirm:'Elvetés', danger:false })) return;
+    try { await save({ status:'elvetve' }); location.reload(); } catch(err){ toast(err.message, { type:'error' }); }
+  });
+  $('#ideaDelete')?.addEventListener('click', async () => {
+    if (!await confirmBox({ title:'Törli az ötletet?', body:'Az ötlet véglegesen törlődik. Ha készült belőle poszt, az megmarad.', confirm:'Ötlet törlése' })) return;
+    try { await api('otlettorles', { code:code() }); location.href = 'index.php?p=otletek'; } catch(err){ toast(err.message, { type:'error' }); }
+  });
+}
+
+/* ==================================================================
+   12/L. LINKEDIN-POSZTOK: lista, havi poszt készítése
+   ================================================================== */
+const POST_ST = { tervezet:['b-neutral','edit'], ugyfelnel:['b-warning','clock'], jovahagyva:['b-success','check'], megjelent:['b-info','linkedin'] };
+const postBadge = p => { const x = POST_ST[p.status] || ['b-neutral','info']; return `<span class="badge ${x[0]}">${ic(x[1],'icon')}${esc(p.status_label)}</span>`; };
+if (APP.page === 'posztok' && $('#postGrid')){
+  const posts = APP.data.posts || []; let f = '';
+  const render = () => {
+    const list = posts.filter(p => !f || p.status === f);
+    $('#postGrid').innerHTML = list.map(p => `<a class="card widget post-card" href="index.php?p=poszt&amp;kod=${encodeURIComponent(p.code)}"><div class="row"><span class="id">${esc(p.code)}</span>${postBadge(p)}</div><h2>${esc(p.topic || '(téma nélkül)')}</h2><p>${esc(p.opening)}</p><span class="meta">${esc({ cikkek:'A hónap LinkedIn-cikkeiből', cikk:'Egy cikkből', otlet:'Ötletből' + (p.idea_code ? ': ' + p.idea_code : '') }[p.source_kind] || 'Átvett poszt')} · ${esc(p.created_hu)}</span></a>`).join('');
+    $('#postEmpty').hidden = list.length > 0;
+  };
+  $$('#postFilter [data-pf]').forEach(b => b.addEventListener('click', () => { f = b.dataset.pf; $$('#postFilter [data-pf]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); render(); }));
+  $('#genMonthly')?.addEventListener('click', async () => {
+    const b = $('#genMonthly'); busy(b, true); announce('A poszt készül, ez fél–egy percig tart…');
+    try { const d = await api('posztkeres', { kind:'cikkek', ref:$('#genMonth').value }); location.href = 'index.php?p=poszt&kod=' + encodeURIComponent(d.code); }
+    catch(err){ toast(err.message, { type:'error' }); busy(b, false); }
+  });
+  render();
+}
+
+/* ==================================================================
+   12/M. EGY POSZT: előnézet, kép (Canvas), szerkesztés, jóváhagyási lépések
+   ================================================================== */
+if (APP.page === 'poszt' && $('#liText')){
+  let P = APP.data.post, expanded = false;
+  const C = APP.data.company || {};
+  const site = String(C.website || '').replace(/^https?:\/\//, '').replace(/\/$/, '') || 'xperion.hu';
+  const full = p => ['opening','context','highlights','xperion_view','closing','hashtags'].map(k => String(p[k] || '').trim()).filter(Boolean).join('\n\n');
+  function renderText(){
+    const t = full(P);
+    $('#liText').innerHTML = expanded || t === P.opening ? esc(t) : `${esc(P.opening)}<span class="more">… <button class="linklike" type="button" id="liMore">több</button></span>`;
+    $('#liMore')?.addEventListener('click', () => { expanded = true; syncMode(); });
+  }
+  const syncMode = () => { $$('#liMode [data-m]').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.m === 'open') === expanded))); renderText(); };
+  $$('#liMode [data-m]').forEach(b => b.addEventListener('click', () => { expanded = b.dataset.m === 'open'; syncMode(); }));
+  function wrap(x, text, maxW){ const out = []; let line = ''; String(text || '').split(/\s+/).filter(Boolean).forEach(w => { const t = line ? line + ' ' + w : w; if (x.measureText(t).width > maxW && line){ out.push(line); line = w; } else line = t; }); if (line) out.push(line); return out; }
+  function draw(){
+    const img = P.image || {}, c = $('#postCanvas'), x = c.getContext('2d'), W = 1200;
+    x.fillStyle = '#0F1640'; x.fillRect(0, 0, W, W);
+    const g = x.createLinearGradient(0, 0, W, W); g.addColorStop(0, 'rgba(45,56,138,.95)'); g.addColorStop(1, 'rgba(0,174,239,.55)');
+    x.fillStyle = g; x.beginPath(); x.arc(W * .95, W * .05, 760, 0, Math.PI * 2); x.fill();
+    x.fillStyle = 'rgba(255,255,255,.06)'; for (let i = 0; i < 12; i++) for (let j = 0; j < 12; j++){ x.beginPath(); x.arc(80 + i * 96, 80 + j * 96, 3, 0, Math.PI * 2); x.fill(); }
+    const bar = x.createLinearGradient(96, 0, 400, 0); bar.addColorStop(0, '#2D388A'); bar.addColorStop(1, '#00AEEF'); x.fillStyle = bar; x.fillRect(96, 150, 140, 12);
+    x.textBaseline = 'top'; x.fillStyle = '#FFFFFF'; x.font = '600 92px Inter, Arial, sans-serif';
+    let y = 210; wrap(x, img.title || P.topic, W - 192).slice(0, 4).forEach(l => { x.fillText(l, 96, y); y += 108; });
+    x.fillStyle = '#BFE9FB'; x.font = '400 44px Inter, Arial, sans-serif'; y += 16;
+    wrap(x, img.subtitle, W - 192).slice(0, 3).forEach(l => { x.fillText(l, 96, y); y += 58; });
+    if (img.measured && img.real){
+      y = Math.max(y + 60, 640);
+      x.fillStyle = 'rgba(255,255,255,.08)'; x.strokeStyle = 'rgba(255,255,255,.25)'; x.lineWidth = 2;
+      x.beginPath(); x.roundRect ? x.roundRect(96, y, W - 192, 250, 24) : x.rect(96, y, W - 192, 250); x.fill(); x.stroke();
+      x.fillStyle = '#00AEEF'; x.font = '600 26px Inter, Arial, sans-serif'; x.fillText('ILLUSZTRATÍV PÉLDA', 136, y + 36);
+      x.fillStyle = '#FFFFFF'; x.font = '500 46px Inter, Arial, sans-serif'; x.fillText(wrap(x, img.measured, W - 272)[0] || '', 136, y + 92);
+      x.fillStyle = '#7FD3F5'; x.fillText(wrap(x, '→ ' + img.real, W - 272)[0] || '', 136, y + 162);
+    }
+    x.fillStyle = '#FFFFFF'; x.font = '600 40px Inter, Arial, sans-serif'; x.fillText(site, 96, W - 140);
+    const name = C.name || ''; x.fillStyle = 'rgba(255,255,255,.6)'; x.font = '400 28px Inter, Arial, sans-serif'; x.fillText(name, W - 96 - x.measureText(name).width, W - 132);
+  }
+  function renderAll(){
+    renderText(); draw();
+    const opts = [['opening', 'Jelenlegi'], ['alt_opening_1', 'Alternatív 1'], ['alt_opening_2', 'Alternatív 2']].filter(([k]) => String(P[k] || '').trim());
+    const canEdit = can('ideas') && (P.status === 'tervezet' || P.status === 'ugyfelnel' || (P.status === 'jovahagyva' && can('ops')));
+    $('#openChoices').innerHTML = '<legend class="sr-only">Nyitó sor választása</legend>' + opts.map(([k, l], i) => `<label class="open-opt"><input type="radio" name="openopt" value="${k}"${i === 0 ? ' checked' : ''}${canEdit ? '' : ' disabled'}><span><b>${l}</b><br>${esc(P[k])}</span></label>`).join('') + (canEdit && opts.length > 1 ? '<span class="help">Másik nyitó sor választásakor a jelenlegi az alternatívák közé kerül.</span>' : '');
+    $('#copyLink').hidden = !P.source_link;
+    const srcs = P.articles && P.articles.length ? P.articles.map(a => `<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.source_name)}: ${esc(a.title)}</a>`).join('<br>') : P.idea_code ? `<a href="index.php?p=otlet&amp;kod=${encodeURIComponent(P.idea_code)}">${esc(P.idea_code)}: ${esc(P.idea_topic || '')}</a>` : esc(P.source_articles || '–');
+    $('#postKv').innerHTML = [['Témakör', esc(P.topic || '–')], ['Forrás', srcs], ['Forráslink', P.source_link ? `<a href="${esc(P.source_link)}" target="_blank" rel="noopener">${esc(P.source_link)}</a>` : '–'], ['Létrehozva', esc(P.created_hu)], ['Modell', esc(P.model || 'átvett / kézi')], ['Megjegyzés', esc(P.note || '–')]].map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+    const ev = P.events || [];
+    $('#postHist').innerHTML = ev.length ? ev.map((e, i) => `<li class="tl-item${i === ev.length - 1 ? ' last' : ''}"><span class="tl-dot badge b-neutral">${ic('clock','icon')}</span><div class="tl-body"><div class="tl-title">${esc(e.action)}</div><div class="tl-desc">${esc(e.user)} · ${esc(e.time_hu)}${e.details ? ' · ' + esc(e.details) : ''}</div></div></li>`).join('') : '<li class="meta">Még nincs bejegyzés.</li>';
+    $('#crBanner').hidden = !(P.change_request && P.status === 'tervezet'); $('#crText').textContent = P.change_request || '';
+    const st = POST_ST[P.status] || ['b-neutral','info']; $('#postStatus').className = 'badge ' + st[0]; $('#postStatus').textContent = P.status_label;
+    const acts = [];
+    if (P.status === 'tervezet' && can('ops')) acts.push(['kuldes', 'Küldés jóváhagyásra', 'send', 'btn-primary']);
+    if (P.status === 'ugyfelnel' && can('approve')){ acts.push(['modositas', 'Módosítást kérek', 'msg', 'btn-secondary']); acts.push(['jovahagyas', 'Jóváhagyom', 'check', 'btn-primary']); }
+    if (P.status === 'jovahagyva' && can('publish')) acts.push(['megjelent', 'Megjelent a LinkedInen', 'linkedin', 'btn-primary']);
+    $('#postActs').innerHTML = acts.map(([a, l, i, c]) => `<button class="btn ${c}" type="button" data-pa="${a}">${ic(i,'icon icon-sm')}${l}</button>`).join('');
+    $('#tab-szerk').hidden = !canEdit;
+    fillForm();
+  }
+  const F = ['topic','opening','alt_opening_1','alt_opening_2','context','highlights','xperion_view','closing','hashtags','source_link','note'];
+  function fillForm(){ F.forEach(k => { const el = $('#pe-' + k); if (el) el.value = P[k] || ''; }); const im = P.image || {}; $('#pe-it').value = im.title || ''; $('#pe-is').value = im.subtitle || ''; $('#pe-e1').value = im.measured || ''; $('#pe-e2').value = im.real || ''; }
+  async function savePost(body, msg){ try { P = (await api('poszt', { code:P.code, post:body })).post; renderAll(); toast(msg); return true; } catch(err){ toast(err.message, { type:'error' }); return false; } }
+  $('#postForm').addEventListener('submit', async e => {
+    e.preventDefault(); const b = $('#peSave'); busy(b, true);
+    const body = Object.fromEntries(F.map(k => [k, $('#pe-' + k).value])); body.image = { title:$('#pe-it').value, subtitle:$('#pe-is').value, measured:$('#pe-e1').value, real:$('#pe-e2').value };
+    if (await savePost(body, 'A poszt mentve.')) selectTab('elo'); busy(b, false);
+  });
+  $('#peReset').addEventListener('click', () => { fillForm(); toast('A módosítások elvetve.', { type:'info' }); });
+  $('#openChoices').addEventListener('change', async e => {
+    const k = e.target.value; if (k === 'opening') return;
+    const body = { opening:P[k], [k]:P.opening }; await savePost(body, 'A nyitó sor lecserélve.');
+  });
+  function selectTab(t){ ['elo','szerk'].forEach(x => { $('#tab-' + x).setAttribute('aria-selected', String(x === t)); $('#tab-' + x).tabIndex = x === t ? 0 : -1; $('#p-' + x).hidden = x !== t; }); }
+  $$('.tabs [role=tab]').forEach(t => t.addEventListener('click', () => selectTab(t.id.replace('tab-', ''))));
+  $('.tabs').addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft'){ const n = $('#tab-elo').getAttribute('aria-selected') === 'true' && !$('#tab-szerk').hidden ? 'szerk' : 'elo'; selectTab(n); $('#tab-' + n).focus(); } });
+  $('#copyText').addEventListener('click', () => copyText(full(P), $('#liText')));
+  $('#copyLink').addEventListener('click', () => copyText(P.source_link));
+  $('#dlImage').addEventListener('click', () => { const a = document.createElement('a'); a.download = P.code + '.png'; a.href = $('#postCanvas').toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove(); });
+  $('#postActs').addEventListener('click', async e => {
+    const b = e.target.closest('[data-pa]'); if (!b) return; const a = b.dataset.pa; let comment = '';
+    if (a === 'modositas'){ comment = await confirmBox({ title:'Mit módosítsunk?', body:'Írja le röviden; a poszt visszakerül tervezetbe, és a módosítás után újra megkapja jóváhagyásra.', confirm:'Kérés elküldése', danger:false, input:{ label:'Módosítási kérés' } }); if (!comment) return; }
+    if (a === 'kuldes' && !await confirmBox({ title:'Elküldi jóváhagyásra?', body:'Az ügyfél-adminisztrátor értesítést kap, és a felületen jóváhagyhatja vagy módosítást kérhet.', confirm:'Küldés jóváhagyásra', danger:false })) return;
+    if (a === 'megjelent' && !await confirmBox({ title:'Megjelent a LinkedInen?', body:'Jelölje meg, ha a posztot közzétette vagy időzítette a LinkedIn ütemezőjében.', confirm:'Megjelentnek jelölöm', danger:false })) return;
+    busy(b, true);
+    try { P = (await api('posztlepes', { code:P.code, action:a, comment })).post; renderAll(); toast({ kuldes:'Elküldve jóváhagyásra.', jovahagyas:'Jóváhagyva. A tartalomkezelő értesítést kapott.', modositas:'A módosítási kérés elküldve.', megjelent:'Megjelentnek jelölve.' }[a] || 'Kész.'); }
+    catch(err){ toast(err.message, { type:'error' }); busy(b, false); }
+  });
+  $('#postMore').addEventListener('click', e => {
+    const items = [];
+    if (can('ideas') && (P.status === 'tervezet' || P.status === 'ugyfelnel')) items.push({ k:'ujra', l:'Újragenerálás a szabályok szerint', i:'refresh' });
+    if (can('ops') && P.status !== 'tervezet') items.push({ k:'vissza', l:'Vissza tervezetre', i:'repeat' });
+    if (can('deletePost')) items.push({ k:'torles', l:'Poszt törlése…', i:'trash', danger:true, sep:items.length > 0 });
+    if (!items.length){ toast('Ehhez a poszthoz nincs további művelet.', { type:'info' }); return; }
+    openRowMenu(e.currentTarget, P, {
+      ujra: async () => { if (!await confirmBox({ title:'Újragenerálja a posztot?', body:'A jelenlegi szöveg (a kézi módosításokkal együtt) felülíródik; a módosítási kérést figyelembe veszi. Fél–egy perc, kb. 15–25 cent.', confirm:'Újragenerálás', danger:false })) return;
+        announce('A poszt újra készül…'); try { await api('posztkeres', { kind:'ujra', ref:P.code }); location.reload(); } catch(err){ toast(err.message, { type:'error' }); } },
+      vissza: async () => { try { P = (await api('posztlepes', { code:P.code, action:'vissza' })).post; renderAll(); toast('Visszaállítva tervezetre.'); } catch(err){ toast(err.message, { type:'error' }); } },
+      torles: async () => { if (!await confirmBox({ title:`Törli a(z) ${P.code} posztot?`, body:'A szöveg, a kép és az előzmények véglegesen törlődnek. A forráscikkek és az ötlet megmaradnak, és újra küldhetők generálásra.', confirm:'Poszt törlése' })) return;
+        try { await api('poszttorles', { code:P.code }); location.href = 'index.php?p=posztok'; } catch(err){ toast(err.message, { type:'error' }); } }
+    }, items);
+  });
+  renderAll();
 }
 
 /* ==================================================================

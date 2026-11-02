@@ -11,7 +11,7 @@ $nav = static function (string $p, string $icon, string $label, ?string $perm = 
     if ($perm !== null && !$access->can($perm)) {
         return '';
     }
-    $cur = $p === $page ? ' aria-current="page"' : '';
+    $cur = $p === (['poszt' => 'posztok', 'otlet' => 'otletek'][$page] ?? $page) ? ' aria-current="page"' : '';
     return '<a class="nav-item" href="index.php?p=' . $p . '" title="' . $e($label) . '"' . $cur . '>' . $ic($icon, 'icon') . '<span class="nav-label">' . $e($label) . '</span>' . $extra . '</a>';
 };
 $client = $access->client();

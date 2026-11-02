@@ -136,7 +136,9 @@ $pages = [
     'attekintes' => ['Áttekintés', null],
     'cikkek' => ['Havi cikkek', null],
     'posztok' => ['LinkedIn-posztok', null],
+    'poszt' => ['LinkedIn-poszt', null],
     'otletek' => ['Posztötletek', 'ideas'],
+    'otlet' => ['Posztötlet', 'ideas'],
     'szabalyok' => ['Posztszabályok', 'rules'],
     'felhasznalok' => ['Felhasználók', 'users'],
     'ugyfelek' => ['Ügyfelek', 'ops'],
@@ -153,10 +155,7 @@ if ($perm !== null && !$access->can($perm)) {
     http_response_code(403);
     $template = 'pages/nincsjog';
 } else {
-    $template = match ($page) {
-        'posztok', 'otletek', 'szabalyok' => 'pages/hamarosan',
-        default => 'pages/' . $page,
-    };
+    $template = 'pages/' . $page;
     if ($page === 'felhasznalok') {
         $data = ['users' => $app->users()->visibleUsers($access)];
     } elseif ($page === 'ugyfelek') {
@@ -172,6 +171,35 @@ if ($perm !== null && !$access->can($perm)) {
         $mm = $em->months($access);
         $data = ['mail' => ['months' => array_map(static fn ($m) => ['month' => $m, 'label' => \Xperion\Monthly\EmailService::monthLabel($m)], $mm), 'email' => $mm ? $em->get($access, $mm[0]) : null,
             'settings' => $em->settings((int) $access->clientId()), 'ready' => $em->mailerReady(), 'problem' => $em->mailerProblem(), 'claude' => $app->config->has('claude_api_key')]];
+    } elseif ($page === 'posztok') {
+        $data = ['posts' => $app->posts()->all($access), 'openMonths' => $app->posts()->openMonths($access), 'jobs' => $app->posts()->pendingJobs($access)];
+    } elseif ($page === 'poszt') {
+        $post = $app->posts()->get($access, (string) ($_GET['kod'] ?? ''));
+        if ($post === null) {
+            http_response_code(404);
+            $template = 'pages/nincs';
+            $title = 'Nincs ilyen poszt';
+        } else {
+            $title = $post['code'];
+            $cl = $access->client();
+            $data = ['post' => $post, 'company' => ['name' => (string) ($app->db()->value("SELECT value FROM client_settings WHERE client_id = ? AND name = 'linkedin_nev'", [$cl['id']]) ?: $cl['name']),
+                'followers' => (string) ($app->db()->value("SELECT value FROM client_settings WHERE client_id = ? AND name = 'linkedin_kovetok'", [$cl['id']]) ?: ''), 'website' => (string) $cl['website']]];
+        }
+    } elseif ($page === 'otletek') {
+        $data = ['ideas' => $app->ideas()->all($access)];
+    } elseif ($page === 'otlet') {
+        $kod = (string) ($_GET['kod'] ?? '');
+        $idea = $kod !== '' ? $app->ideas()->get($access, $kod) : null;
+        if ($kod !== '' && $idea === null) {
+            http_response_code(404);
+            $template = 'pages/nincs';
+            $title = 'Nincs ilyen ötlet';
+        } else {
+            $title = $idea ? $idea['code'] : 'Új posztötlet';
+            $data = ['idea' => $idea, 'types' => \Xperion\Posts\IdeaService::TYPES, 'statuses' => \Xperion\Posts\IdeaService::STATUS];
+        }
+    } elseif ($page === 'szabalyok') {
+        $data = ['rules' => $app->rules()->all($access)];
     } elseif ($page === 'attekintes') {
         $data = $app->overview()->build($access, preg_match('/^\d{4}$/', (string) ($_GET['honap'] ?? '')) ? (string) $_GET['honap'] : '');
     }
@@ -180,7 +208,7 @@ if ($perm !== null && !$access->can($perm)) {
 $view->render($template, [
     'title' => $title,
     'page' => $page,
-    'jsPage' => in_array($template, ['pages/nincsjog', 'pages/hamarosan'], true) ? 'statikus' : $page,
+    'jsPage' => in_array($template, ['pages/nincsjog', 'pages/nincs', 'pages/hamarosan'], true) ? 'statikus' : $page,
     'access' => $access,
     'csrf' => Session::csrf(),
     'flash' => Session::takeFlash(),

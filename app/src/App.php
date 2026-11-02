@@ -171,6 +171,21 @@ final class App
             $this->mailer(), $this->audit(), $this->log(), $this->storageDir . '/futas.lock');
     }
 
+    public function rules(): \Xperion\Posts\RuleService
+    {
+        return new \Xperion\Posts\RuleService($this->db(), $this->audit());
+    }
+
+    public function ideas(): \Xperion\Posts\IdeaService
+    {
+        return new \Xperion\Posts\IdeaService($this->db(), $this->audit());
+    }
+
+    public function posts(): \Xperion\Posts\PostService
+    {
+        return new \Xperion\Posts\PostService($this->db(), $this->claude(), $this->rules(), $this->mailer(), $this->audit(), $this->baseUrl());
+    }
+
     public function mailer(): \Xperion\Mail\Mailer
     {
         return new \Xperion\Mail\SmtpMailer($this->config->smtp());
@@ -250,7 +265,10 @@ final class App
                         $ctx->error($c['name'] . ': ' . $e->getMessage()); // egy ügyfél hibája nem állítja meg a többit
                     }
                 }
-            }), new HourlyTask(fn (\Xperion\Task\TaskContext $ctx) => $this->uploads()->runAll($ctx))],
+            }), new HourlyTask(function (\Xperion\Task\TaskContext $ctx): void {
+                $this->uploads()->runAll($ctx);
+                $this->posts()->runPending($ctx);
+            })],
             fn (): SheetsClient => $this->sheets(),
             $this->log(),
             $this->storageDir . '/futas.lock',

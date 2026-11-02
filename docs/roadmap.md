@@ -12,7 +12,7 @@ Frissítve: 2026-11-02, a saját felületre és adatbázisra váltás után (lá
 | 6 | Áttekintés | megvalósított, nem ellenőrzött | időszakválasztó, teendő-widgetek, összefoglaló, KPI-k, megoszlás, források |
 | 7 | Havi e-mail | megvalósított, nem ellenőrzött | generálás hónap szerint, szerkesztés, teszt e-mail, jóváhagyás után azonnali küldés SMTP-vel |
 | 8 | Élő feltöltés | megvalósított, nem ellenőrzött | óránkénti futás: Mehet cikkek feltöltése két nyelven (OAuth Bridge vagy MCP), újrapróbálás |
-| 9 | Posztok | tervezett | ötletek, generálás cikkekből és ötletekből a szabályok szerint, szerkesztés, jóváhagyás, előnézet és kép |
+| 9 | Posztok | megvalósított, nem ellenőrzött | ötletek, generálás cikkekből és ötletekből a szabályok szerint, szerkesztés, jóváhagyás, előnézet és kép |
 | 10 | Napló, ügyfelek oldal | tervezett | felhasználói műveletek naplója, új ügyfél beállítási lépései |
 | – | E-mailes válaszok feldolgozása | később | az eredeti 3. ütem; a saját felület miatt valószínűleg nem kell |
 | – | Automatikus LinkedIn-közzététel | most nem cél | LinkedIn API-jóváhagyás kell |

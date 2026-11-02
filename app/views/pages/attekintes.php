@@ -25,7 +25,8 @@ if (($t['decide'] ?? 0) > 0) {
 }
 foreach ([['postsClient', 'LinkedIn-poszt jóváhagyásra vár'], ['postsApproved', 'Közzétehető a LinkedInen'], ['postsDraft', 'LinkedIn-tervezet, ügyfélnek küldhető']] as [$k, $title]) {
     if (!empty($t[$k])) {
-        $todos[] = ['li', 'linkedin', $title, count($t[$k]), implode('<br>', array_map($e, $t[$k])), 'index.php?p=posztok', 'Posztok'];
+        $first = explode(' · ', (string) $t[$k][0])[0];
+        $todos[] = ['li', 'linkedin', $title, count($t[$k]), implode('<br>', array_map($e, $t[$k])), 'index.php?p=poszt&kod=' . rawurlencode($first), ['postsClient' => 'Jóváhagyás', 'postsApproved' => 'Megnyitás', 'postsDraft' => 'Átnézés'][$k]];
     }
 }
 foreach ($t['mail'] ?? [] as $mm) {
