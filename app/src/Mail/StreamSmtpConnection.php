@@ -34,7 +34,14 @@ final class StreamSmtpConnection implements SmtpConnection
             restore_error_handler();
         }
         if ($fp === false) {
-            throw new MailException("Nem sikerült kapcsolódni az SMTP-szerverhez ({$host}:{$port}): " . self::explain($errstr, $warnings));
+            $msg = self::explain($errstr, $warnings);
+            if ($this->verify && $ssl && str_contains($msg, 'tanúsítvány')) {
+                $names = $this->peerNames($host, $port, $timeout);
+                if ($names) {
+                    $msg .= ' A szerver tanúsítványa erre a névre szól: ' . implode(', ', array_slice($names, 0, 4)) . ' – ezt írja a config.php smtp részébe host-ként (pl. \'host\' => \'' . self::hostFrom($names) . '\').';
+                }
+            }
+            throw new MailException("Nem sikerült kapcsolódni az SMTP-szerverhez ({$host}:{$port}): " . $msg);
         }
         $this->captureCert($fp);
         stream_set_timeout($fp, $timeout);
@@ -60,6 +67,32 @@ final class StreamSmtpConnection implements SmtpConnection
     {
         $s = trim(preg_replace('/\s+/', ' ', $s) ?? $s);
         return mb_strlen($s) > 220 ? mb_substr($s, 0, 219) . '…' : $s;
+    }
+
+    /** A tanúsítvány nevei ellenőrzés nélküli, csak olvasó kapcsolódással (semmit nem küld). @return list<string> */
+    private function peerNames(string $host, int $port, int $timeout): array
+    {
+        $ctx = stream_context_create(['ssl' => ['verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true, 'SNI_enabled' => true, 'peer_name' => $host, 'capture_peer_cert' => true]]);
+        $fp = @stream_socket_client('ssl://' . $host . ':' . $port, $no, $str, min($timeout, 8), STREAM_CLIENT_CONNECT, $ctx);
+        if ($fp === false) {
+            return [];
+        }
+        $this->captureCert($fp);
+        @fclose($fp);
+        $names = $this->certNames;
+        $this->certNames = [];
+        return $names;
+    }
+
+    /** A javasolt gépnév: az első nem csillagos név, vagy *.x → mail.x. @param list<string> $names */
+    public static function hostFrom(array $names): string
+    {
+        foreach ($names as $n) {
+            if (!str_starts_with($n, '*.')) {
+                return $n;
+            }
+        }
+        return 'mail.' . substr($names[0], 2);
     }
 
     /** @param resource $fp */
