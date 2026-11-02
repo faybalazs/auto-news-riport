@@ -134,6 +134,19 @@ final class MailTest extends TestCase
         self::assertSame('hiányzik a from_email (a feladó címe)', $row['note']);
     }
 
+    public function testDuplicateSmtpSectionInConfigIsDetected(): void
+    {
+        $f = sys_get_temp_dir() . '/xp-dup-' . bin2hex(random_bytes(4)) . '.php';
+        file_put_contents($f, "<?php\nreturn [\n    'smtp' => ['host' => 'mail.sunserver.hu', 'from_email' => 's@sunserver.hu'],\n    'db' => ['name' => 'x', 'user' => 'y'],\n    // minta\n    'smtp' => [\n        'host' => '',\n        'from_email' => '',\n    ],\n];\n");
+        $c = \Xperion\Config::load([$f]);
+        self::assertSame(['smtp'], $c->duplicateKeys());
+        $rows = array_column($c->checklist(), 'note', 'label');
+        self::assertStringContainsString('kétszer szerepel: smtp', $rows['Konfigurációs fájl']);
+        self::assertStringContainsString('az alsó (üres) érvényes', $rows['SMTP (e-mail)']);
+        file_put_contents($f, "<?php\nreturn ['smtp' => ['host' => 'h', 'from_email' => 'a@b.hu', 'user' => 'a@b.hu', 'pass' => 'x'], 'db' => ['host' => 'localhost']];\n");
+        self::assertSame([], \Xperion\Config::load([$f])->duplicateKeys(), 'belső kulcsok (host) nem számítanak');
+    }
+
     public function testMessageValidationAndList(): void
     {
         self::assertSame(['a@b.hu', 'c@d.hu'], Message::parseList(' a@b.hu; c@d.hu , a@b.hu'));

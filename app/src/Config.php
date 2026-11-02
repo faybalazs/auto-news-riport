@@ -119,6 +119,48 @@ final class Config
     }
 
     /**
+     * A config.php felső szintjén többször szereplő kulcsok (PHP-ban ilyenkor az alsó érvényes, ami gyakori hiba:
+     * a kitöltött rész fölé másolva alul ott marad a minta üres része).
+     *
+     * @return list<string>
+     */
+    public function duplicateKeys(): array
+    {
+        if ($this->source === '' || !is_readable($this->source)) {
+            return [];
+        }
+        $tokens = token_get_all((string) file_get_contents($this->source));
+        $depth = 0;
+        $seen = [];
+        $last = null;
+        foreach ($tokens as $t) {
+            if (is_string($t)) {
+                if ($t === '[' || $t === '(') {
+                    $depth++;
+                } elseif ($t === ']' || $t === ')') {
+                    $depth--;
+                }
+                $last = null;
+                continue;
+            }
+            if ($t[0] === T_ARRAY) {
+                continue;
+            }
+            if ($t[0] === T_CONSTANT_ENCAPSED_STRING && $depth === 1) {
+                $last = trim($t[1], "'\"");
+                continue;
+            }
+            if ($t[0] === T_DOUBLE_ARROW && $last !== null) {
+                $seen[$last] = ($seen[$last] ?? 0) + 1;
+            }
+            if (!in_array($t[0], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true)) {
+                $last = $t[0] === T_DOUBLE_ARROW ? null : $last;
+            }
+        }
+        return array_keys(array_filter($seen, static fn ($n) => $n > 1));
+    }
+
+    /**
      * Az SMTP-beállítás: a config.php „smtp” része, kiegészítve a felső szintű smtp_* kulcsokkal
      * (ha valaki úgy írta be: 'smtp_host' => …).
      *
@@ -188,14 +230,14 @@ final class Config
         $adminKey = $this->string('admin_key');
         $cronKey = $this->string('cron_key');
         return [
-            ['label' => 'Konfigurációs fájl', 'ok' => $this->isLoaded(), 'note' => $this->isLoaded() ? basename($this->source) : 'hiányzik'],
+            ['label' => 'Konfigurációs fájl', 'ok' => $this->isLoaded() && !($dup = $this->duplicateKeys()), 'note' => !$this->isLoaded() ? 'hiányzik' : ($dup ? basename($this->source) . ': kétszer szerepel: ' . implode(', ', $dup) . ' (az alsó érvényes – töröld a fölöslegeset)' : basename($this->source))],
             ['label' => 'Adatbázis', 'ok' => $this->has('db.name') && $this->has('db.user'), 'note' => $this->has('db.name') ? 'beállítva' : 'hiányzik'],
             ['label' => 'Beállítókulcs', 'ok' => strlen($adminKey) >= 16, 'note' => $adminKey === '' ? 'hiányzik' : (strlen($adminKey) < 16 ? 'túl rövid' : 'beállítva')],
             ['label' => 'Cron-kulcs', 'ok' => strlen($cronKey) >= 16, 'note' => $cronKey === '' ? 'hiányzik' : (strlen($cronKey) < 16 ? 'túl rövid' : 'beállítva')],
             ['label' => 'Google (adatátvételhez)', 'ok' => $this->serviceAccountJson() !== '', 'note' => $this->serviceAccountJson() !== '' ? 'beállítva' : 'hiányzik'],
             ['label' => 'Claude API-kulcs', 'ok' => $this->has('claude_api_key'), 'note' => $this->has('claude_api_key') ? 'beállítva' : 'a havi futáshoz kell'],
             ['label' => 'WordPress (feltöltés)', 'ok' => ($wp = $this->wordpressSites()) !== [], 'note' => $wp ? implode(', ', $wp) : 'a feltöltéshez kell'],
-            ['label' => 'SMTP (e-mail)', 'ok' => ($sp = \Xperion\Mail\SmtpMailer::problems($this->smtp())) === [], 'note' => $sp === [] ? 'beállítva' : implode('; ', $sp)],
+            ['label' => 'SMTP (e-mail)', 'ok' => ($sp = \Xperion\Mail\SmtpMailer::problems($this->smtp())) === [], 'note' => $sp === [] ? 'beállítva' : implode('; ', $sp) . (in_array('smtp', $this->duplicateKeys(), true) ? ' – a config.php-ban kétszer szerepel az „smtp” rész, és az alsó (üres) érvényes: töröld' : '')],
         ];
     }
 }

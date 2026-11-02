@@ -153,6 +153,18 @@ try {
                 throw new \InvalidArgumentException($e->getMessage());
             }
         })(),
+        'posztcikkek' => (function () use ($app, $access, $str, $in) {
+            session_write_close();
+            @set_time_limit(600);
+            try {
+                return ['post' => $app->posts()->setArticles($access, $str('code'), array_map('intval', (array) ($in['ids'] ?? [])), !empty($in['regen']))];
+            } catch (\RuntimeException $e) {
+                if ($e instanceof AccessDenied) {
+                    throw $e;
+                }
+                throw new \InvalidArgumentException($e->getMessage());
+            }
+        })(),
         'posztkep' => (function () use ($app, $access, $str, $in) {
             session_write_close();
             @set_time_limit(600);

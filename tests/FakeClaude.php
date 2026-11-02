@@ -18,13 +18,15 @@ final class FakeClaude implements HttpClient
     public ?string $stopReason = null;
     public bool $dropLast = false;
     public ?string $svg = null;
+    /** @var array<string,mixed>|null */
+    public ?array $imageSpec = null;
 
     public function request(string $method, string $url, array $headers = [], ?string $body = null): HttpResponse
     {
         $b = json_decode((string) $body, true);
         $this->requests[] = ['headers' => $headers, 'body' => $b];
         $props = $b['output_config']['format']['schema']['properties'] ?? [];
-        if (isset($props['items'])) {
+        if (isset($props['items']) && !isset($props['layout'])) {
             preg_match('/\[.*\]/s', $b['messages'][0]['content'], $m);
             $items = json_decode($m[0], true);
             $out = [];
@@ -36,6 +38,10 @@ final class FakeClaude implements HttpClient
                 array_pop($out);
             }
             $text = json_encode(['items' => $out], JSON_UNESCAPED_UNICODE);
+        } elseif (isset($props['layout'])) {
+            $text = json_encode($this->imageSpec ?? ['layout' => 'osszehasonlitas', 'eyebrow' => 'Visitor analytics', 'title' => "Mennyit ér egy\npontatlan látogatószám?", 'subtitle' => 'Az adat önmagában még nem döntés.',
+                'example' => ['measured_label' => 'Mért konverzió', 'measured_value' => '12%', 'real_label' => 'Valós konverzió', 'real_value' => '13,2%', 'note' => 'ha a számláló 10%-kal több látogatót mér'],
+                'steps' => ['Adat', 'Információ', 'Tudás', 'Döntés'], 'points' => [], 'number' => '', 'number_label' => '', 'number_note' => '', 'items' => [], 'tagline' => 'Pontos mérés <a&b>'], JSON_UNESCAPED_UNICODE);
         } elseif (isset($props['svg'])) {
             $text = json_encode(['svg' => $this->svg ?? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200"><defs><linearGradient id="g"><stop offset="0" stop-color="#2D388A"/><stop offset="1" stop-color="#00AEEF"/></linearGradient></defs><rect width="1200" height="1200" fill="#0F1640"/><circle cx="900" cy="300" r="260" fill="url(#g)" onclick="alert(1)"/><script>alert(1)</script><image href="https://evil.test/x.png"/><text x="96" y="300" font-family="Arial" font-size="84" fill="#fff"><tspan x="96" dy="0">Mért</tspan><tspan x="96" dy="100">várakozás</tspan></text><text x="96" y="1100" fill="#fff">xperion.hu</text></svg>'], JSON_UNESCAPED_UNICODE);
         } elseif (isset($props['opening'])) {

@@ -57,6 +57,9 @@ final class PostService
             $this->db->all('SELECT id, month, no, title, url, source_name FROM articles WHERE client_id = ? AND post_code = ? ORDER BY month, no', [$cid, $code]));
         $p['events'] = array_map(static fn ($e) => ['action' => (string) $e['action'], 'details' => (string) $e['details'], 'user' => (string) ($e['name'] ?? 'Rendszer'), 'time_hu' => View::dateHu((string) $e['created_at'])],
             $this->db->all('SELECT e.action, e.details, e.created_at, u.name FROM post_events e LEFT JOIN users u ON u.id = e.user_id WHERE e.client_id = ? AND e.post_code = ? ORDER BY e.id DESC', [$cid, $code]));
+        // a forráscikkek szerkesztéséhez: a poszt cikkei és a még poszt nélküli „LinkedIn poszt” cikkek
+        $p['candidates'] = in_array($p['source_kind'], ['cikkek', 'cikk', ''], true) && $p['idea_code'] === '' ? array_map(static fn ($x) => ['id' => (int) $x['id'], 'month' => (string) $x['month'], 'title' => (string) $x['title'], 'source_name' => (string) $x['source_name'], 'in' => $x['post_code'] === $code],
+            $this->db->all("SELECT id, month, title, source_name, post_code FROM articles WHERE client_id = ? AND decision = 'linkedin' AND (post_code = '' OR post_code = ?) ORDER BY month DESC, no", [$cid, $code])) : [];
         $p['job'] = $this->db->one("SELECT attempts, last_error FROM post_jobs WHERE client_id = ? AND kind = 'ujra' AND ref_hash = ?", [$cid, sha1($code)]);
         return $p;
     }
@@ -237,6 +240,45 @@ final class PostService
         return $code;
     }
 
+    /**
+     * A poszt forráscikkeinek módosítása (a kijelölt „LinkedIn poszt” cikkek); utána kérésre újraírja a posztot.
+     *
+     * @param list<int> $ids
+     * @return array<string,mixed>
+     */
+    public function setArticles(Access $a, string $code, array $ids, bool $regenerate): array
+    {
+        $a->require('decide');
+        $cid = $a->clientId() ?? throw new \InvalidArgumentException('Nincs kiválasztott ügyfél.');
+        $p = $this->db->one('SELECT id, status, idea_id FROM posts WHERE client_id = ? AND code = ?', [$cid, $code]) ?? throw new \InvalidArgumentException('Nincs ilyen poszt.');
+        if (!in_array($p['status'], ['tervezet', 'ugyfelnel'], true)) {
+            throw new \InvalidArgumentException('Jóváhagyott vagy megjelent poszt forrásai nem módosíthatók.');
+        }
+        if ($p['idea_id'] !== null) {
+            throw new \InvalidArgumentException('Ötletből készült poszt forrása az ötlet; cikkeket nem lehet hozzá rendelni.');
+        }
+        $ids = explode(',', self::idList(implode(',', array_map('intval', $ids))));
+        $ok = (int) $this->db->value("SELECT COUNT(*) FROM articles WHERE client_id = ? AND FIND_IN_SET(id, ?) AND decision = 'linkedin' AND (post_code = '' OR post_code = ?)", [$cid, implode(',', $ids), $code]);
+        if ($ok !== count($ids)) {
+            throw new \InvalidArgumentException('A kijelölt cikkek közül valamelyik nem „LinkedIn poszt” jelölésű, vagy már másik poszthoz tartozik. Töltse újra az oldalt.');
+        }
+        $before = array_map(static fn ($r) => (int) $r['id'], $this->db->all('SELECT id FROM articles WHERE client_id = ? AND post_code = ?', [$cid, $code]));
+        $now = Database::now();
+        $this->db->transaction(function () use ($cid, $code, $ids, $now, $p): void {
+            $this->db->run("UPDATE articles SET post_code = '', updated_at = ? WHERE client_id = ? AND post_code = ? AND NOT FIND_IN_SET(id, ?)", [$now, $cid, $code, implode(',', $ids)]);
+            $this->db->run('UPDATE articles SET post_code = ?, updated_at = ? WHERE client_id = ? AND FIND_IN_SET(id, ?)', [$code, $now, $cid, implode(',', $ids)]);
+            $this->db->run("UPDATE posts SET source_kind = 'cikkek', updated_at = ? WHERE id = ?", [$now, $p['id']]);
+        });
+        $added = count(array_diff(array_map('intval', $ids), $before));
+        $removed = count(array_diff($before, array_map('intval', $ids)));
+        $this->event($cid, $code, $a->userId(), 'Forráscikkek módosítva', "+{$added} / -{$removed} cikk, összesen " . count($ids));
+        $this->audit->add($cid, $a->userId(), 'Poszt: forráscikkek módosítva', $code . " (+{$added} / -{$removed})");
+        if ($regenerate) {
+            $this->runJob($this->job($cid, 'ujra', $code, $a->userId()));
+        }
+        return $this->get($a, $code) ?? [];
+    }
+
     /** Új egyedi kép kérése (megjegyzéssel is). */
     public function newImage(Access $a, string $code, string $request): array
     {
@@ -257,10 +299,14 @@ final class PostService
         $p = $this->db->one('SELECT topic, opening, highlights, image_data FROM posts WHERE client_id = ? AND code = ?', [$cid, $code]) ?? throw new \InvalidArgumentException('Nincs ilyen poszt.');
         $c = $this->db->one('SELECT name, website FROM clients WHERE id = ?', [$cid]);
         $rules = implode("\n", array_map(static fn ($r) => '- ' . $r['name'] . ': ' . $r['value'], $this->db->all("SELECT name, value FROM post_rules WHERE client_id = ? AND (name LIKE '%kép%' OR name LIKE '%szín%' OR name LIKE '%vizuál%' OR name LIKE '%arculat%' OR name LIKE '%formátum%') ORDER BY sort", [$cid])));
-        $post = ['topic' => $p['topic'], 'opening' => $p['opening'], 'highlights' => $p['highlights'], 'image' => json_decode((string) $p['image_data'], true) ?: []];
+        $img = json_decode((string) $p['image_data'], true) ?: [];
+        $post = ['topic' => $p['topic'], 'opening' => $p['opening'], 'highlights' => $p['highlights'], 'image' => array_diff_key($img, ['spec' => 1]),
+            'articles' => array_map(static fn ($r) => ['source' => $r['source_name'], 'title' => $r['title'], 'description' => $r['description']], $this->db->all('SELECT source_name, title, description FROM articles WHERE client_id = ? AND post_code = ? ORDER BY no', [$cid, $code]))];
+        $recent = array_values(array_filter(array_map(static fn ($r) => (string) ((json_decode((string) $r['image_data'], true) ?: [])['spec']['layout'] ?? ''), $this->db->all('SELECT image_data FROM posts WHERE client_id = ? AND code <> ? ORDER BY updated_at DESC LIMIT 4', [$cid, $code]))));
         $site = preg_replace('~^https?://|/$~', '', (string) ($c['website'] ?? '')) ?: 'xperion.hu';
-        $svg = (new ImageDesigner($this->claude))->design((string) $c['name'], $site, $rules, $post, $request, $model);
-        $this->db->run('UPDATE posts SET image_svg = ?, updated_at = ? WHERE client_id = ? AND code = ?', [$svg, Database::now(), $cid, $code]);
+        $res = (new ImageDesigner($this->claude))->design((string) $c['name'], $site, $rules, $post, $request, $model, $recent);
+        $img['spec'] = $res['spec'];
+        $this->db->run('UPDATE posts SET image_svg = ?, image_data = ?, updated_at = ? WHERE client_id = ? AND code = ?', [$res['svg'], json_encode($img, JSON_UNESCAPED_UNICODE), Database::now(), $cid, $code]);
         $this->event($cid, $code, $userId, 'Egyedi kép elkészült', $request);
     }
 
@@ -341,7 +387,21 @@ final class PostService
             throw new \InvalidArgumentException('A forráslink https://-sel kezdődjön.');
         }
         if (isset($in['image']) && is_array($in['image'])) {
-            $set['image_data'] = json_encode(array_map(static fn ($v) => mb_substr(trim((string) $v), 0, 200), array_intersect_key($in['image'] + ['title' => '', 'subtitle' => '', 'measured' => '', 'real' => ''], array_flip(['title', 'subtitle', 'measured', 'real']))), JSON_UNESCAPED_UNICODE);
+            $prev = json_decode((string) $this->db->value('SELECT image_data FROM posts WHERE id = ?', [$p['id']]), true) ?: [];
+            $img = array_map(static fn ($v) => mb_substr(trim(str_replace("\r\n", "\n", (string) $v)), 0, 200), array_intersect_key($in['image'] + ['title' => '', 'subtitle' => '', 'measured' => '', 'real' => ''], array_flip(['title', 'subtitle', 'measured', 'real'])));
+            if (isset($prev['spec']) && is_array($prev['spec'])) {
+                // a kép szövegének javítása: a sablonból azonnal újrarajzolva, Claude nélkül
+                $spec = $prev['spec'];
+                $spec['title'] = $img['title'] !== '' ? $img['title'] : ($spec['title'] ?? '');
+                $spec['subtitle'] = $img['subtitle'];
+                $spec['example'] = (array) ($spec['example'] ?? []);
+                $spec['example']['measured_value'] = $img['measured'];
+                $spec['example']['real_value'] = $img['real'];
+                $img['spec'] = $spec;
+                $site = preg_replace('~^https?://|/$~', '', (string) $this->db->value('SELECT website FROM clients WHERE id = ?', [$cid])) ?: 'xperion.hu';
+                $set['image_svg'] = SvgSanitizer::clean(ImageTemplates::render($spec, $site));
+            }
+            $set['image_data'] = json_encode($img, JSON_UNESCAPED_UNICODE);
         }
         if (($set['opening'] ?? 'x') === '') {
             throw new \InvalidArgumentException('A nyitó sor nem lehet üres.');
@@ -473,12 +533,19 @@ final class PostService
             'topic' => (string) $r['topic'], 'source_kind' => (string) $r['source_kind'], 'source_articles' => (string) ($r['source_articles'] ?? ''), 'idea_code' => (string) ($r['idea_code'] ?? ''),
             'opening' => (string) $r['opening'], 'created_at' => (string) $r['created_at'], 'created_hu' => View::dateHu((string) $r['created_at']), 'status_hu' => $r['status_at'] ? View::dateHu((string) $r['status_at']) : '',
             'change_request' => (string) ($r['change_request'] ?? ''), 'model' => (string) ($r['model'] ?? ''),
+            'thumb' => $full ? '' : (string) ($r['image_svg'] ?? ''),
         ];
         if ($full) {
             foreach (self::EDITABLE as $k) {
                 $p[$k] = (string) ($r[$k] ?? '');
             }
-            $p['image'] = (is_array($img) ? $img : []) + ['title' => '', 'subtitle' => '', 'measured' => '', 'real' => ''];
+            $p['image'] = (is_array($img) ? array_diff_key($img, ['spec' => 1]) : []) + ['title' => '', 'subtitle' => '', 'measured' => '', 'real' => ''];
+            if (is_array($img['spec'] ?? null)) {
+                // a képen ténylegesen szereplő szövegek (a szerkesztő ezeket mutatja)
+                $sp = $img['spec'];
+                $p['image'] = ['title' => (string) ($sp['title'] ?? ''), 'subtitle' => (string) ($sp['subtitle'] ?? ''), 'measured' => (string) ($sp['example']['measured_value'] ?? ''), 'real' => (string) ($sp['example']['real_value'] ?? '')];
+                $p['layout'] = (string) ($sp['layout'] ?? '');
+            }
             $p['full_text'] = PostWriter::fullText($p);
             $p['image_svg'] = SvgFonts::embed((string) ($r['image_svg'] ?? ''));
             $p['idea_topic'] = (string) ($r['idea_topic'] ?? '');

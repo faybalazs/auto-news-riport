@@ -178,11 +178,13 @@ if ($perm !== null && !$access->can($perm)) {
         $em = $app->emails();
         $mm = $em->months($access);
         $data = ['mail' => ['months' => array_map(static fn ($m) => ['month' => $m, 'label' => \Xperion\Monthly\EmailService::monthLabel($m)], $mm), 'email' => $mm ? $em->get($access, $mm[0]) : null,
-            'settings' => $em->settings((int) $access->clientId()), 'ready' => $em->mailerReady(), 'problem' => $em->mailerProblem(), 'claude' => $app->config->has('claude_api_key')]];
+            'settings' => $em->settings((int) $access->clientId()), 'ready' => $em->mailerReady(), 'problem' => $em->mailerProblem() . (in_array('smtp', $app->config->duplicateKeys(), true) ? '. Ok: a config.php-ban kétszer szerepel az „smtp” rész, és PHP-ban az alsó érvényes (valószínűleg a minta üres része maradt ott) – töröld az üreset' : ''), 'claude' => $app->config->has('claude_api_key')]];
     } elseif ($page === 'forrasok') {
         $data = $app->sources()->all($access);
     } elseif ($page === 'posztok') {
-        $data = ['posts' => $app->posts()->all($access), 'openMonths' => $app->posts()->openMonths($access), 'jobs' => $app->posts()->pendingJobs($access)];
+        $cl = $access->client();
+        $data = ['posts' => $app->posts()->all($access), 'openMonths' => $app->posts()->openMonths($access), 'jobs' => $app->posts()->pendingJobs($access),
+            'company' => $cl ? (string) ($app->db()->value("SELECT value FROM client_settings WHERE client_id = ? AND name = 'linkedin_nev'", [$cl['id']]) ?: $cl['name']) : ''];
     } elseif ($page === 'poszt') {
         $post = $app->posts()->get($access, (string) ($_GET['kod'] ?? ''));
         if ($post === null) {

@@ -694,6 +694,30 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 .choice{ display:inline-flex; align-items:center; gap:8px; font-size:var(--fs-sm); }
 .rule-acts .icon-btn{ display:inline-flex; vertical-align:middle; }
 
+/* Ügyfelek: kiválasztott ügyfél tabokkal (lista + szerkesztő minta) */
+.client-detail{ margin-top:var(--gap); padding:20px 24px 24px; display:flex; flex-direction:column; gap:16px; }
+.client-detail .tabs{ margin:0 -4px; }
+.cd-panel{ padding-top:4px; }
+.cd-grid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(220px,320px); gap:24px; align-items:start; }
+.cd-note{ background:var(--surface-subtle); border-radius:var(--r-lg); padding:16px; }
+.cd-form{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px 24px; max-width:900px; }
+.cd-form > .field:has(textarea), .cd-form > .acts-row, .cd-form > .help, .cd-form > p{ grid-column:1/-1; }
+#p-lepesek .checklist{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:32px; }
+#p-lepesek .checklist li:nth-child(2){ border-top:0; padding-top:0; }
+@media (max-width:1023px){ .cd-grid, .cd-form, #p-lepesek .checklist{ grid-template-columns:minmax(0,1fr); } #p-lepesek .checklist li:nth-child(2){ border-top:1px solid var(--border); padding-top:10px; } }
+@media (max-width:767px){ .client-detail{ padding:16px; } }
+/* posztlista: kis LinkedIn-mockup */
+.mini-li{ border:1px solid var(--border); border-radius:var(--r-md); overflow:hidden; background:var(--surface); }
+.mini-head{ display:flex; align-items:center; gap:8px; padding:8px 10px 0; font-size:var(--fs-xs); }
+.mini-logo{ width:22px; height:22px; border-radius:3px; background:linear-gradient(135deg,#2D388A,#00AEEF); color:#fff; display:grid; place-items:center; font-weight:700; font-size:12px; }
+.mini-li p{ padding:6px 10px 8px; margin:0; font-size:var(--fs-xs) !important; -webkit-line-clamp:2 !important; }
+.mini-li img{ display:block; width:100%; height:auto; aspect-ratio:1/1; }
+.mini-noimg{ aspect-ratio:1/1; display:grid; place-items:center; background:var(--surface-subtle); color:var(--text-3); font-size:var(--fs-xs); }
+.arts-list{ border:0; padding:0; margin:0; display:flex; flex-direction:column; gap:8px; max-height:360px; overflow:auto; min-width:0; }
+.art-opt{ display:flex; gap:10px; align-items:flex-start; padding:8px 10px; border:1px solid var(--border-control); border-radius:var(--r-md); font-size:var(--fs-sm); cursor:pointer; }
+.art-opt:has(input:checked){ border-color:var(--accent); background:var(--accent-subtle); }
+.art-opt input{ margin-top:3px; }
+
 /* ================= 18. TÖRÉSPONTOK (mindig a CSS végén) ================= */
 @media (max-width:1279px){ .layout{ grid-template-columns:minmax(0,1fr); } .w-8, .w-4{ grid-column:span 12; } }
 @media (max-width:1023px){ .files-layout{ grid-template-columns:minmax(0,1fr); } .folders{ display:none; } .folder-select{ display:block; } .w-6{ grid-column:span 12; } }

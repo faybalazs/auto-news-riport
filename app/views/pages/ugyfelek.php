@@ -5,14 +5,30 @@ $actions = '<button class="btn btn-primary" type="button" id="clientAdd">' . $ic
 require __DIR__ . '/_head.php';
 $cur = $access->client();
 ?>
-<div class="layout">
-  <div class="card table-card">
-    <div class="table-wrap" id="clientTable"></div>
-    <div class="pager" id="clientPager"></div>
+<div class="card table-card">
+  <div class="table-wrap" id="clientTable"></div>
+  <div class="pager" id="clientPager"></div>
+</div>
+<?php if ($cur): $ms = $cur ? $app->emails()->settings((int) $cur['id']) : ['to' => '', 'cc' => '', 'style' => '']; ?>
+<section class="card client-detail" aria-labelledby="h-cd">
+  <div class="widget-head"><div><h2 id="h-cd"><?= $e($cur['name']) ?></h2><p class="meta">A kiválasztott ügyfél részletei · másik ügyfélhez: a sor ⋯ menüje → Váltás erre az ügyfélre</p></div></div>
+  <div class="tabs" role="tablist" aria-label="Ügyfél részletei" id="cdTabs">
+    <button class="tab" role="tab" id="tab-lepesek" aria-selected="true" aria-controls="p-lepesek" tabindex="0"><?= $ic('check') ?>Beállítási lépések<?php if (!empty($data['onb'])): ?> <span class="count"><?= count(array_filter($data['onb'], static fn ($x) => $x['done'])) ?>/<?= count($data['onb']) ?></span><?php endif; ?></button>
+    <button class="tab" role="tab" id="tab-adatatvetel" aria-selected="false" aria-controls="p-adatatvetel" tabindex="-1"><?= $ic('download') ?>Adatátvétel</button>
+    <button class="tab" role="tab" id="tab-havi-email" aria-selected="false" aria-controls="p-havi-email" tabindex="-1"><?= $ic('send') ?>Havi e-mail</button>
+    <button class="tab" role="tab" id="tab-beallitasok" aria-selected="false" aria-controls="p-beallitasok" tabindex="-1"><?= $ic('settings') ?>Beállítások</button>
   </div>
-  <aside class="stack">
-    <section class="card widget" aria-labelledby="h-imp" id="impCard">
-      <div class="widget-head"><div><h2 id="h-imp">Adatátvétel a Google Sheetből</h2><p class="meta" id="impMeta">Ügyfél: <b><?= $e($cur['name'] ?? 'nincs kiválasztva') ?></b></p></div></div>
+  <div class="cd-panel" id="p-lepesek" role="tabpanel" aria-labelledby="tab-lepesek">
+      <?php if (!empty($data['onb'])): $done = count(array_filter($data['onb'], static fn ($s) => $s['done'])); ?>
+      <ol class="checklist" id="onbList">
+        <?php foreach ($data['onb'] as $i => $s): ?>
+        <li class="<?= $s['done'] ? 'done' : '' ?>"><span class="ck" aria-hidden="true"><?= $s['done'] ? $ic('check') : $i + 1 ?></span><div><b><?= $e($s['title']) ?></b><small><?= $e($s['sub']) ?></small><?php if (!$s['done']): ?><a class="onb-link" href="<?= $e($s['href']) ?>"><?= $e($s['cta']) ?><?= $ic('chev-right') ?></a><?php endif; ?></div><span class="sr-only"><?= $s['done'] ? 'kész' : 'hátravan' ?></span></li>
+        <?php endforeach; ?>
+      </ol>
+      <?php else: ?><p class="help">Hozzon létre egy ügyfelet, vagy váltson egyre.</p><?php endif; ?>
+    </div>
+  <div class="cd-panel" id="p-adatatvetel" role="tabpanel" aria-labelledby="tab-adatatvetel" hidden>
+    <div class="cd-grid"><div id="impCard">
       <ol class="imp-steps">
         <li>
           <b>Google-kulcs</b>
@@ -39,29 +55,19 @@ $cur = $access->client();
       </div>
       <ol class="run-lines" id="impLines" hidden></ol>
       <dl class="kv" id="impKv"></dl>
-    </section>
-    <?php $ms = $cur ? $app->emails()->settings((int) $cur['id']) : ['to' => '', 'cc' => '', 'style' => '']; ?>
-    <section class="card widget" aria-labelledby="h-ms" id="mailSettings">
-      <div class="widget-head"><div><h2 id="h-ms">Havi e-mail beállításai</h2><p class="meta">Ügyfél: <b><?= $e($cur['name'] ?? 'nincs kiválasztva') ?></b> · a levél csak a Vezérlőpulton adott jóváhagyás után megy ki</p></div></div>
+    </div><aside class="cd-note"><h3 class="sub-h">Mikor kell?</h3><p class="help">Egyszer, a korábbi adatok (források, kulcsszavak, havi lapok cikkei, posztok, szabályok, beállítások) betöltésére. Többször is futtatható: a meglévőt frissíti, nem duplikál. Új ügyfélnél Sheet nélkül is indulhat: a Források oldalon vehetők fel a figyelt oldalak.</p></aside></div>
+  </div>
+  <div class="cd-panel" id="p-havi-email" role="tabpanel" aria-labelledby="tab-havi-email" hidden>
+    <div id="mailSettings" class="cd-form">
       <div class="field"><label for="msTo">Címzett</label><input class="input" id="msTo" type="text" inputmode="email" autocomplete="off" placeholder="nev@ugyfel.hu" value="<?= $e($ms['to']) ?>"></div>
       <div class="field"><label for="msCc">Másolat <span class="opt">(nem kötelező; több cím vesszővel)</span></label><input class="input" id="msCc" type="text" inputmode="email" autocomplete="off" value="<?= $e($ms['cc']) ?>"></div>
       <div class="field"><label for="msStyle">A levél stílusa <span class="opt">(üresen az alapértelmezett)</span></label><textarea class="input" id="msStyle" rows="6" placeholder="<?= $e(\Xperion\Monthly\EmailService::DEFAULT_STYLE) ?>"><?= $e($ms['style']) ?></textarea><span class="help">A Claude ezt követi a levél megírásakor (hangnem, szerkezet, aláírás).</span></div>
       <div class="acts-row"><button class="btn btn-secondary sm" type="button" id="msSave"<?= $cur ? '' : ' disabled' ?>><?= $ic('check') ?>Mentés</button></div>
-    </section>
-    <section class="card widget" aria-labelledby="h-onb">
-      <div class="widget-head"><div><h2 id="h-onb">Beállítási lépések</h2><p class="meta"><?= $e($cur['name'] ?? 'Nincs kiválasztott ügyfél') ?></p></div></div>
-      <?php if (!empty($data['onb'])): $done = count(array_filter($data['onb'], static fn ($s) => $s['done'])); ?>
-      <p class="meta"><?= $done ?> / <?= count($data['onb']) ?> kész</p>
-      <ol class="checklist" id="onbList">
-        <?php foreach ($data['onb'] as $i => $s): ?>
-        <li class="<?= $s['done'] ? 'done' : '' ?>"><span class="ck" aria-hidden="true"><?= $s['done'] ? $ic('check') : $i + 1 ?></span><div><b><?= $e($s['title']) ?></b><small><?= $e($s['sub']) ?></small><?php if (!$s['done']): ?><a class="onb-link" href="<?= $e($s['href']) ?>"><?= $e($s['cta']) ?><?= $ic('chev-right') ?></a><?php endif; ?></div><span class="sr-only"><?= $s['done'] ? 'kész' : 'hátravan' ?></span></li>
-        <?php endforeach; ?>
-      </ol>
-      <?php else: ?><p class="help">Hozzon létre egy ügyfelet, vagy váltson egyre.</p><?php endif; ?>
-    </section>
+    </div>
+  </div>
+  <div class="cd-panel" id="p-beallitasok" role="tabpanel" aria-labelledby="tab-beallitasok" hidden>
     <?php if (isset($data['settings'])): $st = $data['settings']; $models = ['' => 'alapértelmezett'] + array_combine(\Xperion\Auth\ClientAdmin::MODELS, ['Haiku 5.5 (olcsó, gyors)', 'Sonnet 5.5 (kiegyensúlyozott)', 'Opus 5.5 (legjobb minőség)']); ?>
-    <section class="card widget" aria-labelledby="h-cs" id="clientSettings">
-      <div class="widget-head"><div><h2 id="h-cs">Ügyfélbeállítások</h2><p class="meta">Ügyfél: <b><?= $e($cur['name'] ?? '') ?></b></p></div></div>
+    <div id="clientSettings" class="cd-form">
       <div class="field"><label for="cs-linkedin_nev">LinkedIn-oldal neve <span class="opt">(az előnézethez)</span></label><input class="input" id="cs-linkedin_nev" value="<?= $e($st['linkedin_nev']) ?>" placeholder="<?= $e($cur['name'] ?? '') ?>"></div>
       <div class="field"><label for="cs-linkedin_kovetok">Követők száma <span class="opt">(az előnézethez)</span></label><input class="input" id="cs-linkedin_kovetok" value="<?= $e($st['linkedin_kovetok']) ?>" placeholder="pl. 1 240"></div>
       <?php foreach (['modell_ertekeles' => 'Cikkértékelés modellje (alap: Haiku)', 'modell_poszt' => 'Összefoglaló és havi e-mail modellje (alap: Sonnet)', 'modell_linkedin' => 'LinkedIn-poszt és kép modellje (alap: Opus)', 'modell_feltoltes' => 'Weboldal-fordítás modellje (alap: Sonnet)'] as $k => $l): ?>
@@ -69,10 +75,11 @@ $cur = $access->client();
       <?php endforeach; ?>
       <p class="help">A feltöltés webhelye az ügyfél weboldala (a sor ⋯ menüjében szerkeszthető); a belépés a config.php „wordpress” részében van.</p>
       <div class="acts-row"><button class="btn btn-secondary sm" type="button" id="csSave"><?= $ic('check') ?>Mentés</button></div>
-    </section>
+    </div>
     <?php endif; ?>
-  </aside>
-</div>
+  </div>
+</section>
+<?php endif; ?>
 
 <dialog id="clientDlg" aria-labelledby="clientDlgTitle">
   <form id="clientForm" novalidate>

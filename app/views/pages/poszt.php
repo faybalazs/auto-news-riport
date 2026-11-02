@@ -27,6 +27,7 @@ require __DIR__ . '/_head.php';
       <div class="acts-row">
         <button class="btn btn-secondary" type="button" id="copyText"><?= $ic('copy') ?>Szöveg másolása</button>
         <button class="btn btn-secondary" type="button" id="dlImage"><?= $ic('download') ?>Kép letöltése (PNG)</button>
+        <button class="btn btn-secondary" type="button" id="newImage" hidden><?= $ic('image') ?>Új kép</button>
         <button class="btn btn-ghost" type="button" id="copyLink" hidden><?= $ic('copy') ?>Forráslink (első komment)</button>
       </div>
     </section>
@@ -44,7 +45,7 @@ require __DIR__ . '/_head.php';
           <div class="field full"><label for="pe-closing">Zárás</label><textarea class="input" id="pe-closing" rows="2"></textarea></div>
           <div class="field full"><label for="pe-hashtags">Hashtagek</label><input class="input" id="pe-hashtags"></div>
           <div class="field full"><label for="pe-source_link">Forráslink <span class="opt">(első kommentbe)</span></label><input class="input" id="pe-source_link" type="url" placeholder="https://"></div>
-          <div class="field"><label for="pe-it">Kép címe</label><input class="input" id="pe-it" maxlength="200"></div>
+          <div class="field"><label for="pe-it">Kép címe <span class="opt">(új sor = sortörés a képen)</span></label><textarea class="input" id="pe-it" rows="2" maxlength="200"></textarea></div>
           <div class="field"><label for="pe-is">Kép alcíme</label><input class="input" id="pe-is" maxlength="200"></div>
           <div class="field"><label for="pe-e1">Számpélda: mért <span class="opt">(nem kötelező)</span></label><input class="input" id="pe-e1" maxlength="200"></div>
           <div class="field"><label for="pe-e2">Számpélda: valós <span class="opt">(nem kötelező)</span></label><input class="input" id="pe-e2" maxlength="200"></div>
@@ -58,6 +59,11 @@ require __DIR__ . '/_head.php';
     <section class="card widget" aria-labelledby="h-open">
       <div class="widget-head"><div><h2 id="h-open">Nyitó sor</h2><p class="meta">A „…több” előtt csak ez látszik</p></div></div>
       <fieldset class="open-choices" id="openChoices"><legend class="sr-only">Nyitó sor választása</legend></fieldset>
+    </section>
+    <section class="card widget" aria-labelledby="h-arts" id="artsCard" hidden>
+      <div class="widget-head"><div><h2 id="h-arts">Forráscikkek</h2><p class="meta">Melyik cikkekből készüljön a poszt</p></div></div>
+      <fieldset class="arts-list" id="artsList"><legend class="sr-only">Forráscikkek kiválasztása</legend></fieldset>
+      <div class="acts-row" id="artsActs"><button class="btn btn-primary sm" type="button" id="artsRegen"><?= $ic('refresh') ?>Mentés és újraírás</button><button class="btn btn-ghost sm" type="button" id="artsSave">Csak mentés</button></div>
     </section>
     <section class="card widget" aria-labelledby="h-src">
       <div class="widget-head"><div><h2 id="h-src">Adatok</h2><p class="meta">A poszt adatlapja</p></div></div>

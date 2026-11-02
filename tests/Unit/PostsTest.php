@@ -190,11 +190,11 @@ final class PostsTest extends DbTestCase
         self::assertSame(0, (int) $this->db->value('SELECT COUNT(*) FROM post_events WHERE post_code = ?', [$code]));
     }
 
-    public function testInvalidSvgKeepsPostWithTemplateImage(): void
+    public function testImageWithoutTitleKeepsPostWithTemplateImage(): void
     {
         $this->rules->save($this->op(), null, 'Hangnem', 'Tárgyilagos');
         $a = $this->art('2610', 'Bank');
-        $this->claude->svg = 'nem svg';
+        $this->claude->imageSpec = ['layout' => 'kerdes', 'title' => '', 'eyebrow' => '', 'subtitle' => '', 'example' => [], 'steps' => [], 'points' => [], 'number' => '', 'number_label' => '', 'number_note' => '', 'items' => [], 'tagline' => ''];
         $code = $this->posts->request($this->op(), 'cikk', (string) $a);
         $p = $this->posts->get($this->op(), $code);
         self::assertSame(['ugyfelnel', ''], [$p['status'], $p['image_svg']]);
@@ -234,27 +234,69 @@ final class PostsTest extends DbTestCase
         self::assertSame([], $this->claude->requests);
     }
 
-    public function testReferenceImageSurvivesSanitizerAndGuidesDesigner(): void
+    public function testTemplateImagesRenderLikeTheApprovedSample(): void
     {
         $sample = (string) file_get_contents(dirname(__DIR__, 2) . '/app/resources/poszt-kep-minta.svg');
-        $clean = \Xperion\Posts\SvgSanitizer::clean($sample);
-        self::assertNotNull($clean);
-        foreach (['<pattern', 'Mennyit ér egy', 'ILLUSZTRATÍV PÉLDA', '<polygon', 'xperion.hu', 'fill="url(#grid)"'] as $k) {
-            self::assertStringContainsString($k, $clean, 'a minta a tisztítás után is teljes');
-        }
-        $withFont = \Xperion\Posts\SvgFonts::embed($clean);
-        self::assertStringContainsString("@font-face{font-family:'Lato'", $withFont);
-        self::assertSame(6, substr_count($withFont, '@font-face'), 'Lato 400/700/900, latin és latin-ext');
+        self::assertNotNull(\Xperion\Posts\SvgSanitizer::clean($sample), 'a minta SVG érvényes');
 
         $this->rules->save($this->op(), null, 'Hangnem', 'Tárgyilagos');
         $a = $this->art('2610', 'Bank');
         $code = $this->posts->request($this->op(), 'cikk', (string) $a);
         $req = $this->claude->requests[1]['body'];
-        self::assertSame('high', $req['output_config']['effort']);
-        self::assertStringContainsString('Mennyit ér egy', $req['system'][0]['text'], 'a minta SVG a tervező utasításában');
-        self::assertStringContainsString('ELRENDEZÉSEK', $req['system'][0]['text']);
-        self::assertStringContainsString('@font-face', $this->posts->get($this->op(), $code)['image_svg'], 'megjelenítéskor beágyazott betű');
-        self::assertStringNotContainsString('@font-face', (string) $this->db->value('SELECT image_svg FROM posts WHERE code = ?', [$code]), 'az adatbázisban betű nélkül');
+        self::assertStringContainsString('Elrendezések', $req['system'][0]['text']);
+        self::assertSame(\Xperion\Posts\ImageTemplates::LAYOUTS, $req['output_config']['format']['schema']['properties']['layout']['enum']);
+        $p = $this->posts->get($this->op(), $code);
+        foreach (['@font-face', '>Mennyit ér egy</tspan>', '>pontatlan látogatószám?</tspan>', 'ILLUSZTRATÍV PÉLDA', '>13,2%<', '>Döntés<', 'Pontos mérés &lt;a&amp;b&gt;', '>xperion.hu<'] as $k) {
+            self::assertStringContainsString($k, $p['image_svg']);
+        }
+        self::assertSame('osszehasonlitas', $p['layout']);
+        self::assertSame("Mennyit ér egy\npontatlan látogatószám?", $p['image']['title'], 'a szerkesztő a képen lévő szöveget mutatja');
+
+        // a kép szövegének javítása: azonnal újrarajzolva, Claude nélkül
+        $calls = count($this->claude->requests);
+        $p = $this->posts->update($this->op(), $code, ['image' => ['title' => "Mennyit ér\negy pontos szám?", 'subtitle' => 'Új alcím', 'measured' => '12%', 'real' => '']]);
+        self::assertCount($calls, $this->claude->requests);
+        self::assertStringContainsString('>egy pontos szám?</tspan>', $p['image_svg']);
+        self::assertStringNotContainsString('ILLUSZTRATÍV PÉLDA', $p['image_svg'], 'valós érték nélkül nincs számpélda');
+        self::assertSame('Új alcím', $p['image']['subtitle']);
+    }
+
+    public function testEditSourceArticlesOfPost(): void
+    {
+        $this->rules->save($this->op(), null, 'Hangnem', 'Tárgyilagos');
+        $a1 = $this->art('2610', 'Bank');
+        $a2 = $this->art('2610', 'Retail');
+        $a3 = $this->art('2610', 'Kiosk');
+        $m = $this->art('2610', 'Mehet', 'mehet');
+        $code = $this->posts->request($this->op(), 'cikkek', (string) $a1);
+        $p = $this->posts->get($this->op(), $code);
+        self::assertSame([[$a1, true], [$a2, false], [$a3, false]], array_map(static fn ($c) => [$c['id'], $c['in']], $p['candidates']));
+        $calls = count($this->claude->requests);
+        $p = $this->posts->setArticles($this->op(), $code, [$a1, $a3], false);
+        self::assertSame([$a1, $a3], array_column($p['articles'], 'id'));
+        self::assertCount($calls, $this->claude->requests, 'csak mentés: nincs újraírás');
+        $p = $this->posts->setArticles($this->op(), $code, [$a3, $a2], true);
+        self::assertSame([$a2, $a3], array_column($p['articles'], 'id'));
+        self::assertSame('', (string) $this->db->value('SELECT post_code FROM articles WHERE id = ?', [$a1]), 'a kivett cikk felszabadul');
+        self::assertStringContainsString('Retail', $this->claude->requests[$calls]['body']['messages'][0]['content'], 'az újraírás az új cikkekből dolgozik');
+        self::assertStringNotContainsString('"Bank"', $this->claude->requests[$calls]['body']['messages'][0]['content']);
+        try {
+            $this->posts->setArticles($this->op(), $code, [$m], false);
+            self::fail('nem LinkedIn-cikk');
+        } catch (\InvalidArgumentException) {
+        }
+        $this->expectException(AccessDenied::class);
+        $this->posts->setArticles($this->member('Emi', 'emi@x.hu', 'tartalom'), $code, [$a2], false);
+    }
+
+    public function testTemplateTextFitsInsideMargins(): void
+    {
+        [$lines, $size] = \Xperion\Posts\ImageTemplates::fit('Ez egy nagyon hosszú cím, amely biztosan nem fér ki egyetlen sorban a képen, ezért tördelni kell több sorba', 76, 56, 1020, 3, true);
+        self::assertLessThanOrEqual(3, count($lines));
+        foreach ($lines as $l) {
+            self::assertLessThanOrEqual(1020, \Xperion\Posts\ImageTemplates::width($l, $size, true));
+        }
+        self::assertGreaterThan(820, \Xperion\Posts\ImageTemplates::width('pontatlan látogatószám?', 76, true), 'a becslés óvatos (a valós szélesség kb. 835 px)');
     }
 
     public function testFullTextSkipsEmptyParts(): void
