@@ -36,6 +36,7 @@ Minden webes kérés elején a `Migrator` lefuttatja a még hiányzó adatbázis
 | `Claude\ClaudeClient` | Messages API közvetlen HTTP-vel (Composer nélkül): `anthropic-version: 2026-10-21`, strukturált JSON-kimenet (`output_config.format`), effort, gyorsítótárazott rendszerprompt, Sonnet/Opus esetén szerveroldali tartalék (`fallbacks: "default"`); elutasítás és `max_tokens` hibaként | `Evaluator`, `Summarizer` |
 | `Monthly\Evaluator`, `Monthly\Summarizer` | Értékelés 20-as csomagokban (leírás, javaslat, indoklás; ügyfélleírás, kulcsszavak, korábbi döntések és feltöltött címek a rendszerpromptban); vezetői összefoglaló | `MonthlyService` |
 | `Monthly\MonthlyService` | Havi futás ügyfelenként: gyűjtés → értékelés → összefoglaló → (élesben) mentés tranzakcióban; idempotens (összefoglaló vagy cikk a hónapban = kész); Claude-kulcs nélkül azonnal hibát ad | `api.php?m=havifutas`, `MonthlyTask` (cron: Aktív ügyfelek) |
+| `Monthly\OverviewService` | Áttekintés: hónapok, a hónap számai (előző hónap, 6 havi trend), döntések megoszlása, cikkek forrásonként, teendők szerepkör szerint; csak az aktuális ügyfél adatai | `index.php?p=attekintes` |
 | `Monthly\ArticleService` | Havi listák, összefoglaló, döntések (csak az aktuális ügyfél cikkei, feltöltött cikk nem módosul, műveleti napló) | `index.php?p=cikkek`, `api.php?m=dontes` |
 | `Google\*`, `Sheets\*` | Szolgáltatásfiókos Sheets-olvasás (`App::sheetsFor(id)`, ügyfelenként) | `ImportService` |
 

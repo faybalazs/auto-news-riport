@@ -168,8 +168,7 @@ if ($perm !== null && !$access->can($perm)) {
         $month = preg_match('/^\d{4}$/', (string) ($_GET['honap'] ?? '')) ? (string) $_GET['honap'] : ($months[0]['month'] ?? '');
         $data = ['months' => $months, 'month' => $month, 'articles' => $month !== '' ? $app->articles()->list($access, $month) : [], 'report' => $month !== '' ? $app->articles()->report($access, $month) : null];
     } elseif ($page === 'attekintes') {
-        $cid = $access->clientId();
-        $data = ['memberCount' => $cid ? (int) $app->db()->value('SELECT COUNT(*) FROM memberships WHERE client_id = ?', [$cid]) : 0];
+        $data = $app->overview()->build($access, preg_match('/^\d{4}$/', (string) ($_GET['honap'] ?? '')) ? (string) $_GET['honap'] : '');
     }
 }
 

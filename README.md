@@ -2,7 +2,7 @@
 
 Havi sajtófigyelés, élő cikkfeltöltés és LinkedIn-posztgenerálás az Xperion (xperion.hu) számára, saját felülettel és MySQL-adatbázissal, több ügyfélre felkészítve.
 
-- **Állapot:** 5. lépés kész (havi futás Claude-értékeléssel, Havi cikkek döntésekkel). Részletek: [docs/project-state.md](docs/project-state.md)
+- **Állapot:** 6. lépés kész (Áttekintés valódi adatokkal). Részletek: [docs/project-state.md](docs/project-state.md)
 - **Technológia:** PHP 8.1+ (a szerveren 8.2), MySQL, függőség nélküli éles kód; Claude API, SMTP, a meglévő feltöltő program; a Google Sheetből egyszeri adatátvétel
 - **Követelmények:** [docs/product.md](docs/product.md) · **Felépítés:** [docs/architecture.md](docs/architecture.md)
 - **AI-ügynököknek:** [AGENTS.md](AGENTS.md)

@@ -623,6 +623,17 @@ if (APP.page === 'cikkek' && $('#artTable')){
 }
 
 /* ==================================================================
+   12/H. ÁTTEKINTÉS: időszakváltás, forrásnézet (diagram / táblázat)
+   ================================================================== */
+if (APP.page === 'attekintes'){
+  $('#period')?.addEventListener('change', e => { location.href = 'index.php?p=attekintes&honap=' + encodeURIComponent(e.target.value); });
+  $$('#srcView button').forEach(b => b.addEventListener('click', () => {
+    $$('#srcView button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    $('#srcBars').hidden = b.dataset.sv !== 'chart'; $('#srcTable').hidden = b.dataset.sv !== 'table';
+  }));
+}
+
+/* ==================================================================
    12/E. NAPLÓ
    ================================================================== */
 if (APP.page === 'naplo'){

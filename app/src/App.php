@@ -141,6 +141,11 @@ final class App
         return new \Xperion\Monthly\ArticleService($this->db(), $this->audit());
     }
 
+    public function overview(): \Xperion\Monthly\OverviewService
+    {
+        return new \Xperion\Monthly\OverviewService($this->db(), $this->articles());
+    }
+
     /**
      * A felületről feltöltött Google-kulcs ellenőrzése és mentése (csak üzemeltető).
      *
