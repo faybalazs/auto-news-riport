@@ -607,7 +607,7 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 .task .last{ font-size:var(--fs-xs); color:var(--text-3); display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
 .mail-prev{ border:1px solid var(--border); border-radius:var(--r-md); overflow:hidden; }
 .mail-subj{ display:flex; gap:12px; align-items:baseline; padding:10px 16px; background:var(--surface-subtle); border-bottom:1px solid var(--border); font-size:var(--fs-sm); }
-.mail-body{ padding:16px; font-size:var(--fs-sm); display:flex; flex-direction:column; gap:10px; max-width:70ch; white-space:pre-line; }
+.mail-body{ padding:16px; font-size:var(--fs-sm); display:flex; flex-direction:column; gap:10px; max-width:70ch; }
 .mail-body ul{ margin:0; padding-left:20px; }
 .users{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
 .users li{ display:flex; gap:12px; align-items:center; padding:10px 0; border-top:1px solid var(--border); }
@@ -638,8 +638,6 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 .tw-li{ --tc:var(--li); --tb:var(--li-bg); }
 .tw-ok{ --tc:var(--success-text); --tb:var(--success-bg); }
 .tw-ai{ --tc:var(--ai-text); --tb:var(--ai-bg); }
-.kpi .delta{ flex-wrap:wrap; column-gap:6px; }
-.kpi .delta .nw{ white-space:nowrap; display:inline-flex; align-items:center; gap:4px; }
 .kpi .per{ font-size:var(--fs-xs); color:var(--text-3); }
 .ro-val{ min-height:var(--ctl); display:flex; align-items:center; padding:0 12px; border:1px dashed var(--border-strong); border-radius:var(--r-md); font-size:var(--fs-sm); color:var(--text-2); }
 .checklist{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
@@ -664,6 +662,14 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 .matrix .no{ color:var(--text-3); }
 .tabs .tab .icon{ margin-right:2px; }
 @media (max-width:767px){ .rule{ grid-template-columns:1fr; } .rule .icon-btn{ justify-self:end; } }
+.rules{ gap:var(--gap); }
+.rule-group{ gap:12px; }
+.rule-group .rule{ padding:12px 0 0; border-top:1px solid var(--border); }
+.rule-group .widget-head + .rule{ border-top:0; padding-top:0; }
+.rule .rl-in .input{ font-weight:600; }
+.rule textarea{ min-height:60px; resize:vertical; overflow:hidden; }
+.sum-w{ gap:16px; }
+#ruleGroups{ flex-wrap:wrap; }
 
 /* ================= 18. TÖRÉSPONTOK (mindig a CSS végén) ================= */
 @media (max-width:1279px){ .layout{ grid-template-columns:minmax(0,1fr); } .w-8, .w-4{ grid-column:span 12; } }
@@ -696,9 +702,11 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
   .notif{ width:calc(100vw - 32px); }
   .dp-pop{ width:min(304px, calc(100vw - 48px)); }
 }
-
 .user-cell{ display:flex; gap:10px; align-items:center; white-space:nowrap; }
 .user-cell > div{ display:flex; flex-direction:column; }
+.mail-body{ white-space:pre-line; }
+.kpi .delta{ flex-wrap:wrap; column-gap:6px; }
+.kpi .delta .nw{ white-space:nowrap; display:inline-flex; align-items:center; gap:4px; }
 
 </style>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -754,7 +762,7 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
   <symbol id="i-move" viewBox="0 0 24 24"><path d="M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M10 13h6M13 10l3 3-3 3"/></symbol>
   <symbol id="i-login" viewBox="0 0 24 24"><path d="M15 4h4v16h-4"/><path d="m10 8 4 4-4 4M14 12H4"/></symbol>
   <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></symbol>
-  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></symbol>
+<symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></symbol>
   <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></symbol>
   <symbol id="i-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></symbol>
   <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6L4.5 18.5A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-2.5L14 9V3"/><path d="M7 15h10"/></symbol>
@@ -879,11 +887,7 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
           <div class="todo-grid" id="todoGrid"></div>
         </section>
 
-        <!-- KPI-kártyák: címke → érték → változás (jó/rossz külön) → trendvonal → időszak -->
-        <div class="kpis" id="kpis"></div>
-
-        <div class="dash-grid">
-          <section class="card widget w-8" aria-labelledby="w-sum">
+        <section class="card widget sum-w" aria-labelledby="w-sum">
             <div class="widget-head">
               <div><h2 id="w-sum">Vezetői összefoglaló</h2><p class="meta" id="sumMeta">2026. október · a havi futás készítette</p></div>
               <span class="badge b-ai"><svg class="icon" aria-hidden="true"><use href="#i-sparkle"/></svg>AI által generált</span>
@@ -891,12 +895,16 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
             <dl class="kv" id="sumKv"></dl>
             <div class="sum-text"><h3>Részletek</h3><p id="sumText"></p></div>
           </section>
+        <!-- KPI-kártyák: címke → érték → változás (jó/rossz külön) → trendvonal → időszak -->
+        <div class="kpis" id="kpis"></div>
+
+        <div class="dash-grid">
           <section class="card widget w-4" aria-labelledby="w-dec">
             <div class="widget-head"><div><h2 id="w-dec">Döntések megoszlása</h2><p class="meta" id="decMeta">A hónap cikkei</p></div></div>
             <div class="stack100" id="decBar" role="img"></div>
             <ul class="legend-list" id="decLegend"></ul>
           </section>
-          <section class="card widget w-12" aria-labelledby="w-src">
+          <section class="card widget w-8" aria-labelledby="w-src">
             <div class="widget-head">
               <div><h2 id="w-src">Cikkek forrásonként</h2><p class="meta" id="srcMeta">A duplikátumok és a kizárt témák nélkül</p></div>
               <div class="seg" role="group" aria-label="Megjelenítés"><button type="button" data-sv="chart" aria-pressed="true">Diagram</button><button type="button" data-sv="table" aria-pressed="false">Táblázat</button></div>
@@ -932,7 +940,7 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
           <button type="button" data-v="all" aria-pressed="false">Összes</button>
           <button type="button" data-v="mehet" aria-pressed="false">Mehet</button>
           <button type="button" data-v="li" aria-pressed="false">LinkedIn poszt</button>
-          <button type="button" data-v="trial" aria-pressed="false">Próbaidőszakos források</button>
+          <button type="button" data-v="trial" aria-pressed="false">Új források</button>
         </div>
         <div class="card table-card">
           <div class="bulkbar" id="bulk" hidden>
@@ -1021,7 +1029,7 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
               </div>
             </div>
             <form id="p-szerk" role="tabpanel" aria-labelledby="tab-szerk" class="card stack" hidden novalidate style="gap:16px">
-              <p class="help">A „LinkedIn posztok” lap mezői. A Teljes poszt ezekből áll össze (a forráslink szándékosan nincs benne).</p>
+              <p class="help">A poszt részei. A teljes szöveg ezekből áll össze; a forráslink a szabályok szerint nem kerül bele (első kommentbe mehet).</p>
               <div class="grid-2">
                 <div class="field"><label for="pe-topic">Témakör</label><input class="input" id="pe-topic"></div>
                 <div class="field"><label for="pe-src">Forráscikkek</label><input class="input" id="pe-src" readonly></div>
@@ -1053,7 +1061,7 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
               <fieldset class="open-choices" id="openChoices"><legend class="sr-only">Nyitó sor választása</legend></fieldset>
             </section>
             <section class="card widget" aria-labelledby="h-src">
-              <div class="widget-head"><div><h2 id="h-src">Adatok</h2><p class="meta">A „LinkedIn posztok” lap sora</p></div></div>
+              <div class="widget-head"><div><h2 id="h-src">Adatok</h2><p class="meta">A poszt adatlapja</p></div></div>
               <dl class="kv" id="postKv"></dl>
             </section>
             <section class="card widget" aria-labelledby="h-hist">
@@ -1124,7 +1132,7 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
             <div class="field full"><label for="f-tema">Téma *</label><input class="input" id="f-tema" required data-msg="Adja meg a témát." placeholder="pl. Ügyfélélmény-konferencia, Budapest"></div>
             <div class="field full"><label for="f-uzenet">Fő üzenet *</label><textarea class="input" id="f-uzenet" maxlength="600" rows="4" required data-msg="Írja le röviden a fő üzenetet." aria-describedby="f-uzenet-c"></textarea><span class="help counter" id="f-uzenet-c" aria-live="polite">0 / 600</span></div>
             <div class="field full"><label for="f-link">Forrás- vagy fotólink</label><input class="input" id="f-link" type="url" placeholder="https://" data-msg="A link https://-sel kezdődjön."></div>
-            <div class="field"><label for="f-tipus">Poszttípus *</label><select class="select" id="f-tipus"><option>szakmai</option><option>rendezvény</option><option>díj</option><option>partner</option><option>csapat</option></select></div>
+            <div class="field"><label for="f-tipus">Poszttípus *</label><select class="select" id="f-tipus"><option>szakmai</option><option>rendezvény</option><option>díj</option><option>partnerség</option><option>esettanulmány</option><option>saját adat</option><option>csapat</option></select></div>
             <div class="field"><label for="f-het">Kívánt hét</label><select class="select" id="f-het"><option>2026. 11. 09–15. (46. hét)</option><option>2026. 11. 16–22. (47. hét)</option><option>2026. 11. 23–29. (48. hét)</option><option>2026. 11. 30. – 12. 06. (49. hét)</option><option>Mindegy</option></select></div>
             <div class="field"><label for="f-allapot">Állapot</label><select class="select" id="f-allapot"><option>Új</option><option>Elkészült</option><option>Jóváhagyva</option><option>Ütemezve</option><option>Elvetve</option></select></div>
             <div class="field"><span class="label" id="f-elo-l">Előnézet link</span><div class="ro-val" id="f-elo" aria-labelledby="f-elo-l">–</div></div>
@@ -1139,14 +1147,11 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
         <div class="page-head">
           <div>
             <div class="page-title"><h1 id="h-szab" tabindex="-1">Posztszabályok</h1></div>
-            <p class="page-sub">A posztgenerálás egyetlen szabályforrása (a „LinkedIn szabályok” lap). A módosítás a következő generálásnál már érvényes. Legutóbb módosította: Emi, 2026. 10. 21. 10:12.</p>
+            <p class="page-sub">A posztgenerálás egyetlen szabályforrása. A módosítás a következő generálásnál már érvényes. Legutóbb módosította: Emi, 2026. 10. 21. 10:12.</p>
           </div>
           <div class="page-actions"><button class="btn btn-secondary" type="button" id="ruleAdd"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-plus"/></svg>Új szabály</button></div>
         </div>
-        <div class="banner bn-info" role="note">
-          <svg class="icon" aria-hidden="true"><use href="#i-info"/></svg>
-          <div class="b-body"><b>Csak a specifikációban felsorolt szabályok</b><span>A valós lap minden sora ide kerül. A prototípusban csak azok szerepelnek, amelyeket a specifikáció megnevez; a többit a lap tartalma alapján töltjük be.</span></div>
-        </div>
+        <div class="seg" role="group" aria-label="Csoport" id="ruleGroups"></div>
         <div class="rules" id="rulesList"></div>
       </section>
 
@@ -1573,7 +1578,6 @@ rowMenu.addEventListener('keydown', e => {
 window.addEventListener('scroll', () => { if (rmCtx) rmCtx.api.close(false); }, { passive:true });
 
 
-
 /* ==================================================================
    10. MINTAADAT (prototípus; élesben az adatbázisból, ügyfelenként)
    ================================================================== */
@@ -1599,7 +1603,7 @@ const GRANT = {
   olvaso:[]
 };
 const CLIENTS = [
-  { id:'xperion', name:'Xperion', status:'Aktív', users:3, site:'xperion.hu', source:'Google Sheet (átköltözik)', run:'minden hó 1., 06:00', last:'2026. 11. 01. 06:04' },
+  { id:'xperion', name:'Xperion', status:'Aktív', users:3, site:'xperion.hu', source:'saját adatbázis', run:'minden hó 1., 06:00', last:'2026. 11. 01. 06:04' },
   { id:'next', name:'[Következő ügyfél]', status:'Beállítás alatt', users:0, site:'–', source:'–', run:'–', last:'–' }
 ];
 const USERS = [
@@ -1616,11 +1620,11 @@ const clientName = id => id === '*' ? 'Minden ügyfél' : (CLIENTS.find(c => c.i
 const PERIODS = ['2610','2609','2608','2607','2606','2605'];
 const MLABEL = { '2610':'2026. október', '2609':'2026. szeptember', '2608':'2026. augusztus', '2607':'2026. július', '2606':'2026. június', '2605':'2026. május' };
 const PAST = {
-  '2609':{ n:26, strong:6, up:9, li:2, todo:0, dec:{ mehet:9, li:2, none:9, no:6 }, src:{ 'Vemco Group':14, 'Qmatic':6, 'Wavetec':3, 'Q-nomy':3 }, top:'Vemco Group (14 db)', theme:'bankfiókok, időpontfoglalás', text:'Szeptemberben a Vemco Group publikált a legtöbbet, főként banki esettanulmányokat. Az időpontfoglalás és a virtuális sorban állás volt a visszatérő téma.' },
-  '2608':{ n:19, strong:4, up:7, li:1, todo:0, dec:{ mehet:7, li:1, none:7, no:4 }, src:{ 'Vemco Group':8, 'Qmatic':6, 'Wavetec':3, 'Q-nomy':2 }, top:'Vemco Group (8 db)', theme:'egészségügy, kioszkok', text:'Augusztusban kevesebb cikk jelent meg; az egészségügyi betegirányítás és az önkiszolgáló kioszkok domináltak.' },
-  '2607':{ n:21, strong:5, up:8, li:2, todo:0, dec:{ mehet:8, li:2, none:7, no:4 }, src:{ 'Vemco Group':9, 'Qmatic':7, 'Wavetec':3, 'Q-nomy':2 }, top:'Vemco Group (9 db)', theme:'mérés, riportálás', text:'Júliusban a szolgáltatási mutatók mérése és a riportálás volt a fő téma.' },
-  '2606':{ n:17, strong:3, up:6, li:1, todo:0, dec:{ mehet:6, li:1, none:6, no:4 }, src:{ 'Vemco Group':7, 'Qmatic':6, 'Wavetec':2, 'Q-nomy':2 }, top:'Vemco Group (7 db)', theme:'közszféra', text:'Júniusban a közszféra digitalizációja és az ügyfélút-térképezés volt hangsúlyos.' },
-  '2605':{ n:15, strong:3, up:5, li:1, todo:0, dec:{ mehet:5, li:1, none:6, no:3 }, src:{ 'Vemco Group':6, 'Qmatic':5, 'Wavetec':2, 'Q-nomy':2 }, top:'Vemco Group (6 db)', theme:'önkiszolgálás', text:'Májusban az önkiszolgálás és a kioszkos bejelentkezés volt a fő téma.' }
+  '2609':{ n:26, strong:6, up:9, li:2, todo:0, dec:{ mehet:9, li:2, nem:9, none:0, no:6 }, src:{ 'Vemco Group':14, 'Qmatic':6, 'Wavetec':3, 'Q-nomy':3 }, top:'Vemco Group (14 db)', theme:'bankfiókok, időpontfoglalás', text:'Szeptemberben a Vemco Group publikált a legtöbbet, főként banki esettanulmányokat. Az időpontfoglalás és a virtuális sorban állás volt a visszatérő téma.' },
+  '2608':{ n:19, strong:4, up:7, li:1, todo:0, dec:{ mehet:7, li:1, nem:7, none:0, no:4 }, src:{ 'Vemco Group':8, 'Qmatic':6, 'Wavetec':3, 'Q-nomy':2 }, top:'Vemco Group (8 db)', theme:'egészségügy, kioszkok', text:'Augusztusban kevesebb cikk jelent meg; az egészségügyi betegirányítás és az önkiszolgáló kioszkok domináltak.' },
+  '2607':{ n:21, strong:5, up:8, li:2, todo:0, dec:{ mehet:8, li:2, nem:7, none:0, no:4 }, src:{ 'Vemco Group':9, 'Qmatic':7, 'Wavetec':3, 'Q-nomy':2 }, top:'Vemco Group (9 db)', theme:'mérés, riportálás', text:'Júliusban a szolgáltatási mutatók mérése és a riportálás volt a fő téma.' },
+  '2606':{ n:17, strong:3, up:6, li:1, todo:0, dec:{ mehet:6, li:1, nem:6, none:0, no:4 }, src:{ 'Vemco Group':7, 'Qmatic':6, 'Wavetec':2, 'Q-nomy':2 }, top:'Vemco Group (7 db)', theme:'közszféra', text:'Júniusban a közszféra digitalizációja és az ügyfélút-térképezés volt hangsúlyos.' },
+  '2605':{ n:15, strong:3, up:5, li:1, todo:0, dec:{ mehet:5, li:1, nem:6, none:0, no:3 }, src:{ 'Vemco Group':6, 'Qmatic':5, 'Wavetec':2, 'Q-nomy':2 }, top:'Vemco Group (6 db)', theme:'önkiszolgálás', text:'Májusban az önkiszolgálás és a kioszkos bejelentkezés volt a fő téma.' }
 };
 const A = (no, src, d, title, desc, rec, why, extra = {}) => ({ id:'a' + no, no, src, date:new Date(2026, 9, d), title, desc, rec, why, dec:'', up:'', post:'', trial:false, ...extra });
 const ARTICLES = [
@@ -1647,22 +1651,22 @@ const POSTS = [
   { id:'LI-2610-01', month:'2610', status:'Ügyfélnél', topic:'Várakozás és elégedettség', origin:'2 cikk: Qmatic-riport, Vemco-útmutató', idea:'', srcLink:'https://www.qmatic.com/blog/', note:'', updated:'2026. 11. 02. 09:00',
     opens:['Minden 5 perc várakozás érezhetően rontja az ügyfél elégedettségét. Ez nem érzés, hanem mérés.','Mennyibe kerül egy ügyfélnek 5 perc a sorban? A friss adatok szerint többe, mint gondolnánk.','A várakozási idő nem csak üzemeltetési adat. Az ügyfélélmény egyik legerősebb előrejelzője.'], open:0,
     ctx:'A Qmatic októberi kutatása több ezer ügyfélinterakciót vizsgált bankfiókokban és egészségügyi intézményekben. A Vemco Group új útmutatója pedig azt mutatja meg, hogyan lehet a betegutat úgy szervezni, hogy a várakozás mérhetően rövidüljön.',
-    high:'• A várakozás minden 5 perce csökkenti az elégedettséget.\n• Az előjegyzés és a sorkezelés összehangolása a leggyorsabb javítás.\n• Ami nincs mérve, azt nem lehet javítani.',
+    high:'– A várakozás minden 5 perce mérhetően csökkenti az elégedettséget.\n– Az előjegyzés és a sorkezelés összehangolása a leggyorsabb javítás.\n– Ami nincs mérve, azt nem lehet javítani.',
     view:'Az Xperionnál azt látjuk, hogy a hazai ügyfeleinknél is az első lépés a mérés: a valós várakozási idő gyakran eltér attól, amit a fiókban érzékelnek.',
-    close:'Ön tudja, mennyi a valós várakozási idő az ügyfélszolgálatán?', tags:'#ügyfélélmény #sorkezelés #ügyfélút #xperion',
+    close:'A mérés az első lépés: a valós várakozási idő ritkán egyezik azzal, amit a fiókban érzékelnek.', tags:'#CustomerExperience #VisitorAnalytics #Sorkezelés',
     img:{ title:'5 perc várakozás', sub:'ennyi kell, hogy romoljon az ügyfél elégedettsége', ex:['becsült várakozás: 4 perc','mért várakozás: 11 perc'] },
     tl:[{ when:'2026. 11. 02. 09:00', t:'Elküldve Attilának jóváhagyásra', who:'Balázs', st:'info' }, { when:'2026. 11. 01. 07:00', t:'A rendszer elkészítette 2 cikkből', who:'óránkénti futás', st:'ok' }] },
   { id:'LI-2610-02', month:'2610', status:'Tervezet', topic:'Ügyfélélmény-konferencia', origin:'Posztötlet: PO-2610-01 (Emi)', idea:'PO-2610-01', srcLink:'', note:'', updated:'2026. 11. 01. 14:00',
     opens:['Két nap, 400 szakember, egy kérdés: hogyan lesz rövidebb a sor?','Ott voltunk a budapesti ügyfélélmény-konferencián. Ezt hoztuk haza.','Mit tanultunk a hazai ügyfélszolgálati vezetőktől két nap alatt?'], open:1,
     ctx:'Csapatunk részt vett a budapesti ügyfélélmény-konferencián, ahol bankok, közműszolgáltatók és egészségügyi intézmények vezetői osztották meg tapasztalataikat.',
-    high:'• A legtöbb előadás a mérésről szólt, nem a technológiáról.\n• Az önkiszolgálás ott működik, ahol egyszerű marad.',
-    view:'Örültünk, hogy ügyfeleink közül többen is színpadra léptek a saját eredményeikkel.', close:'Ön is ott volt? Írja meg, melyik előadás tetszett a legjobban!', tags:'#rendezvény #ügyfélélmény #xperion',
+    high:'– A legtöbb előadás a mérésről szólt, nem a technológiáról.\n– Az önkiszolgálás ott működik, ahol egyszerű marad.\n– Köszönjük a szervezőknek a professzionális lebonyolítást.',
+    view:'Örültünk, hogy ügyfeleink közül többen is színpadra léptek a saját eredményeikkel.', close:'Aki ott volt: ön mit vitt haza?', tags:'#CustomerExperience #Rendezvény #RetailAnalytics',
     img:{ title:'Ügyfélélmény-konferencia', sub:'Budapest, 2026. október', ex:null },
     tl:[{ when:'2026. 11. 01. 14:00', t:'A rendszer elkészítette Emi ötletéből', who:'óránkénti futás', st:'ok' }] },
   { id:'LI-2609-01', month:'2609', status:'Megjelent', topic:'Önkiszolgálás a bankfiókban', origin:'1 cikk: Vemco Group', idea:'', srcLink:'https://www.vemcogroup.com/', note:'Kézzel készült minta', updated:'2026. 10. 08. 10:00',
     opens:['A sorszám már nem papír. De mitől lesz jobb a fiókban töltött idő?','',''], open:0,
-    ctx:'A Vemco Group szeptemberi esettanulmánya egy közép-európai bank fiókhálózatát mutatja be.', high:'• Egyszerűbb belépés, kevesebb sorban állás.\n• A tanácsadók több időt töltenek az ügyféllel.',
-    view:'Az Xperion hazai bankfiókos projektjeiben hasonló eredményeket mértünk.', close:'Hogyan változott az ügyfélút az Ön fiókjaiban az elmúlt egy évben?', tags:'#bank #ügyfélélmény #xperion',
+    ctx:'A Vemco Group szeptemberi esettanulmánya egy közép-európai bank fiókhálózatát mutatja be.', high:'– Egyszerűbb belépés, kevesebb sorban állás.\n– A tanácsadók több időt töltenek az ügyféllel.\n– A mért adatok alapján tervezhető a fiók kapacitása.',
+    view:'Az Xperion hazai bankfiókos projektjeiben hasonló eredményeket mértünk.', close:'Találkozzunk a dBanking-en.', tags:'#Banking #CustomerExperience #VisitorAnalytics',
     img:{ title:'Bankfiók 2026', sub:'önkiszolgálás és tanácsadás', ex:['várakozás 2025: 14 perc','várakozás 2026: 6 perc'] },
     tl:[{ when:'2026. 10. 08. 10:00', t:'Megjelent a LinkedInen', who:'Emi', st:'ok' }, { when:'2026. 10. 03. 16:20', t:'Jóváhagyva', who:'Attila', st:'ok' }] }
 ];
@@ -1670,14 +1674,248 @@ const IDEAS = [
   { id:'PO-2610-01', from:'Emi', topic:'Ügyfélélmény-konferencia, Budapest', msg:'Ott voltunk a konferencián; a mérés volt a fő téma. Két ügyfelünk is előadott.', link:'', type:'rendezvény', week:'2026. 11. 09–15. (46. hét)', status:'Elkészült', preview:'/posztok/LI-2610-02', post:'LI-2610-02', note:'' },
   { id:'PO-2610-02', from:'Berényi Attila', topic:'Az év beszállítója díj a partnerünktől', msg:'Partnerünk az év beszállítójának választott minket. Köszönet a csapatnak.', link:'https://', type:'díj', week:'2026. 11. 16–22. (47. hét)', status:'Új', preview:'', post:'', note:'Fotó később érkezik' }
 ];
+const RULE_GROUPS = ["Cég és cél", "Kulcsfogalmak", "Hangnem", "Szerkezet", "Poszttípusok", "Formátum és horgok", "Kerülendők", "Terjesztés"];
 const RULES = [
-  { name:'Hangnem', value:'szakértő, közvetlen, többes szám első személy („mi az Xperionnál”); nincs túlzó jelző', hint:'a teljes poszt stílusa' },
-  { name:'Szerkezet', value:'nyitó sor (kérdés vagy meglepő adat) → kontextus → 2–3 kiemelés → Xperion-szemszög → kérdés zárásként', hint:'sorrend, blokkok' },
-  { name:'Hossz', value:'800–1300 karakter; a nyitó sor legfeljebb 140 karakter', hint:'a „…több” előtt csak a nyitó sor látszik' },
-  { name:'Hashtagek', value:'3–5 db, mindig: #xperion; témánként: #ügyfélélmény #sorkezelés #ügyfélút', hint:'a poszt végén' },
-  { name:'Poszttípusok', value:'szakmai (cikkekből), rendezvény, díj, partner, csapat', hint:'az ötletek típusai' },
-  { name:'Kerülendők', value:'versenytárs dicsérete, árak, ügyfél neve engedély nélkül, emoji a szöveg közepén', hint:'soha' },
-  { name:'Kép', value:'1200×1200, sötétkék háttér, logószínek; rövid cím, alcím; számpéldánál „Illusztratív példa” címke', hint:'a kép sablonja' }
+{
+"name": "Cég",
+"value": "Xperion Ltd. (xperion.hu): fizikai ügyfélterekből (bevásárlóközpontok, üzletek, bankfiókok, szolgáltatási pontok) gyűjt és elemez adatot, hogy az ügyfelei adatalapú, magabiztos üzleti döntéseket hozhassanak.",
+"group": "Cég és cél"
+},
+{
+"name": "Ügyvezető",
+"value": "Berényi Attila",
+"group": "Cég és cél"
+},
+{
+"name": "Célközönség",
+"value": "Retail-, bevásárlóközpont-, bank- és ügyfélszolgálati vezetők, döntéshozók, partnerek",
+"group": "Cég és cél"
+},
+{
+"name": "A posztok célja",
+"value": "Szakmai hitelesség és jelenlét erősítése, nem hangos értékesítés",
+"group": "Cég és cél"
+},
+{
+"name": "Kulcsfogalom: Customer Interaction Digitalization",
+"value": "A fizikai térben zajló ügyfélfolyamatok mérhetővé és elemezhetővé tétele, ahogy online ez már régóta természetes",
+"group": "Kulcsfogalmak"
+},
+{
+"name": "Kulcsfogalom: Adattól a döntésig",
+"value": "Az adat önmagában nem teremt értéket: adat → információ → tudás → vezetői bölcsesség → döntési előny („A nagy data-driven hazugság” előadás; megerősítési torzítás)",
+"group": "Kulcsfogalmak"
+},
+{
+"name": "Kulcsfogalom: Adaptive Digital Signage",
+"value": "Digital Signage + Visitor Analytics: valós idejű, a látogatókra reagáló tartalom",
+"group": "Kulcsfogalmak"
+},
+{
+"name": "Kulcsfogalom: Mit mér a visitor analytics",
+"value": "Látogatói forgalom, zónahasználat, tartózkodási idő, forgalmi minták → jobb döntések marketingben, üzemeltetésben, bérlői mixben",
+"group": "Kulcsfogalmak"
+},
+{
+"name": "Megoldásterületek",
+"value": "Látogatói és ügyfélanalitika, ügyfélélmény- és ügyfélút-menedzsment, digital signage, munkaerő-menedzsment, valós idejű forgalomirányítás, digitális hirdetési hálózat, QBoard",
+"group": "Cég és cél"
+},
+{
+"name": "Partnerek",
+"value": "Vemco Group (visitor analytics), Qmatic (sorkezelés, ügyfélút), Samsung (kijelzők)",
+"group": "Cég és cél"
+},
+{
+"name": "Hangnem: nyelv",
+"value": "Magyar; angol változat csak kérésre",
+"group": "Hangnem"
+},
+{
+"name": "Hangnem: személy",
+"value": "Céges többes szám („részt vettünk”, „büszkék vagyunk”, „ügyvezetőnk”)",
+"group": "Hangnem"
+},
+{
+"name": "Hangnem: stílus",
+"value": "Szakmai, higgadt, tárgyilagos; meleg, de nem lelkendező",
+"group": "Hangnem"
+},
+{
+"name": "Hangnem: tiltások",
+"value": "Nincs emoji, nincs felkiáltójel-halmozás, nincs túlzás („forradalmi”, „game changer”)",
+"group": "Hangnem"
+},
+{
+"name": "Hangnem: köszönet",
+"value": "Rendezvényes posztokban természetes rész (pl. „Köszönjük … a professzionális szervezést”)",
+"group": "Hangnem"
+},
+{
+"name": "Hangnem: angol szakkifejezések",
+"value": "Maradhatnak angolul, ha az iparágban így használják (Visitor Analytics, Digital Signage, retail)",
+"group": "Hangnem"
+},
+{
+"name": "Szerkezet 1: nyitó sor",
+"value": "Rövid, tényszerű főcím-mondat, önmagában is érthető; ide kerül a lényeg",
+"group": "Szerkezet"
+},
+{
+"name": "Szerkezet 2: kontextus",
+"value": "1 bekezdés: mi történt, vagy mit állít a forrás (forrás megnevezésével)",
+"group": "Szerkezet"
+},
+{
+"name": "Szerkezet 3: kiemelések",
+"value": "3–5 pont, nagykötőjeles lista („– …”)",
+"group": "Szerkezet"
+},
+{
+"name": "Szerkezet 4: link",
+"value": "Ne kerüljön a poszt szövegébe (a külső link csökkenti az elérést). A forrást névvel említsd meg; a link az első kommentbe mehet, vagy elhagyható.",
+"group": "Szerkezet"
+},
+{
+"name": "Szerkezet 5: Xperion szemszög",
+"value": "1–2 bekezdés: mit jelent a gyakorlatban, és hogyan kapcsolódik az Xperion megközelítéséhez. A poszt legfontosabb része.",
+"group": "Szerkezet"
+},
+{
+"name": "Szerkezet 6: zárás",
+"value": "Rövid mondat vagy meghívás, ha van értelme (pl. „Találkozzunk a dBanking-en!”); erőltetett kérdés nincs. Kivétel: rendezvény után mehet valódi kérdés a résztvevőknek (l. „Rendezvény utáni zárás”).",
+"group": "Szerkezet"
+},
+{
+"name": "Szerkezet 7: hashtagek",
+"value": "Legfeljebb 3 db a végén, csak témaköri (pl. #VisitorAnalytics #RetailAnalytics #CustomerExperience). A 3-nál több hashtag ronthatja az elérést.",
+"group": "Szerkezet"
+},
+{
+"name": "Hossz",
+"value": "Kb. 800–1300 karakter (150–250 szó); az első 2–3 sor dönti el, hogy rákattintanak-e a „több” gombra",
+"group": "Formátum és horgok"
+},
+{
+"name": "Poszttípus: szakmai tartalom cikkből",
+"value": "Teljes szerkezet. Több cikkből: a közös gondolatra épít, a legerősebb 1–2 cikket linkeli",
+"group": "Poszttípusok"
+},
+{
+"name": "Poszttípus: rendezvény, előadás",
+"value": "Hol, mikor, ki vett részt; az előadás címe és fő gondolata 2–3 mondatban; köszönet a szervezőknek",
+"group": "Poszttípusok"
+},
+{
+"name": "Poszttípus: díj, elismerés",
+"value": "Tényszerű ismertetés, köszönet a csapatnak, partnereknek, ügyfeleknek; szerény hang",
+"group": "Poszttípusok"
+},
+{
+"name": "Poszttípus: támogatás, partnerség",
+"value": "Bejelentés, miért fontos a téma az Xperion számára, meghívás",
+"group": "Poszttípusok"
+},
+{
+"name": "Kerülendő: forrásszöveg átvétele",
+"value": "Mindig saját szavakkal; idézet legfeljebb egy rövid mondat",
+"group": "Kerülendők"
+},
+{
+"name": "Kerülendő: versenytársak",
+"value": "Nincs versenytárs-dicséret vagy összehasonlítás",
+"group": "Kerülendők"
+},
+{
+"name": "Kerülendő: ellenőrizetlen adatok",
+"value": "Csak a forrásban vagy a kérésben szereplő számok, állítások, ügyfélnevek",
+"group": "Kerülendők"
+},
+{
+"name": "Kerülendő: reklámhang",
+"value": "Az Xperion szakértőként szól, nem eladóként",
+"group": "Kerülendők"
+},
+{
+"name": "Kép",
+"value": "1200×1200, sötétkék háttér, Xperion-kék kiemelőszín (#00A6EA), rövid cím, xperion.hu felirat",
+"group": "Formátum és horgok"
+},
+{
+"name": "Formátum",
+"value": "Szöveg + saját kép az alap. Szakmai tartalomnál megfontolandó a PDF-karusszel (6–10 dia), ez a legjobban teljesítő formátum.",
+"group": "Formátum és horgok"
+},
+{
+"name": "Konkrétumok",
+"value": "Konkrét részletek (cégnév, helyszín, téma, mérhető eredmény) jobban teljesítenek, mint az általánosságok",
+"group": "Formátum és horgok"
+},
+{
+"name": "Terjesztés",
+"value": "A céges oldal organikus elérése alacsony. Az ügyvezető és a munkatársak saját profilról osszák meg, saját 1–2 mondatos kommenttárral (ne szó szerint ugyanazt a szöveget).",
+"group": "Terjesztés"
+},
+{
+"name": "Közzététel után",
+"value": "Az első órában válaszolni a kommentekre; a mentett posztok és érdemi kommentek többet számítanak, mint a like-ok",
+"group": "Terjesztés"
+},
+{
+"name": "Nyitás: problémafelvető állítás",
+"value": "Rövid, meglepő állítás, amely egy megszokott hiedelmet kérdőjelez meg (pl. „A legforgalmasabb óra lehet a leggyengébb óra.”). (Minta: V-Count)",
+"group": "Formátum és horgok"
+},
+{
+"name": "Számpélda",
+"value": "Egy egyszerű, követhető számítás erős horog (pl. 1000 látogató, 10% vs. 15% konverzió → 50 vásárlással több). Mindig jelöld, hogy illusztratív példa. (Minta: V-Count)",
+"group": "Formátum és horgok"
+},
+{
+"name": "Felhasználási példák",
+"value": "Szektoronként egy-egy mondat (bevásárlóközpont, bankfiók, üzlet, iroda), hogy az olvasó magára ismerjen. (Minta: V-Count)",
+"group": "Formátum és horgok"
+},
+{
+"name": "Rendezvényciklus",
+"value": "Egy rendezvényből 2–3 poszt: előtte bejelentés (hol, mikor, hol találkozhatunk), a napján rövid „ma van”, utána fotókarusszeles összefoglaló. (Minta: Broadsign)",
+"group": "Terjesztés"
+},
+{
+"name": "Rendezvény utáni zárás",
+"value": "Itt mehet egy valódi kérdés a résztvevőknek (pl. „Aki ott volt: ön mit vitt haza?”), ez kommentekhez vezet. (Minta: Broadsign)",
+"group": "Terjesztés"
+},
+{
+"name": "Megjelölések",
+"value": "Partnerek, ügyfelek, előadók, szervezők megjelölése (@), mert ők továbbosztják a posztot. (Minta: Broadsign)",
+"group": "Terjesztés"
+},
+{
+"name": "Karusszel felépítése",
+"value": "5–10 dia, diánként egy gondolat: címdia problémával → magyarázat → példa/szám → mit tegyünk → Xperion megközelítés. Egységes, sötét alapú dizájn. (Minta: V-Count)",
+"group": "Formátum és horgok"
+},
+{
+"name": "Kerülendő: állandó akció- és demóhajtás",
+"value": "A kedvezményes és „foglaljon demót” posztok néhány reakciót kapnak, míg az emberekről, partnerekről és rendezvényekről szólók többszörösét. A szakmai érték legyen elöl, az eladás legfeljebb egy záró mondat.",
+"group": "Kerülendők"
+},
+{
+"name": "Poszttípus: esettanulmány",
+"value": "Saját ügyfél, mérhető eredménnyel (kiindulás → megoldás → szám), csak az ügyfél hozzájárulásával. A legtöbbet megosztott tartalomtípus. (Minta: RetailNext)",
+"group": "Poszttípusok"
+},
+{
+"name": "Poszttípus: saját adat",
+"value": "Időszakos, anonimizált összesítő a mérésekből (pl. forgalmi trend, csúcsidőszakok), csak ha a szerződések engedik. (Minta: Sensormatic)",
+"group": "Poszttípusok"
+},
+{
+"name": "Rendszeres formátum",
+"value": "Havonta egy visszatérő poszt: „Havi szakmai válogatás” a sajtófigyelés legjobb cikkeiből, egységes címmel és képi stílussal. (Minta: Sensormatic)",
+"group": "Formátum és horgok"
+}
 ];
 const LOG = [
   ['2026. 11. 02. 14:00','Óránkénti futás','Rendszer','ok','2 cikk feltöltve (HU, EN)'],
@@ -1703,9 +1941,9 @@ function stats(m){
   const src = {}; ARTICLES.forEach(a => src[a.src] = (src[a.src] || 0) + 1);
   const top = Object.entries(src).sort((a, b) => b[1] - a[1])[0];
   return { n:ARTICLES.length, strong:ARTICLES.filter(a => a.rec === 'Erősen javasolt').length, up:ARTICLES.filter(a => a.dec === 'Mehet').length, li:POSTS.filter(p => p.month === '2610').length, todo:todoCount(),
-    dec:{ mehet:ARTICLES.filter(a => a.dec === 'Mehet').length, li:ARTICLES.filter(a => a.dec === 'LinkedIn poszt').length, none:todoCount(), no:ARTICLES.filter(a => !a.dec && a.rec.startsWith('Nem')).length },
+    dec:{ mehet:ARTICLES.filter(a => a.dec === 'Mehet').length, li:ARTICLES.filter(a => a.dec === 'LinkedIn poszt').length, nem:ARTICLES.filter(a => a.dec === 'Nem kell').length, none:todoCount(), no:ARTICLES.filter(a => !a.dec && a.rec.startsWith('Nem')).length },
     src, top:`${top[0]} (${top[1]} db)`, theme:'önkiszolgálás, mérhető ügyfélút',
-    text:'Októberben a sorkezelési piac szereplői főként az önkiszolgáló bejelentkezésről és az ügyfélút mérhetőségéről publikáltak. A Vemco Group két esettanulmánya (bank és egészségügy) közvetlenül illeszkedik az Xperion hazai referenciáihoz. Az új, próbaidőszakos forrás (Acrelec) három cikket adott, ebből kettő javasolt.' };
+    text:'Októberben a sorkezelési piac szereplői főként az önkiszolgáló bejelentkezésről és az ügyfélút mérhetőségéről publikáltak. A Vemco Group két esettanulmánya (bank és egészségügy) közvetlenül illeszkedik az Xperion hazai referenciáihoz. Az új forrás (Acrelec) három cikket adott, ebből kettő javasolt.' };
 }
 function fillMonthSelect(sel, list = PERIODS){ sel.innerHTML = list.map(m => `<option value="${m}">${MLABEL[m]}</option>`).join(''); }
 const TW = (tone, icon, title, n, sub, href, cta) => `<section class="card todo-w tw-${tone}" aria-label="${esc(title)}"><div class="tw-head"><span class="tw-ic">${ic(icon,'icon')}</span><div><h3>${esc(title)}</h3>${n !== null ? `<div class="tw-n">${n}</div>` : ''}</div></div><p>${sub}</p><a class="btn btn-secondary sm" href="${href}">${esc(cta)}${ic('chev-right')}</a></section>`;
@@ -1716,7 +1954,7 @@ function renderTodos(){
   if (can('publish') && byS('Jóváhagyva').length) items.push(`<section class="card todo-w tw-li" aria-label="Közzétehető LinkedIn-poszt"><div class="tw-head"><span class="tw-ic">${ic('linkedin','icon')}</span><div><h3>Közzétehető a LinkedInen</h3><div class="tw-n">${byS('Jóváhagyva').length}</div></div></div><p>Másolja ki a szöveget és a képet, és időzítse a LinkedIn ütemezőjével.</p><a class="btn btn-secondary sm" href="#poszt" data-post="${byS('Jóváhagyva')[0].id}">Megnyitás${ic('chev-right')}</a></section>`);
   if (can('ops') && byS('Tervezet').length) items.push(`<section class="card todo-w tw-li" aria-label="LinkedIn-tervezet"><div class="tw-head"><span class="tw-ic">${ic('linkedin','icon')}</span><div><h3>LinkedIn-tervezet, ügyfélnek küldhető</h3><div class="tw-n">${byS('Tervezet').length}</div></div></div><p>${byS('Tervezet').map(p => esc(p.id + ' · ' + p.topic)).join('<br>')}</p><a class="btn btn-secondary sm" href="#poszt" data-post="${byS('Tervezet')[0].id}">Átnézés${ic('chev-right')}</a></section>`);
   const newIdeas = IDEAS.filter(i => i.status === 'Új').length;
-  if (can('ideas') && newIdeas) items.push(TW('ai','sparkle','Posztötlet generálásra vár', newIdeas, 'Küldje posztgenerálásra, vagy egészítse ki', '#otletek', 'Ötletek'));
+  if ((can('publish') || can('ops')) && newIdeas) items.push(TW('ai','sparkle','Posztötlet generálásra vár', newIdeas, 'Küldje posztgenerálásra, vagy egészítse ki', '#otletek', 'Ötletek'));
   const pend = ARTICLES.filter(a => a.dec === 'Mehet' && a.up !== 'ok').length;
   if (pend) items.push(TW('info','upload','Feltöltésre vár (15:00)', pend, 'Az óránkénti futás élesben feltölti magyarul és angolul', '#cikkek', 'Megtekintés'));
   if (can('ops') && mails['2610']?.state === 'wait') items.push(TW('info','send','Havi e-mail jóváhagyásra vár', null, 'Sajtófigyelés – 2026. október', '#vezerlo', 'Jóváhagyás'));
@@ -1726,7 +1964,7 @@ function renderTodos(){
 }
 const KPIS = [
   { k:'n', label:'Cikkek a hónapban', good:'up' }, { k:'strong', label:'Erősen javasolt', good:'up' },
-  { k:'todo', label:'Döntésre vár', good:'down' }, { k:'up', label:'Feltöltve (Mehet)', good:'up' }, { k:'li', label:'LinkedIn-posztok', good:'up' }
+  { k:'up', label:'Feltöltve (Mehet)', good:'up' }, { k:'li', label:'LinkedIn-posztok', good:'up' }
 ];
 function renderKpis(){
   const idx = PERIODS.indexOf(period), prevM = PERIODS[idx + 1], cur = stats(period), prev = prevM ? stats(prevM) : null;
@@ -1747,7 +1985,7 @@ function renderOverview(){
   $('#sumMeta').textContent = `${lbl} · a havi futás készítette`;
   $('#sumKv').innerHTML = [['Cikkek száma', s.n + ' db'], ['Legtöbb cikk', s.top], ['Erősen javasolt', s.strong + ' db'], ['Fő téma', s.theme]].map(([a, b]) => `<div><dt>${a}</dt><dd>${esc(b)}</dd></div>`).join('');
   $('#sumText').textContent = s.text;
-  const D = [['Mehet', s.dec.mehet, 'var(--data-3)'], ['LinkedIn poszt', s.dec.li, 'var(--data-1)'], ['Nincs döntés', s.dec.none, 'var(--data-4)'], ['Nem javasolt', s.dec.no, 'var(--data-7)']], tot = D.reduce((a, d) => a + d[1], 0) || 1;
+  const D = [['Mehet', s.dec.mehet, 'var(--data-3)'], ['LinkedIn poszt', s.dec.li, 'var(--data-1)'], ['Nem kell', s.dec.nem || 0, 'var(--data-6)'], ['Nincs döntés', s.dec.none, 'var(--data-4)'], ['Nem javasolt', s.dec.no, 'var(--data-7)']], tot = D.reduce((a, d) => a + d[1], 0) || 1;
   $('#decMeta').textContent = `${lbl} · ${s.n} cikk`;
   $('#decBar').setAttribute('aria-label', D.map(d => `${d[0]}: ${d[1]} db`).join(', '));
   $('#decBar').innerHTML = D.filter(d => d[1]).map(d => `<span style="width:${d[1] / tot * 100}%;background:${d[2]}"></span>`).join('');
@@ -1773,8 +2011,8 @@ const REC = {
 let artView = 'todo';
 function decCell(r){
   if (r.up === 'ok') return `<span class="badge b-success">${ic('check','icon')}Mehet</span>`;
-  if (!can('decide')) return r.dec ? `<span class="badge ${r.dec === 'Mehet' ? 'b-info' : 'b-neutral'}">${ic(r.dec === 'Mehet' ? 'upload' : 'linkedin','icon')}${esc(r.dec)}</span>` : '<span class="meta">nincs döntés</span>';
-  return `<label class="sr-only" for="dec-${r.id}">Döntés: ${esc(r.title)}</label><select class="select sm dec" id="dec-${r.id}" data-dec="${r.id}"><option value=""${r.dec ? '' : ' selected'}>Nincs döntés</option><option${r.dec === 'Mehet' ? ' selected' : ''}>Mehet</option><option${r.dec === 'LinkedIn poszt' ? ' selected' : ''}>LinkedIn poszt</option></select>`;
+  if (!can('decide')) return r.dec ? `<span class="badge ${r.dec === 'Mehet' ? 'b-info' : 'b-neutral'}">${ic(r.dec === 'Mehet' ? 'upload' : r.dec === 'Nem kell' ? 'x' : 'linkedin','icon')}${esc(r.dec)}</span>` : '<span class="meta">nincs döntés</span>';
+  return `<label class="sr-only" for="dec-${r.id}">Döntés: ${esc(r.title)}</label><select class="select sm dec" id="dec-${r.id}" data-dec="${r.id}"><option value=""${r.dec ? '' : ' selected'}>Nincs döntés</option><option${r.dec === 'Mehet' ? ' selected' : ''}>Mehet</option><option${r.dec === 'LinkedIn poszt' ? ' selected' : ''}>LinkedIn poszt</option><option${r.dec === 'Nem kell' ? ' selected' : ''}>Nem kell</option></select>`;
 }
 function upCell(r){
   if (r.up === 'ok') return `<div class="up-cell"><span class="links"><a href="#cikkek" data-noop>HU</a><a href="#cikkek" data-noop>EN</a></span><span class="meta">feltöltve 11. 02. 14:00</span></div>`;
@@ -1787,7 +2025,7 @@ const artTable = DataTable({
   table:$('#artTable'), pager:$('#artPager'), sort:{ key:'no', dir:'asc' }, pageSize:25,
   columns:[
     { key:'no', label:'No', type:'num' },
-    { key:'src', label:'Forrás', render:r => `<div class="src-cell">${esc(r.src)}${r.trial ? `<span class="badge b-warning">${ic('alert','icon')}próbaidőszak</span>` : ''}</div>` },
+    { key:'src', label:'Forrás', render:r => `<div class="src-cell">${esc(r.src)}${r.trial ? `<span class="badge b-ai">${ic('plus','icon')}új forrás</span>` : ''}</div>` },
     { key:'date', label:'Dátum', type:'date' },
     { key:'title', label:'Cím és leírás', render:r => `<div class="cell-title"><a href="#cikkek" data-noop>${esc(r.title)}</a><span>${esc(r.desc)}</span></div>` },
     { key:'rec', label:'Javaslat', type:'status', map:REC, sortValue:r => Object.keys(REC).indexOf(r.rec) },
@@ -1815,7 +2053,7 @@ function setDecision(ids, val){
   before.forEach(([r]) => r.dec = val); artTable.render();
   const n = before.length;
   logEvent(`Döntés: ${n} cikk → ${val || 'törölve'}`, before.map(([r]) => r.no + '.').join(' ') + ' sor');
-  toast(!val ? `Döntés törölve: ${n} cikk.` : val === 'Mehet' ? `Mehet: ${n} cikk. A 15:00-s futás élesben feltölti magyarul és angolul.` : `LinkedIn poszt: ${n} cikk. A 15:00-s futás posztot készít belőlük.`,
+  toast(!val ? `Döntés törölve: ${n} cikk.` : val === 'Nem kell' ? `Nem kell: ${n} cikk. Nem kerül fel, és nem jelenik meg újra.` : val === 'Mehet' ? `Mehet: ${n} cikk. A 15:00-s futás élesben feltölti magyarul és angolul.` : `LinkedIn poszt: ${n} cikk. A 15:00-s futás posztot készít belőlük.`,
     { action:() => { before.forEach(([r, d]) => r.dec = d); artTable.render(); toast('Visszavonva.', { type:'info' }); } });
 }
 $('#artTable').addEventListener('change', e => { const s = e.target.closest('[data-dec]'); if (!s) return; const id = s.dataset.dec; setDecision([id], s.value); $(`#dec-${id}`)?.focus(); });
@@ -1914,7 +2152,7 @@ function drawImage(img){
   const g = x.createLinearGradient(0, 0, W, W); g.addColorStop(0, 'rgba(45,56,138,.95)'); g.addColorStop(1, 'rgba(0,174,239,.55)');
   x.fillStyle = g; x.beginPath(); x.arc(W * .95, W * .05, 760, 0, Math.PI * 2); x.fill();
   x.fillStyle = 'rgba(255,255,255,.06)'; for (let i = 0; i < 12; i++) for (let j = 0; j < 12; j++){ x.beginPath(); x.arc(80 + i * 96, 80 + j * 96, 3, 0, Math.PI * 2); x.fill(); }
-  const grad = x.createLinearGradient(96, 0, 400, 0); grad.addColorStop(0, '#2D388A'); grad.addColorStop(1, '#00AEEF');
+  const grad = x.createLinearGradient(96, 0, 400, 0); grad.addColorStop(0, '#2D388A'); grad.addColorStop(1, '#00A6EA');
   x.fillStyle = grad; x.fillRect(96, 150, 140, 12);
   x.fillStyle = '#FFFFFF'; x.font = '600 96px Inter, Arial, sans-serif'; x.textBaseline = 'top';
   let y = 210; wrapLines(x, img.title, W - 192).slice(0, 3).forEach(l => { x.fillText(l, 96, y); y += 112; });
@@ -1924,7 +2162,7 @@ function drawImage(img){
     y = Math.max(y + 60, 640);
     x.fillStyle = 'rgba(255,255,255,.08)'; x.strokeStyle = 'rgba(255,255,255,.25)'; x.lineWidth = 2;
     x.beginPath(); x.roundRect(96, y, W - 192, 250, 24); x.fill(); x.stroke();
-    x.fillStyle = '#00AEEF'; x.font = '600 26px Inter, Arial, sans-serif'; x.fillText('ILLUSZTRATÍV PÉLDA', 136, y + 36);
+    x.fillStyle = '#00A6EA'; x.font = '600 26px Inter, Arial, sans-serif'; x.fillText('ILLUSZTRATÍV PÉLDA', 136, y + 36);
     x.fillStyle = '#FFFFFF'; x.font = '500 46px Inter, Arial, sans-serif'; x.fillText(img.ex[0], 136, y + 92);
     x.fillStyle = '#7FD3F5'; x.fillText('→ ' + img.ex[1], 136, y + 162);
   }
@@ -1995,15 +2233,16 @@ function saveIdea(){
 }
 $('#ideaForm').addEventListener('submit', e => { e.preventDefault(); if (!validIdea()) return; const isNew = !curIdea; saveIdea(); renderIdea(); toast(isNew ? `Ötlet mentve (${curIdea.id}).` : 'Módosítások mentve.'); });
 $('#ideaErr').addEventListener('click', e => { const a = e.target.closest('a'); if (a){ e.preventDefault(); $(a.getAttribute('href')).focus(); } });
-const TAGS = { szakmai:'#ügyfélélmény #sorkezelés #xperion', rendezvény:'#rendezvény #ügyfélélmény #xperion', díj:'#díj #partnerség #xperion', partner:'#partnerség #ügyfélélmény #xperion', csapat:'#csapat #xperionmindennap #xperion' };
+const TAGS = { szakmai:'#VisitorAnalytics #RetailAnalytics #CustomerExperience', rendezvény:'#CustomerExperience #Rendezvény #RetailAnalytics', díj:'#CustomerExperience #Elismerés #VisitorAnalytics', partnerség:'#Partnerség #CustomerExperience #DigitalSignage', esettanulmány:'#Esettanulmány #VisitorAnalytics #RetailAnalytics', 'saját adat':'#VisitorAnalytics #RetailAnalytics #Adatelemzés', csapat:'#Csapat #CustomerExperience #VisitorAnalytics' };
+const CLOSE = { rendezvény:'Aki ott volt: ön mit vitt haza?', díj:'Köszönjük a csapatnak, partnereinknek és ügyfeleinknek.', partnerség:'Találkozzunk a következő szakmai eseményen.', esettanulmány:'Az eredmény mögött mérés és közös munka áll.', 'saját adat':'A teljes összesítő a mérések alapján készült, anonimizálva.' };
 function generateFromIdea(i){
   const n = POSTS.filter(p => p.month === '2611').length + 1, id = 'LI-2611-' + String(n).padStart(2, '0');
   const first = i.msg.split(/(?<=[.!?])\s/)[0];
   const p = { id, month:'2611', status:'Tervezet', topic:i.topic, origin:`Posztötlet: ${i.id} (${i.from})`, idea:i.id, srcLink:i.link, note:i.note, updated:stamp(),
     opens:[`${i.topic}: ${first}`.slice(0, 140), `Miért fontos nekünk: ${i.topic.toLowerCase()}?`.slice(0, 140), `Egy hír, amire büszkék vagyunk: ${i.topic.toLowerCase()}.`.slice(0, 140)], open:0,
-    ctx:i.msg, high:'• [Kiemelés a szabályok szerint, 2–3 pont]\n• [A generálás az élesben a Claude API-val készül]', view:'Az Xperionnál [Xperion-szemszög a szabályok szerint].',
-    close:'Önnek mi a tapasztalata?', tags:TAGS[i.type] || '#xperion', img:{ title:i.topic.slice(0, 40), sub:i.type, ex:null },
-    tl:[{ when:stamp(), t:`A rendszer elkészítette ${i.from} ötletéből, a Posztszabályok szerint`, who:'posztgenerálás', st:'ok' }] };
+    ctx:i.msg, high:'– [1. kiemelés a forrásból]\n– [2. kiemelés]\n– [3. kiemelés]', view:'[Xperion szemszög, 1–2 bekezdés: mit jelent a gyakorlatban, és hogyan kapcsolódik az Xperion megközelítéséhez. Élesben a Claude API írja meg a Posztszabályok alapján.]',
+    close:CLOSE[i.type] || 'Ha szeretne többet tudni a mérésről, keressen minket.', tags:TAGS[i.type] || '#xperion', img:{ title:i.topic.slice(0, 40), sub:i.type, ex:null },
+    tl:[{ when:stamp(), t:`A rendszer elkészítette ${i.from} ötletéből, ${saved.length} posztszabály alapján`, who:'posztgenerálás', st:'ok' }] };
   POSTS.unshift(p); Object.assign(i, { status:'Elkészült', post:id, preview:'/posztok/' + id });
   logEvent('Poszt generálva ötletből', `${i.id} → ${id}`); return p;
 }
@@ -2031,26 +2270,37 @@ $('#ideaMenu').addEventListener('click', e => {
 /* ==================================================================
    12/D. POSZTSZABÁLYOK: szerkesztés, új szabály, törlés, mentéssáv
    ================================================================== */
-let saved = RULES.map(r => ({ ...r })), dirty = false;
+let saved = RULES.map(r => ({ ...r })), dirty = false, ruleGroup = '';
+function renderRuleGroups(){ $('#ruleGroups').innerHTML = ['', ...RULE_GROUPS].map(g => `<button type="button" data-rg="${g}" aria-pressed="${g === ruleGroup}">${g || 'Mind'} <span class="meta">${g ? saved.filter(r => r.group === g).length : saved.length}</span></button>`).join(''); }
 function renderRules(list = saved){
-  $('#rulesList').innerHTML = list.map((r, i) => `<div class="card rule" data-ri="${i}"><div class="rl-in"><label class="sr-only" for="rn-${i}">Szabály neve</label><input class="input" id="rn-${i}" value="${esc(r.name)}" placeholder="Megnevezés"><span class="help">${esc(r.hint || 'új szabály')}</span></div><div class="field"><label class="sr-only" for="rv-${i}">${esc(r.name || 'Új szabály')} értéke</label><textarea class="input" id="rv-${i}" rows="2" placeholder="Érték">${esc(r.value)}</textarea></div>${can('rules') ? `<button class="icon-btn" type="button" data-rdel="${i}" aria-label="Szabály törlése: ${esc(r.name || 'új szabály')}">${ic('trash')}</button>` : ''}</div>`).join('');
+  $('#rulesList').innerHTML = RULE_GROUPS.concat(list.some(r => !RULE_GROUPS.includes(r.group)) ? ['Egyéb'] : []).filter(g => !ruleGroup || g === ruleGroup).map(g => {
+    const items = list.map((r, i) => [r, i]).filter(([r]) => (RULE_GROUPS.includes(r.group) ? r.group : 'Egyéb') === g);
+    if (!items.length) return '';
+    return `<section class="card widget rule-group" aria-labelledby="rg-${RULE_GROUPS.indexOf(g)}"><div class="widget-head"><div><h2 id="rg-${RULE_GROUPS.indexOf(g)}">${g}</h2><p class="meta">${items.length} szabály</p></div>${can('rules') ? `<button class="btn btn-ghost sm" type="button" data-radd="${g}">${ic('plus')}Új szabály</button>` : ''}</div>` +
+      items.map(([r, i]) => `<div class="rule" data-ri="${i}" data-group="${esc(r.group)}"><div class="rl-in"><label class="sr-only" for="rn-${i}">Szabály neve</label><input class="input" id="rn-${i}" value="${esc(r.name)}" placeholder="Megnevezés"></div><div class="field"><label class="sr-only" for="rv-${i}">${esc(r.name || 'Új szabály')} értéke</label><textarea class="input" id="rv-${i}" rows="2" placeholder="Érték">${esc(r.value)}</textarea></div>${can('rules') ? `<button class="icon-btn" type="button" data-rdel="${i}" aria-label="Szabály törlése: ${esc(r.name || 'új szabály')}">${ic('trash')}</button>` : ''}</div>`).join('') + '</section>';
+  }).join('');
   $$('#rulesList .input').forEach(el => el.readOnly = !can('rules'));
+  $$('#rulesList textarea').forEach(t => { t.style.height = 'auto'; t.style.height = Math.max(60, t.scrollHeight + 2) + 'px'; });
 }
-const readRules = () => $$('#rulesList .rule').map((el, i) => ({ name:$('#rn-' + i).value.trim(), value:$('#rv-' + i).value.trim(), hint:saved[i]?.hint || '' }));
-function setDirty(v){ dirty = v; $('#savebar').hidden = !(v && currentView === 'szabalyok'); }
-$('#rulesList').addEventListener('input', () => setDirty(true));
+let working = null;
+const readRules = () => { const base = working || saved; return base.map((r, i) => { const n = $('#rn-' + i), v = $('#rv-' + i); return n ? { ...r, name:n.value.trim(), value:v.value.trim() } : r; }); };
+function setDirty(v){ dirty = v; if (!v) working = null; $('#savebar').hidden = !(v && currentView === 'szabalyok'); }
+$('#ruleGroups').addEventListener('click', e => { const b = e.target.closest('[data-rg]'); if (!b) return; working = readRules(); ruleGroup = b.dataset.rg; renderRuleGroups(); renderRules(working); });
+$('#rulesList').addEventListener('input', e => { if (e.target.matches('textarea')){ e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 2 + 'px'; } working = readRules(); setDirty(true); });
 $('#rulesList').addEventListener('click', e => {
+  const add = e.target.closest('[data-radd]');
+  if (add){ working = readRules(); working.push({ name:'', value:'', group:add.dataset.radd }); renderRules(working); setDirty(true); $('#rn-' + (working.length - 1)).focus(); return; }
   const b = e.target.closest('[data-rdel]'); if (!b) return;
-  const list = readRules(), i = +b.dataset.rdel, [gone] = list.splice(i, 1); renderRules(list); setDirty(true);
-  toast(`„${gone.name || 'Új szabály'}” törölve (mentéskor végleges).`, { action:() => { const l = readRules(); l.splice(i, 0, gone); renderRules(l); } });
+  working = readRules(); const i = +b.dataset.rdel, [gone] = working.splice(i, 1); renderRules(working); setDirty(true);
+  toast(`„${gone.name || 'Új szabály'}” törölve (mentéskor végleges).`, { action:() => { working.splice(i, 0, gone); renderRules(working); } });
 });
-$('#ruleAdd').addEventListener('click', () => { const l = readRules(); l.push({ name:'', value:'', hint:'' }); renderRules(l); setDirty(true); $('#rn-' + (l.length - 1)).focus(); });
+$('#ruleAdd').addEventListener('click', () => { working = readRules(); working.push({ name:'', value:'', group:ruleGroup || 'Formátum és horgok' }); renderRules(working); setDirty(true); $('#rn-' + (working.length - 1)).focus(); });
 $('#saveBtn').addEventListener('click', () => {
   const l = readRules(), bad = l.findIndex(r => !r.name || !r.value);
-  if (bad >= 0){ const el = $(!l[bad].name ? '#rn-' + bad : '#rv-' + bad); el.setAttribute('aria-invalid','true'); el.focus(); toast('Minden szabálynak legyen neve és értéke.', { type:'error' }); return; }
-  saved = l; renderRules(); setDirty(false); logEvent('Posztszabályok módosítva', `${l.length} szabály`); toast('Szabályok mentve. A következő generált posztnál már érvényesek.');
+  if (bad >= 0){ const el = $(!l[bad].name ? '#rn-' + bad : '#rv-' + bad); if (el){ el.setAttribute('aria-invalid','true'); el.focus(); } toast('Minden szabálynak legyen neve és értéke.', { type:'error' }); return; }
+  saved = l; setDirty(false); renderRuleGroups(); renderRules(); logEvent('Posztszabályok módosítva', `${l.length} szabály`); toast('Szabályok mentve. A következő generált posztnál már érvényesek.');
 });
-$('#discardBtn').addEventListener('click', () => { const prev = readRules(); renderRules(); setDirty(false); toast('Módosítások elvetve.', { action:() => { renderRules(prev); setDirty(true); } }); });
+$('#discardBtn').addEventListener('click', () => { const prev = readRules(); setDirty(false); renderRules(); toast('Módosítások elvetve.', { action:() => { working = prev; renderRules(prev); setDirty(true); } }); });
 
 /* ==================================================================
    12/E. FELHASZNÁLÓK ÉS SZEREPKÖRÖK (ügyfelenként)
@@ -2258,6 +2508,7 @@ function show(name){
   if (name === 'felhasznalok'){ syncUserRows(); userTable.render(); renderMatrix(); }
   if (name === 'ugyfelek'){ clientTable.render(); renderOnb(); }
   if (name === 'vezerlo') renderMail();
+  if (name === 'szabalyok') $$('#rulesList textarea').forEach(t => { t.style.height = 'auto'; t.style.height = Math.max(60, t.scrollHeight + 2) + 'px'; });
   $('#savebar').hidden = !(dirty && name === 'szabalyok');
   if (!first){ window.scrollTo(0, 0); $('h1', views[name]).focus({ preventScroll:true }); }
 }
@@ -2266,7 +2517,7 @@ function route(){
   if (VIEW_PERM[name] && !can(VIEW_PERM[name])) name = 'attekintes';
   if (currentView === 'szabalyok' && name !== 'szabalyok' && dirty){
     history.replaceState(null, '', '#szabalyok');
-    confirmBox({ title:'Elveti a módosításokat?', body:'A szabályok nem mentett módosításai elvesznek.', confirm:'Módosítások elvetése', cancel:'Maradok' }).then(ok => { if (ok){ renderRules(); setDirty(false); history.replaceState(null, '', '#' + name); show(name); } });
+    confirmBox({ title:'Elveti a módosításokat?', body:'A szabályok nem mentett módosításai elvesznek.', confirm:'Módosítások elvetése', cancel:'Maradok' }).then(ok => { if (ok){ setDirty(false); renderRules(); history.replaceState(null, '', '#' + name); show(name); } });
     return;
   }
   show(name);
@@ -2306,7 +2557,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('dialog
 /* ==================================================================
    INDULÁS
    ================================================================== */
-renderRules(); setUser(USERS[0]); route();
+renderRuleGroups(); renderRules(); setUser(USERS[0]); route();
 
 })();
 </script>

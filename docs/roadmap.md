@@ -1,11 +1,20 @@
 # Ütemterv
 
-| # | Ütem | Állapot | Megjegyzés |
-|---|---|---|---|
-| 1 | Havi futás: gyűjtés, értékelés, havi lap, összefoglaló, jóváhagyásos havi e-mail, napló | tervezett | product.md 6.1, 6.4 |
-| 2 | Óránkénti futás: döntésfigyelés, élő feltöltés, posztgenerálás, előnézeti felület | tervezett | product.md 6.2–6.5 |
-| 3 | E-mailes válaszok feldolgozása | tervezett | product.md 6.6; IMAP-adat kell |
-| – | Automatikus LinkedIn-közzététel | most nem cél | LinkedIn API-jóváhagyás kell |
-| – | Többoldalas AI webszerkesztő platform | most nem cél | a moduláris felépítés legyen meg hozzá |
+Frissítve: 2026-11-02, a saját felületre és adatbázisra váltás után (lásd [decisions.md](decisions.md)). Minden lépés egy kis pull request, szárazon kipróbálható állapotban. A felület mintája: [terv/ugyfelfelulet-prototipus.html](terv/ugyfelfelulet-prototipus.html).
 
-**Közös követelmények:** PHP 8.1+ (a szerveren ellenőrizendő), függőség nélküli éles kód, titkok a repón kívül, szárazfuttatás minden feladatra, telepítés terminál nélkül.
+| # | Lépés | Állapot | Tartalom |
+|---|---|---|---|
+| 1 | Alap | kész, élesben ellenőrzött | konfiguráció, zárolás, napló, cron, admin felület, Sheets-kapcsolat (az adatátvételhez marad) |
+| 2 | Adatbázis, ügyfelek, felhasználók | tervezett | adatbázis és migrációk; ügyfél (tenant); belépés e-mail + jelszó; szerepkörök; meghívás (SMTP nélkül másolható meghívólinkkel is); a felület kerete a prototípus szerint |
+| 3 | Adatátvétel a Sheetből | tervezett | egyszeri import: források, kulcsszavak, korábbi havi lapok linkjei (duplikátumszűrés), feltöltöttség, posztok; szabályok a megadott listából |
+| 4 | Cikkgyűjtés | tervezett | RSS és listaoldalak, dátum-, duplikátum- és kizáró szűrés; szárazfuttatás forrásonkénti kimutatással |
+| 5 | Értékelés és Havi cikkek | tervezett | Claude-értékelés (Desc, Javaslat, Indoklás), vezetői összefoglaló; Havi cikkek oldal döntésekkel (Mehet / LinkedIn poszt / Nem kell) |
+| 6 | Áttekintés | tervezett | időszakválasztó, teendő-widgetek, összefoglaló, KPI-k, megoszlás, források |
+| 7 | Havi e-mail | tervezett | generálás hónap szerint, szerkesztés, jóváhagyás, küldés SMTP-vel |
+| 8 | Élő feltöltés | tervezett | óránkénti futás: Mehet cikkek feltöltése két nyelven (OAuth Bridge vagy MCP), újrapróbálás |
+| 9 | Posztok | tervezett | ötletek, generálás cikkekből és ötletekből a szabályok szerint, szerkesztés, jóváhagyás, előnézet és kép |
+| 10 | Napló, ügyfelek oldal | tervezett | felhasználói műveletek naplója, új ügyfél beállítási lépései |
+| – | E-mailes válaszok feldolgozása | később | az eredeti 3. ütem; a saját felület miatt valószínűleg nem kell |
+| – | Automatikus LinkedIn-közzététel | most nem cél | LinkedIn API-jóváhagyás kell |
+
+**Közös követelmények:** PHP 8.2 (a szerveren ellenőrizve), függőség nélküli éles kód, titkok a repón kívül, szárazfuttatás minden futásra, telepítés terminál nélkül, ügyfelenként elválasztott adatok (a szerver a belépett felhasználó tagságából dönti el, melyik ügyfél adatához fér hozzá).

@@ -4,7 +4,7 @@
 - **Forrás:** felhasználói közlés (claude.ai chat), a jóváhagyott specifikáció ([product.md](product.md)) és a repó kódja.
 
 ## Cél
-Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkészítés automatizálása PHP-ban, a meglévő Google Sheetre építve.
+Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkészítés automatizálása PHP-ban, **saját felülettel és adatbázissal**, több ügyfélre felkészítve (döntés: 2026-11-02; a Google Sheetből egyszeri adatátvétel lesz).
 
 ## Funkciók
 | Funkció | Állapot | Forrás |
@@ -36,7 +36,11 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 ## Blokkolók
 A [product.md](product.md) 11. pontjának 1–4. kérdése (a PHP-verzió már megvan: 8.2.35): cron a sunserveren, a feltöltő program adatai (URL, eszközök, OAuth), a fordítás felelőse, SMTP-adatok.
 
+## Terv
+- Kattintható prototípus (v3, többügyfeles, a valós posztszabályokkal): [terv/ugyfelfelulet-prototipus.html](terv/ugyfelfelulet-prototipus.html), publikálva: https://claude.ai/artifact/NuS6Vvt9oKrgHBjjJrvsxe. Állapot: a felhasználó átnézte, a saját felület mellett döntött.
+- Frissített ütemterv: [roadmap.md](roadmap.md).
+
 ## Következő lépések
-1. Döntés: marad-e a Google Sheet az ügyfél felülete (lásd a beszélgetést), és a 2. lépés tervének jóváhagyása.
-2. 1. ütem 2. lépés: gyűjtés RSS-ből és listaoldalakról, dátum-, duplikátum- és kizáró szűrés (szárazon kipróbálható).
-3. 1. ütem 3. lépés: Claude-értékelés, a havi lap létrehozása a 2609-es szerkezettel, összefoglaló.
+1. Döntés az adatbázisról (SQLite vagy MySQL), utána a 2. lépés terve jóváhagyásra.
+2. 2. lépés: adatbázis, ügyfelek, felhasználók, belépés, a felület kerete.
+3. 3. lépés: egyszeri adatátvétel a Sheetből.
