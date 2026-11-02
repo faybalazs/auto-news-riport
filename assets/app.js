@@ -623,7 +623,7 @@ if (APP.page === 'vezerlo'){
   // Feltöltés a weboldalra
   const UPST = { kint:['b-success','check','Kint'], szaraz:['b-info','flask','Szárazon kész'], duplikatum:['b-neutral','archive','Már fent volt'], hiba:['b-danger','x-circle','Hiba'], zarolt:['b-info','clock','Folyamatban'], reszben:['b-info','clock','Részben kint'], '':['b-danger','x-circle','Hiba'] };
   $('#wpCheck')?.addEventListener('click', async () => {
-    const b = $('#wpCheck'); busy(b, true);
+    const b = $('#wpCheck'); busy(b, true); $('#wpErr').hidden = true;
     try {
       const w = (await api('wpellenorzes')).wp; const yes = v => v ? `<span class="badge b-success">${ic('check','icon')}igen</span>` : `<span class="badge b-danger">${ic('x-circle','icon')}nem</span>`;
       $('#wpKv').innerHTML = [['Webhely', esc(w.site)], ['Bővítmény', esc(w.version)], ['Nyelvkezelő', esc(w.language_engine || 'nincs')], ['Publikálhat', yes(w.can_publish)], ['Képet tölthet fel', yes(w.can_upload)],
@@ -632,7 +632,12 @@ if (APP.page === 'vezerlo'){
       $('#wpKv').hidden = false;
       const ok = w.can_publish && w.can_upload && w.hu_category && w.en_category && w.language_engine && String(w.version).startsWith('0.6');
       toast(ok ? 'A WordPress-kapcsolat rendben van.' : 'A kapcsolat él, de nézze meg a sárga és piros sorokat.', { type:ok ? 'success' : 'warning' });
-    } catch(e){ $('#wpKv').hidden = true; toast(e.message, { type:'error' }); }
+    } catch(e){
+      $('#wpKv').hidden = true; $('#wpErrText').textContent = e.message; $('#wpErr').hidden = false;
+      const m = e.message.match(/RewriteEngine On\nRewriteRule[^\n]*/);
+      $('#wpErrCopy').innerHTML = m ? `<div class="copy-box"><code style="white-space:pre">${esc(m[0])}</code><button class="btn btn-ghost sm" type="button" data-copy="${esc(m[0])}">${ic('copy')}Másolás</button></div>` : '';
+      toast('A WordPress-kapcsolat nem működik; az ok és a teendő a kártyán.', { type:'error' });
+    }
     finally { busy(b, false); }
   });
   async function upRun(live){

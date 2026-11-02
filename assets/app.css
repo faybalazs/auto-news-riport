@@ -771,6 +771,7 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 .t-li{ --tc:var(--li); }
 .todo-w .tw-body .btn{ margin-left:auto; }
 @media (pointer:coarse){ .btn.sm, .th-sort, .ws-btn, #wsBtn, .icon-btn, .seg button{ min-height:44px; } .icon-btn{ min-width:44px; } .linklike{ padding:12px 6px; margin:-12px -6px; } }
+.pre-line{ white-space:pre-line; }
 
 /* ================= 18. TÖRÉSPONTOK (mindig a CSS végén) ================= */
 @media (max-width:1279px){ .layout{ grid-template-columns:minmax(0,1fr); } .w-8, .w-4{ grid-column:span 12; } }

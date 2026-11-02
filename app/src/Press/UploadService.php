@@ -55,7 +55,19 @@ final class UploadService
         $a->require('ops');
         $client = $a->client() ?? throw new \InvalidArgumentException('Nincs kiválasztott ügyfél.');
         $wp = ($this->wpFor)($client);
-        $c = $wp->context();
+        try {
+            $c = $wp->context();
+        } catch (WpException $e) {
+            if ($e->kind !== 'auth') {
+                throw $e;
+            }
+            $d = $wp->diagnose();
+            if ($d['ok']) {
+                $roles = $d['roles'] ? implode(', ', $d['roles']) : 'ismeretlen';
+                throw new WpException("A belépés jó ({$d['user']}, szerepkör: {$roles}), de a sajtószemle-végpont elutasította: " . $e->getMessage() . ' A felhasználó legyen legalább Szerző, és ellenőrizze, hogy biztonsági bővítmény nem tiltja-e a végpontot.', 'auth', $e->status);
+            }
+            throw new WpException($d['hint'] !== '' ? $d['hint'] : $e->getMessage(), 'auth', $e->status);
+        }
         $cats = [];
         foreach ($c['categories'] ?? [] as $cat) {
             $cats[(int) $cat['id']] = $cat['name'] . (($cat['language'] ?? '') !== '' ? ' (' . $cat['language'] . ')' : '');

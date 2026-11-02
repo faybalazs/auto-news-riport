@@ -59,6 +59,7 @@ for ($i = 1; $i <= 6; $i++) {
     <button class="btn btn-primary" type="button" id="upLive"><?= $ic('upload') ?>Feltöltés élesben</button>
   </div>
   <p class="help"><b>Kapcsolat ellenőrzése:</b> a bővítmény verziója, jogok, alapkategóriák; semmit nem ír. <b>Szárazon:</b> a Claude megírja a magyar és angol címet és ajánlót (cikkenként 2–3 cent), a WordPressbe nem ír. <b>Élesben:</b> a Mehet cikkek kikerülnek a weboldalra, magyarul és angolul; futásonként legfeljebb <?= \Xperion\Press\UploadService::PER_RUN ?> cikk.</p>
+  <div class="banner bn-error" role="alert" id="wpErr" hidden><?= $ic('x-circle', 'icon') ?><div class="b-body"><span id="wpErrText" class="pre-line"></span><div id="wpErrCopy"></div></div></div>
   <dl class="kv" id="wpKv" hidden></dl>
   <div id="upOut" hidden>
     <div class="result-meta" id="upMeta"></div>

@@ -44,6 +44,51 @@ final class WpBridgeClient
     }
 
     /**
+     * A WordPress hibakódjából érthető magyar ok és teendő (a belépés nem sikerült).
+     */
+    public static function authMessage(int $status, string $code, string $wpMessage): string
+    {
+        $why = match ($code) {
+            'incorrect_password' => 'az alkalmazásjelszó hibás. Az alkalmazásjelszó nem a belépési jelszó: a WordPress-adminban a felhasználó profilján, az „Alkalmazásjelszavak” résznél kell létrehozni (pl. „Sajtófigyelés” néven), és a megjelenő, szóközökkel tagolt jelszót kell a config.php wordpress részébe, app_password-ként másolni.',
+            'invalid_username', 'invalid_email' => 'ilyen felhasználó nincs. A config.php-ba a WordPress-felhasználónév kell (a profil tetején „Felhasználónév”), nem a megjelenített név.',
+            'application_passwords_disabled', 'application_passwords_disabled_for_user' => 'az alkalmazásjelszavak ki vannak kapcsolva ezen a webhelyen vagy ennél a felhasználónál (gyakran egy biztonsági bővítmény, pl. Wordfence, kapcsolja ki). Kapcsolja vissza a bővítmény beállításaiban.',
+            'rest_forbidden', 'rest_not_logged_in', 'rest_cannot_access' => $status === 403
+                ? 'a felhasználó belépett, de nincs elég joga. Legyen legalább Szerző (bejegyzés írása, közzététele, kép feltöltése).'
+                : 'a WordPress nem kapta meg a belépési adatot. Megosztott tárhelyen ez a leggyakoribb: a szerver kiszűri az „Authorization” fejlécet. Megoldás a Vezérlőpult „Kapcsolat ellenőrzése” gombjánál.',
+            default => $status === 403 ? 'a hozzáférés tiltva (pl. biztonsági bővítmény vagy tűzfal blokkolja a REST API-t).' : 'a belépés nem sikerült.',
+        };
+        return 'A WordPress elutasította a belépést (HTTP ' . $status . ($code !== '' ? ', ' . $code : '') . '): ' . $why;
+    }
+
+    /**
+     * Belépés-diagnosztika csak olvasó hívással (/wp-json/wp/v2/users/me): kiderül, hogy a belépési adat
+     * eljut-e a WordPressig, helyes-e, és milyen szerepkörű a felhasználó.
+     *
+     * @return array{ok:bool, user:string, roles:list<string>, code:string, message:string, hint:string}
+     */
+    public function diagnose(): array
+    {
+        $h = ['Authorization' => 'Basic ' . base64_encode($this->user . ':' . $this->appPassword), 'Accept' => 'application/json'];
+        try {
+            $r = $this->http->request('GET', $this->baseUrl . '/wp-json/wp/v2/users/me?context=edit', $h);
+            if ($r->status === 404) {
+                $r = $this->http->request('GET', $this->baseUrl . '/?rest_route=/wp/v2/users/me&context=edit', $h);
+            }
+        } catch (HttpException $e) {
+            return ['ok' => false, 'user' => '', 'roles' => [], 'code' => 'transport', 'message' => $e->getMessage(), 'hint' => 'A webhely nem érhető el.'];
+        }
+        $d = json_decode($r->body, true) ?: [];
+        if ($r->status === 200) {
+            return ['ok' => true, 'user' => (string) ($d['name'] ?? $d['slug'] ?? ''), 'roles' => array_values(array_map('strval', (array) ($d['roles'] ?? []))), 'code' => '', 'message' => '', 'hint' => ''];
+        }
+        $code = (string) ($d['code'] ?? '');
+        $hint = $r->status === 401 && in_array($code, ['rest_not_logged_in', 'rest_forbidden', ''], true)
+            ? 'A belépési adat nem jut el a WordPressig: a tárhely kiszűri az „Authorization” fejlécet. A tárhely fájlkezelőjében nyissa meg a WordPress gyökérmappájában lévő .htaccess fájlt, és a „# BEGIN WordPress” sor elé írja be ezt a két sort:' . "\n" . 'RewriteEngine On' . "\n" . 'RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]' . "\n" . 'Mentés után próbálja újra. Ha így sem megy, a tárhely ügyfélszolgálata tudja engedélyezni az Authorization fejléc továbbítását.'
+            : self::authMessage($r->status, $code, (string) ($d['message'] ?? ''));
+        return ['ok' => false, 'user' => '', 'roles' => [], 'code' => $code, 'message' => (string) ($d['message'] ?? ''), 'hint' => $hint];
+    }
+
+    /**
      * @param array<string,mixed> $args
      * @return array<string,mixed>
      */
@@ -61,7 +106,8 @@ final class WpBridgeClient
             throw new WpException('A WordPress nem válaszolt időben (' . $e->getMessage() . '). Legközelebb előbb az állapotot kérdezem le.', 'transport');
         }
         if ($r->status === 401 || $r->status === 403) {
-            throw new WpException('A WordPress elutasította a belépést (HTTP ' . $r->status . '). Ellenőrizze a config.php wordpress részét (felhasználó, alkalmazásjelszó) és a felhasználó jogait (Szerző).', 'auth', $r->status);
+            $e = json_decode($r->body, true);
+            throw new WpException(self::authMessage($r->status, (string) ($e['code'] ?? ''), (string) ($e['message'] ?? '')), 'auth', $r->status);
         }
         if ($r->status === 404) {
             throw new WpException('A sajtószemle-végpont nem található (HTTP 404). Telepítve és bekapcsolva van az Xperion OAuth Bridge 0.6.0 bővítmény?', 'tool', 404);

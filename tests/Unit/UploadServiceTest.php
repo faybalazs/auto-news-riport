@@ -172,6 +172,40 @@ final class UploadServiceTest extends DbTestCase
         self::assertStringStartsWith('Leállt a feltöltés', $this->mailer->sent[0]->subject);
     }
 
+    public function testAuthErrorsAreDiagnosed(): void
+    {
+        $op = Access::forUser($this->db, $this->op, $this->x);
+        $this->wp->status = 401;
+        $this->wp->authCode = 'incorrect_password';
+        $this->wp->me = [401, ['code' => 'incorrect_password', 'message' => 'x']];
+        try {
+            $this->svc->check($op);
+            self::fail('hiba várt');
+        } catch (\Xperion\Press\WpException $e) {
+            self::assertStringContainsString('alkalmazásjelszó hibás', $e->getMessage());
+        }
+        // a fejlécet a tárhely kiszűri: a WordPress nem látja a belépést
+        $this->wp->authCode = 'rest_forbidden';
+        $this->wp->me = [401, ['code' => 'rest_not_logged_in', 'message' => 'You are not currently logged in.']];
+        try {
+            $this->svc->check($op);
+            self::fail('hiba várt');
+        } catch (\Xperion\Press\WpException $e) {
+            self::assertStringContainsString('RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]', $e->getMessage());
+            self::assertStringContainsString('.htaccess', $e->getMessage());
+        }
+        // a belépés jó, de a végpont tiltja (jogosultság)
+        $this->wp->status = 403;
+        $this->wp->me = [200, ['name' => 'cikkfigyelo', 'roles' => ['subscriber']]];
+        try {
+            $this->svc->check($op);
+            self::fail('hiba várt');
+        } catch (\Xperion\Press\WpException $e) {
+            self::assertStringContainsString('A belépés jó (cikkfigyelo, szerepkör: subscriber)', $e->getMessage());
+        }
+        self::assertStringContainsString('WordPress-felhasználónév', \Xperion\Press\WpBridgeClient::authMessage(401, 'invalid_username', ''));
+    }
+
     public function testWordpressConfigLookup(): void
     {
         $c = new Config(['wordpress' => ['xperion.hu' => ['user' => 'u', 'app_password' => 'p'], 'mas.hu' => ['user' => '', 'app_password' => '']]]);
