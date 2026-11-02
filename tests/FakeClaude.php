@@ -35,6 +35,8 @@ final class FakeClaude implements HttpClient
                 array_pop($out);
             }
             $text = json_encode(['items' => $out], JSON_UNESCAPED_UNICODE);
+        } elseif (isset($props['subject'])) {
+            $text = json_encode(['subject' => 'Sajtófigyelés – 2026. október', 'body' => "Kedves Attila!\n\nElkészült az októberi lista:\nhttps://app.test/index.php?p=cikkek&honap=2610\n\n- Új forrás: Acrelec, egy cikkel.\n- Cikkek: 3\n\nÜdvözlettel: az Auris Dynamics csapata"], JSON_UNESCAPED_UNICODE);
         } else {
             $text = json_encode(['rows' => [['label' => 'Cikkek száma', 'value' => '3'], ['label' => 'Fő téma', 'value' => 'várakozás']], 'details' => 'Októberben a várakozás mérése volt a fő téma.'], JSON_UNESCAPED_UNICODE);
         }

@@ -2,7 +2,7 @@
 
 Havi sajtófigyelés, élő cikkfeltöltés és LinkedIn-posztgenerálás az Xperion (xperion.hu) számára, saját felülettel és MySQL-adatbázissal, több ügyfélre felkészítve.
 
-- **Állapot:** 6. lépés kész (Áttekintés valódi adatokkal). Részletek: [docs/project-state.md](docs/project-state.md)
+- **Állapot:** 7. lépés kész (havi e-mail jóváhagyással). Részletek: [docs/project-state.md](docs/project-state.md)
 - **Technológia:** PHP 8.1+ (a szerveren 8.2), MySQL, függőség nélküli éles kód; Claude API, SMTP, a meglévő feltöltő program; a Google Sheetből egyszeri adatátvétel
 - **Követelmények:** [docs/product.md](docs/product.md) · **Felépítés:** [docs/architecture.md](docs/architecture.md)
 - **AI-ügynököknek:** [AGENTS.md](AGENTS.md)
@@ -43,7 +43,14 @@ Másold le a `config.example.php`-t `config.php` néven, és töltsd ki:
 3. **Vezérlőpult → Havi futás és cikkgyűjtés:** válaszd a hónapot. **Csak gyűjtés:** Claude nélkül megmutatja a források eredményét. **Havi futás szárazon:** gyűjtés és Claude-értékelés mentés nélkül (havonta néhány tized cent). **Havi futás élesben:** a hónap listája és a vezetői összefoglaló bekerül a **Havi cikkek** közé; egy hónapra egyszer (az átvett korábbi hónapok már meglévőnek számítanak).
 4. **Havi cikkek:** az ügyfél-adminisztrátor itt dönt (Mehet / LinkedIn poszt / Nem kell), soronként vagy több cikkre egyszerre, visszavonással.
 
-### 7. Időzítés (cron)
+### 7. Havi e-mail az ügyfélnek
+1. A tárhely vezérlőpultjában hozz létre egy postafiókot a feladónak (pl. `sajtofigyeles@…`). A `config.php` `smtp` részébe: `host` (a levelezőszerver neve), `port` és `secure` (`465` + `ssl`, vagy `587` + `tls`), `user` (általában a teljes e-mail-cím), `pass`, `from_email` (a postafiók címe). A **Vezérlőpult → Beállítások állapota** mutatja, ha rendben van.
+2. **Ügyfelek → Havi e-mail beállításai:** címzett, másolat, és ha kell, a levél stílusa. Mentés.
+3. A havi futás élesben megírja a levelet, és e-mailt küld neked (az ügyfél ekkor még semmit nem kap). Kézzel: **Vezérlőpult → Havi e-mail az ügyfélnek → E-mail generálása**.
+4. **Szöveg szerkesztése**, ha kell; **Teszt e-mail nekem**: csak neked megy ki, így az SMTP is kipróbálható.
+5. **Jóváhagyom, mehet:** a megerősítés után azonnal kimegy a címzettnek és a másolatnak, egyszer. Utána nem módosítható. Ha hiba van, a kártyán látszik, és javítás után újra megnyomható.
+
+### 8. Időzítés (cron)
 A tárhely vezérlőpultjában két időzített feladat kell; a pontos címeket a **Vezérlőpult → Időzítés (cron)** kártyán másolhatod:
 - **Havi futás:** minden hónap 1-jén 06:00-kor (Europe/Budapest).
 - **Óránkénti futás:** minden órában.
@@ -51,7 +58,7 @@ A tárhely vezérlőpultjában két időzített feladat kell; a pontos címeket 
 Ha a vezérlőpult csak parancsot fogad el, az URL-t egy `wget -q -O - "<cím>"` parancsba kell tenni; ezt a vezérlőpult súgója szokta mutatni.
 
 ### Elfelejtett jelszó
-Amíg nincs e-mail-küldés (7. lépés), az adminisztrátor ad új linket: **Felhasználók → sor ⋯ menüje → Jelszó-visszaállító link** (24 óráig érvényes).
+A jelszólink e-mailben még nem megy ki; az adminisztrátor ad új linket: **Felhasználók → sor ⋯ menüje → Jelszó-visszaállító link** (24 óráig érvényes).
 
 ## Titkok
 A `config.php` és minden kulcs a repón kívül marad; a repóban csak a `config.example.php` van a változónevekkel. A `.htaccess` a konfigurációt, a JSON-fájlokat és a belső mappákat kívülről elérhetetlenné teszi.

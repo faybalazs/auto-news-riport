@@ -4,8 +4,8 @@ $sub = 'Futások kézi indítása, a beállítások állapota és az időzítés
 require __DIR__ . '/_head.php';
 $log = $app->log();
 $desc = [
-    'havi' => 'Minden hónap 1-jén 06:00-kor, minden Aktív ügyfélre: gyűjtés, Claude-értékelés, a havi lista és az összefoglaló mentése.',
-    'orankenti' => 'Minden órában. A feltöltés, a posztgenerálás és az e-mail-küldés a későbbi lépésekben jön.',
+    'havi' => 'Minden hónap 1-jén 06:00-kor, minden Aktív ügyfélre: gyűjtés, Claude-értékelés, a havi lista és az összefoglaló mentése, majd a havi e-mail megírása (jóváhagyásra vár, értesítés csak az üzemeltetőnek).',
+    'orankenti' => 'Minden órában. A feltöltés és a posztgenerálás a későbbi lépésekben jön. (A havi e-mail a jóváhagyáskor azonnal megy.)',
 ];
 $cronKey = $app->config->string('cron_key');
 $base = \Xperion\Web\Http::baseUrl() . 'cron.php?k=' . rawurlencode($cronKey !== '' ? $cronKey : '<cron_key>');
@@ -37,6 +37,39 @@ for ($i = 1; $i <= 6; $i++) {
     <div class="card table-card" style="box-shadow:none"><div class="table-wrap" id="colItems"></div><div class="pager" id="colPager"></div></div>
   </div>
 </section>
+<?php if ($access->client()): $mail = $data['mail'] ?? []; ?>
+<section class="card widget" aria-labelledby="h-mail" id="mailCard">
+  <div class="widget-head">
+    <div><h2 id="h-mail">Havi e-mail az ügyfélnek</h2><p class="meta" id="mailMeta"></p></div>
+    <span id="mailStatus"></span>
+  </div>
+  <?php if (empty($mail['ready'])): ?>
+  <div class="banner bn-info" role="status"><?= $ic('info', 'icon') ?><div class="b-body"><span><b>Az e-mail-küldés még nincs beállítva.</b> Generálni és szerkeszteni lehet, küldeni nem. A tárhelyen létrehozott postafiók adatai a config.php <code>smtp</code> részébe kellenek.</span></div></div>
+  <?php endif; ?>
+  <div class="collect-bar">
+    <div class="field"><label for="mailMonth">Melyik hónapból?</label><select class="select" id="mailMonth"></select></div>
+    <button class="btn btn-secondary" type="button" id="mailGen"><?= $ic('sparkle') ?>E-mail generálása</button>
+  </div>
+  <div id="mailEmpty" class="empty-state" hidden><b>Ehhez a hónaphoz még nincs e-mail</b><span>Generálja le: a szöveg a hónap listájából, a vezetői összefoglalóból és a beállított stílusból készül (kb. 1–2 cent). Generáláskor az ügyfél még semmit nem kap.</span></div>
+  <div id="mailNone" class="empty-state" hidden><b>Még nincs havi lista</b><span>A levél a havi futás után írható meg (vagy az átvett hónapokból).</span></div>
+  <div class="mail-prev" id="mailPrev" hidden>
+    <div class="mail-subj"><span class="meta">Tárgy</span><b id="mailSubj"></b><span class="badge b-ai"><?= $ic('sparkle', 'icon') ?>AI által generált</span></div>
+    <div class="mail-body" id="mailBody"></div>
+    <div id="mailEditWrap" hidden class="mail-edit">
+      <div class="field"><label for="mailEditSubj">Tárgy</label><input class="input" id="mailEditSubj" maxlength="255"></div>
+      <div class="field"><label for="mailEdit">Az e-mail szövege</label><textarea class="input" id="mailEdit" rows="16"></textarea><span class="help">Sima szöveg. A „- ” kezdetű sorokból felsorolás lesz, a linkek kattinthatók.</span></div>
+    </div>
+  </div>
+  <div class="banner bn-error" role="alert" id="mailErr" hidden><?= $ic('x-circle', 'icon') ?><div class="b-body"><span id="mailErrText"></span></div></div>
+  <div class="acts-row" id="mailActs" hidden>
+    <button class="btn btn-primary" type="button" id="mailApprove"><?= $ic('send') ?>Jóváhagyom, mehet</button>
+    <button class="btn btn-secondary" type="button" id="mailEditBtn"><?= $ic('edit') ?>Szöveg szerkesztése</button>
+    <button class="btn btn-secondary" type="button" id="mailSave" hidden><?= $ic('check') ?>Mentés</button>
+    <button class="btn btn-ghost" type="button" id="mailCancel" hidden>Mégse</button>
+    <button class="btn btn-ghost" type="button" id="mailTest"><?= $ic('send') ?>Teszt e-mail nekem</button>
+  </div>
+</section>
+<?php endif; ?>
 <div class="layout">
   <div class="stack">
     <div class="task-grid" role="list" aria-label="Feladatok">

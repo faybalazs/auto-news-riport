@@ -16,7 +16,8 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 | Adatátvétel ügyfelenkénti Google Sheetből (források, kulcsszavak, havi lapok cikkei, posztok, ötletek, szabályok, beállítások) | ellenőrzött: PHPUnit helyettesített Sheettel; élesben a felhasználó lefuttatta a valódi Sheettel (0.5.2, „Megy”) | roadmap 3 |
 | Cikkgyűjtés (RSS, HubSpot, listaoldal; hónap-, duplikátum- és kizáró szűrés), egyelőre mentés nélkül | megvalósított; ellenőrzött mintaoldalakkal (PHPUnit) és helyi mintaforrásokkal böngészőből; valódi forrásoldalakon nem ellenőrzött | roadmap 4 |
 | Havi futás: Claude-értékelés (Haiku 5.5), vezetői összefoglaló (Sonnet 5.5), mentés; Havi cikkek oldal döntésekkel | megvalósított; ellenőrzött helyettesített Claude-dal (PHPUnit: kérésforma, elutasítás, idempotencia, hiányos válasz, ügyfélhatár) és böngészőből mintaadatokkal; valódi Claude API-val nem ellenőrzött | roadmap 5 |
-| Áttekintés valódi adatokkal: időszakválasztó, teendő-widgetek szerepkör szerint, vezetői összefoglaló, KPI-k trenddel, döntések megoszlása, cikkek forrásonként | megvalósított; ellenőrzött PHPUnit-tal (számok, ügyfélhatár, szerepkörök) és böngészőből mintaadatokkal (1366 px, mobil); élesben nem ellenőrzött | roadmap 6 |
+| Áttekintés valódi adatokkal: időszakválasztó, teendő-widgetek szerepkör szerint, vezetői összefoglaló, KPI-k trenddel, döntések megoszlása, cikkek forrásonként | ellenőrzött: PHPUnit és böngészős teszt; élesben a felhasználó kipróbálta (0.6.0, „Működik”) | roadmap 6 |
+| Havi e-mail: generálás (havi futáskor és kézzel), értesítés csak az üzemeltetőnek, szerkesztés, teszt e-mail, jóváhagyás után azonnali egyszeri küldés SMTP-vel; címzettek és stílus ügyfelenként | megvalósított; ellenőrzött PHPUnit-tal (SMTP-protokoll forgatókönyvvel, helyettesített Claude és küldő) és böngészőből helyi teszt-SMTP-szerverrel (a kézbesített levél fejléce, szövege és HTML-je ellenőrizve); valódi SMTP-vel és Claude-dal nem ellenőrzött | roadmap 7 |
 | Áttekintés adatokkal | tervezett (most üres állapot és beállítási teendők) | roadmap 6 |
 | Havi e-mail, feltöltés, posztok | tervezett | roadmap 7–9 |
 
@@ -43,6 +44,6 @@ A [product.md](product.md) 11. pontjának 1–4. kérdése (a PHP-verzió már m
 - Frissített ütemterv: [roadmap.md](roadmap.md).
 
 ## Következő lépések
-1. Felhasználó: feltöltés (0.6.0); Áttekintés megnyitása az Xperion ügyféllel, az időszakváltás és a számok ellenőrzése az átvett hónapokon.
-2. Claude API-kulcs a `config.php`-ba, az Xperion ügyfél Aktívra állítása; Vezérlőpult → Havi futás szárazon, majd élesben; Havi cikkek → döntések.
-3. 7. lépés: havi e-mail (piszkozat nélkül, jóváhagyás után küldve).
+1. Felhasználó: feltöltés (0.7.0); postafiók a tárhelyen és az `smtp` adatok a `config.php`-ba; Ügyfelek → Havi e-mail beállításai (címzett, másolat).
+2. Claude API-kulcs a `config.php`-ba; Vezérlőpult → E-mail generálása egy átvett hónapra → Teszt e-mail nekem. Az ügyfélnek csak a szöveg átnézése után: Jóváhagyom, mehet.
+3. 8. lépés: élő feltöltés a „Mehet” cikkekből (a meglévő feltöltő programmal).

@@ -134,7 +134,7 @@ final class Config
             ['label' => 'Cron-kulcs', 'ok' => strlen($cronKey) >= 16, 'note' => $cronKey === '' ? 'hiányzik' : (strlen($cronKey) < 16 ? 'túl rövid' : 'beállítva')],
             ['label' => 'Google (adatátvételhez)', 'ok' => $this->serviceAccountJson() !== '', 'note' => $this->serviceAccountJson() !== '' ? 'beállítva' : 'hiányzik'],
             ['label' => 'Claude API-kulcs', 'ok' => $this->has('claude_api_key'), 'note' => $this->has('claude_api_key') ? 'beállítva' : 'a havi futáshoz kell'],
-            ['label' => 'SMTP', 'ok' => $this->has('smtp.host') && $this->has('smtp.from_email'), 'note' => $this->has('smtp.host') ? 'beállítva' : 'a 7. lépéstől kell'],
+            ['label' => 'SMTP', 'ok' => $this->has('smtp.host') && $this->has('smtp.from_email'), 'note' => $this->has('smtp.host') ? 'beállítva' : 'a havi e-mailhez kell'],
         ];
     }
 }

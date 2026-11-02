@@ -24,6 +24,9 @@ use Xperion\Tests\FakeWeb;
 final class MonthlyServiceTest extends DbTestCase
 {
     private FakeClaude $claude;
+    /** @var list<array{0:int,1:string}> */
+    private array $hookCalls = [];
+    private bool $hookFail = false;
     private MonthlyService $svc;
     private UserAdmin $users;
     private int $op;
@@ -54,7 +57,13 @@ final class MonthlyServiceTest extends DbTestCase
         mkdir($dir);
         $log = new LocalLog($dir . '/n.jsonl');
         $this->claude = new FakeClaude();
-        $this->svc = new MonthlyService($this->db, new CollectService($this->db, new Collector($web), $log, $dir . '/l.lock'), new ClaudeClient($this->claude, 'k'), $log, $audit, $dir . '/l.lock');
+        $this->svc = new MonthlyService($this->db, new CollectService($this->db, new Collector($web), $log, $dir . '/l.lock'), new ClaudeClient($this->claude, 'k'), $log, $audit, $dir . '/l.lock',
+            function (int $c, string $m): void {
+                $this->hookCalls[] = [$c, $m];
+                if ($this->hookFail) {
+                    throw new \RuntimeException('SMTP nincs');
+                }
+            });
     }
 
     private function op(?int $c = null): Access
@@ -97,6 +106,21 @@ final class MonthlyServiceTest extends DbTestCase
         self::assertStringContainsString('már elkészült', $r2->summary());
         self::assertCount($calls, $this->claude->requests, 'második futás nem hív Claude-ot');
         self::assertSame(0, (int) $this->db->value('SELECT COUNT(*) FROM articles WHERE client_id = ?', [$this->other]));
+    }
+
+    public function testEmailHookRunsOnlyAfterLiveSave(): void
+    {
+        $dry = $this->svc->runForAccess($this->op(), '2610', true);
+        self::assertSame([], $this->hookCalls);
+        self::assertStringContainsString('havi e-mail is elkészülne', implode("\n", array_column($dry->lines, 'text')));
+        $this->hookFail = true;
+        $r = $this->svc->runForAccess($this->op(), '2610', false);
+        self::assertTrue($r->ok, 'az e-mail hibája nem bontja meg a mentett havi listát');
+        self::assertSame([[$this->x, '2610']], $this->hookCalls);
+        self::assertStringContainsString('a havi e-mail nem: SMTP nincs', implode("\n", array_column($r->lines, 'text')));
+        self::assertSame(1, (int) $this->db->value('SELECT COUNT(*) FROM month_reports WHERE client_id = ?', [$this->x]));
+        $this->svc->runForAccess($this->op(), '2610', false);
+        self::assertCount(1, $this->hookCalls, 'meglévő hónapnál nem ír új levelet');
     }
 
     public function testMissingKeyFailsFast(): void

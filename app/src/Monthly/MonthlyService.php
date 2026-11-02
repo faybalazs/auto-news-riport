@@ -33,6 +33,7 @@ final class MonthlyService
         private LocalLog $log,
         private AuditLog $audit,
         private string $lockFile,
+        private ?\Closure $afterSave = null,
     ) {
     }
 
@@ -129,6 +130,17 @@ final class MonthlyService
                 $this->db->insert('month_reports', ['client_id' => $clientId, 'month' => $month, 'summary_rows' => json_encode($summary['rows'], JSON_UNESCAPED_UNICODE), 'details' => $summary['details'], 'stats' => json_encode($stats), 'model' => $evalModel, 'created_at' => $now]);
             });
         });
+        if ($this->afterSave !== null) {
+            if ($ctx->dry) {
+                $ctx->info('Élesben ezután a havi e-mail is elkészülne (jóváhagyásra vár, az ügyfél nem kapja meg).');
+            } else {
+                try {
+                    ($this->afterSave)($clientId, $month, $ctx);
+                } catch (\Throwable $e) {
+                    $ctx->warn('A havi lista elkészült, de a havi e-mail nem: ' . $e->getMessage() . ' A Vezérlőpultról újra generálható.');
+                }
+            }
+        }
         return ['items' => $items, 'summary' => $summary, 'stats' => $stats, 'exists' => false];
     }
 }

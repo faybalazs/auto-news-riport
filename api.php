@@ -122,12 +122,27 @@ try {
             $app->clients()->update($access, (int) $c['id'], (string) $c['name'], (string) $c['website'], (string) $c['status'], $str('sheet'));
             return ['ok' => true, 'clients' => $app->clients()->all($access)];
         })(),
+        'email' => (function () use ($app, $access, $str) {
+            $access->require('ops');
+            $em = $app->emails();
+            $month = $str('month');
+            return ['email' => $month !== '' ? $em->get($access, $month) : null, 'months' => $em->months($access)];
+        })(),
+        'emailgen' => (function () use ($app, $access, $str, $in) {
+            $em = $app->emails();
+            $gen = $em->generate($access, $str('month'), !empty($in['dry']));
+            return ['email' => $gen, 'row' => $em->get($access, $str('month'))];
+        })(),
+        'emailmentes' => ['email' => $app->emails()->update($access, $str('month'), $str('subject'), (string) ($in['body'] ?? ''))],
+        'emailteszt' => ['to' => $app->emails()->sendTest($access, $str('month'))],
+        'emailkuldes' => ['email' => $app->emails()->approveAndSend($access, $str('month'))],
+        'emailbeallitas' => ['settings' => $app->emails()->saveSettings($access, $str('to'), $str('cc'), (string) ($in['style'] ?? ''))],
         default => throw new \InvalidArgumentException('Ismeretlen művelet.'),
     };
     Http::json($out);
 } catch (AccessDenied $e) {
     Http::json(['error' => $e->getMessage()], 403);
-} catch (\InvalidArgumentException $e) {
+} catch (\InvalidArgumentException | \Xperion\Mail\MailException | \Xperion\Claude\ClaudeException $e) {
     Http::json(['error' => $e->getMessage()], 422);
 } catch (\Throwable $e) {
     error_log('Xperion API: ' . $e->getMessage());

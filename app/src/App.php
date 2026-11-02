@@ -133,7 +133,34 @@ final class App
 
     public function monthly(): \Xperion\Monthly\MonthlyService
     {
-        return new \Xperion\Monthly\MonthlyService($this->db(), $this->collector(), $this->claude(), $this->log(), $this->audit(), $this->storageDir . '/futas.lock');
+        return new \Xperion\Monthly\MonthlyService($this->db(), $this->collector(), $this->claude(), $this->log(), $this->audit(), $this->storageDir . '/futas.lock',
+            function (int $clientId, string $month, \Xperion\Task\TaskContext $ctx): void {
+                $r = $this->emails()->generateForClient($clientId, $month, false);
+                $ctx->done('Havi e-mail elkészült, jóváhagyásra vár: ' . $r['subject']);
+                if ($r['notice'] !== '') {
+                    $ctx->info($r['notice']);
+                }
+            });
+    }
+
+    /** Az alkalmazás címe a levelek linkjeihez: config app_url, vagy webes kérésnél a kérés címe. */
+    public function baseUrl(): string
+    {
+        $url = $this->config->string('app_url');
+        if ($url === '' && PHP_SAPI !== 'cli') {
+            $url = \Xperion\Web\Http::baseUrl();
+        }
+        return $url === '' ? '' : rtrim($url, '/') . '/';
+    }
+
+    public function mailer(): \Xperion\Mail\Mailer
+    {
+        return new \Xperion\Mail\SmtpMailer((array) $this->config->get('smtp', []));
+    }
+
+    public function emails(): \Xperion\Monthly\EmailService
+    {
+        return new \Xperion\Monthly\EmailService($this->db(), $this->claude(), $this->mailer(), $this->audit(), $this->baseUrl());
     }
 
     public function articles(): \Xperion\Monthly\ArticleService

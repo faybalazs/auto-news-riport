@@ -7,7 +7,7 @@ PHP 8.1+ (a szerveren 8.2), MySQL/MariaDB, éles függőség nélkül (PDO, cURL
 | Fájl | Mire | Védelem |
 |---|---|---|
 | `index.php` | Oldalak: `?p=attekintes`, `felhasznalok`, `ugyfelek`, `vezerlo`, `naplo`, `profil` (és a későbbi lépések helyőrzői); belépés nélkül: `belepes`, `meghivo&t=`, `jelszo&t=`, első indításkor beállítóoldal | munkamenet (e-mail + jelszó); jogosultság oldalanként; CSRF minden POST-on |
-| `api.php` | JSON-műveletek: `?m=felhasznalok`, `meghivas`, `felhasznalo`, `letiltas`, `torles`, `link`, `ugyfel`, `jelszocsere`, `futtatas`, `atvetel`, `gyujtes`, `havifutas`, `dontes`, `googlekulcs` (szolgáltatásfiók-kulcs feltöltése, üzemeltető), `sheetlink` (az aktuális ügyfél táblalinkje, üzemeltető) | munkamenet + `X-CSRF-Token`; minden művelet a szerveren ellenőrzi a jogosultságot és az ügyfélhatárt |
+| `api.php` | JSON-műveletek: `?m=felhasznalok`, `meghivas`, `felhasznalo`, `letiltas`, `torles`, `link`, `ugyfel`, `jelszocsere`, `futtatas`, `atvetel`, `gyujtes`, `havifutas`, `dontes`, `googlekulcs` (szolgáltatásfiók-kulcs feltöltése, üzemeltető), `sheetlink` (az aktuális ügyfél táblalinkje, üzemeltető), `email`, `emailgen`, `emailmentes`, `emailteszt`, `emailkuldes`, `emailbeallitas` (havi e-mail, üzemeltető) | munkamenet + `X-CSRF-Token`; minden művelet a szerveren ellenőrzi a jogosultságot és az ügyfélhatárt |
 | `cron.php` | Időzített futás: `?feladat=havi\|orankenti&k=<cron_key>[&dry=1]`, vagy `php cron.php havi [--dry]` | cron-kulcs; hibánál HTTP 500 |
 
 Minden webes kérés elején a `Migrator` lefuttatja a még hiányzó adatbázis-migrációkat (`app/migrations/*.sql`, MySQL `GET_LOCK`-kal).
@@ -36,6 +36,8 @@ Minden webes kérés elején a `Migrator` lefuttatja a még hiányzó adatbázis
 | `Claude\ClaudeClient` | Messages API közvetlen HTTP-vel (Composer nélkül): `anthropic-version: 2026-10-21`, strukturált JSON-kimenet (`output_config.format`), effort, gyorsítótárazott rendszerprompt, Sonnet/Opus esetén szerveroldali tartalék (`fallbacks: "default"`); elutasítás és `max_tokens` hibaként | `Evaluator`, `Summarizer` |
 | `Monthly\Evaluator`, `Monthly\Summarizer` | Értékelés 20-as csomagokban (leírás, javaslat, indoklás; ügyfélleírás, kulcsszavak, korábbi döntések és feltöltött címek a rendszerpromptban); vezetői összefoglaló | `MonthlyService` |
 | `Monthly\MonthlyService` | Havi futás ügyfelenként: gyűjtés → értékelés → összefoglaló → (élesben) mentés tranzakcióban; idempotens (összefoglaló vagy cikk a hónapban = kész); Claude-kulcs nélkül azonnal hibát ad | `api.php?m=havifutas`, `MonthlyTask` (cron: Aktív ügyfelek) |
+| `Mail\SmtpMailer`, `Mail\StreamSmtpConnection`, `Mail\Message`, `Mail\TextToHtml` | SMTP-küldés Composer nélkül (SSL 465 / STARTTLS 587, AUTH PLAIN/LOGIN), multipart sima szöveg + HTML, címellenőrzés (fejlécbefecskendezés ellen) | `EmailService` |
+| `Monthly\EmailService` | Havi e-mail: Claude (Sonnet 5.5) írja a hónap listájából, összefoglalójából és az ügyfél stílusából; élesben „Jóváhagyásra vár”, értesítés csak az üzemeltetőknek; szerkesztés, teszt e-mail a belépett felhasználónak; jóváhagyáskor azonnali, egyszeri küldés állapotváltásos zárolással; elküldött levél nem módosul | `api.php?m=email*`, `MonthlyService` (élő mentés után), Vezérlőpult, Ügyfelek |
 | `Monthly\OverviewService` | Áttekintés: hónapok, a hónap számai (előző hónap, 6 havi trend), döntések megoszlása, cikkek forrásonként, teendők szerepkör szerint; csak az aktuális ügyfél adatai | `index.php?p=attekintes` |
 | `Monthly\ArticleService` | Havi listák, összefoglaló, döntések (csak az aktuális ügyfél cikkei, feltöltött cikk nem módosul, műveleti napló) | `index.php?p=cikkek`, `api.php?m=dontes` |
 | `Google\*`, `Sheets\*` | Szolgáltatásfiókos Sheets-olvasás (`App::sheetsFor(id)`, ügyfelenként) | `ImportService` |
@@ -47,6 +49,8 @@ Minden webes kérés elején a `Migrator` lefuttatja a még hiányzó adatbázis
 **002_ugyfeladatok:** `clients.spreadsheet_id`; `sources`, `keywords`, `articles` (egyedi: ügyfél + egységesített link lenyomata), `posts` (ügyfél + kód), `post_ideas`, `post_rules`, `client_settings`. Mind `client_id`-vel, ügyfél törlésekor kaszkádolva.
 
 **003_havi_futas:** `month_reports` (ügyfél + hónap: összefoglaló sorai, részletek, statisztika, modell); `articles.evaluated_by`.
+
+**004_havi_email:** `month_emails` (ügyfél + hónap: tárgy, szöveg, állapot: jóváhagyásra vár / küldés / elküldve / hiba, generálás, szerkesztés, küldés ideje és címzettjei, hiba). A címzett, a másolat és a stílus a `client_settings` `ugyfel_email`, `ugyfel_cc`, `email_stilus` sora.
 
 ## Felület
 

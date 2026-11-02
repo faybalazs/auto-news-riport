@@ -84,7 +84,7 @@ final class OverviewService
     private function todo(Access $a): array
     {
         $cid = $a->clientId();
-        $t = ['decide' => 0, 'decideMonth' => '', 'upload' => 0, 'postsClient' => [], 'postsApproved' => [], 'postsDraft' => [], 'ideas' => 0, 'missingRun' => '', 'members' => 0];
+        $t = ['decide' => 0, 'decideMonth' => '', 'upload' => 0, 'postsClient' => [], 'postsApproved' => [], 'postsDraft' => [], 'ideas' => 0, 'missingRun' => '', 'members' => 0, 'mail' => []];
         if ($cid === null) {
             return $t;
         }
@@ -105,6 +105,8 @@ final class OverviewService
         }
         if ($a->can('ops')) {
             $t['postsDraft'] = $posts($this->db, 'tervezet');
+            $t['mail'] = array_map(static fn ($r) => ['month' => (string) $r['month'], 'subject' => (string) $r['subject'], 'error' => $r['status'] === 'hiba'],
+                $this->db->all("SELECT month, subject, status FROM month_emails WHERE client_id = ? AND status IN ('jovahagyasra_var','hiba') ORDER BY month DESC", [$cid]));
             // Az előző naptári hónap havi futása (csak aktív ügyfélnél, ha még nincs listája).
             $prev = (new \DateTimeImmutable('first day of previous month', new \DateTimeZone('Europe/Budapest')))->format('ym');
             $client = $a->client();

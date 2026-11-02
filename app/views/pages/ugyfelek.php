@@ -40,6 +40,14 @@ $cur = $access->client();
       <ol class="run-lines" id="impLines" hidden></ol>
       <dl class="kv" id="impKv"></dl>
     </section>
+    <?php $ms = $cur ? $app->emails()->settings((int) $cur['id']) : ['to' => '', 'cc' => '', 'style' => '']; ?>
+    <section class="card widget" aria-labelledby="h-ms" id="mailSettings">
+      <div class="widget-head"><div><h2 id="h-ms">Havi e-mail beállításai</h2><p class="meta">Ügyfél: <b><?= $e($cur['name'] ?? 'nincs kiválasztva') ?></b> · a levél csak a Vezérlőpulton adott jóváhagyás után megy ki</p></div></div>
+      <div class="field"><label for="msTo">Címzett</label><input class="input" id="msTo" type="text" inputmode="email" autocomplete="off" placeholder="nev@ugyfel.hu" value="<?= $e($ms['to']) ?>"></div>
+      <div class="field"><label for="msCc">Másolat <span class="opt">(nem kötelező; több cím vesszővel)</span></label><input class="input" id="msCc" type="text" inputmode="email" autocomplete="off" value="<?= $e($ms['cc']) ?>"></div>
+      <div class="field"><label for="msStyle">A levél stílusa <span class="opt">(üresen az alapértelmezett)</span></label><textarea class="input" id="msStyle" rows="6" placeholder="<?= $e(\Xperion\Monthly\EmailService::DEFAULT_STYLE) ?>"><?= $e($ms['style']) ?></textarea><span class="help">A Claude ezt követi a levél megírásakor (hangnem, szerkezet, aláírás).</span></div>
+      <div class="acts-row"><button class="btn btn-secondary sm" type="button" id="msSave"<?= $cur ? '' : ' disabled' ?>><?= $ic('check') ?>Mentés</button></div>
+    </section>
     <section class="card widget" aria-labelledby="h-onb">
       <div class="widget-head"><div><h2 id="h-onb">Beállítási lépések</h2><p class="meta"><?= $e($cur['name'] ?? 'Nincs kiválasztott ügyfél') ?></p></div></div>
       <ol class="checklist" id="onbList"></ol>

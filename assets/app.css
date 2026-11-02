@@ -632,6 +632,17 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 .imp-steps li::before{ content:counter(st); position:absolute; left:0; top:0; width:24px; height:24px; border-radius:50%; background:var(--accent-subtle); color:var(--accent-text); display:grid; place-items:center; font-size:12px; font-weight:600; }
 .imp-steps .copy-box{ margin-top:0; }
 
+/* Havi e-mail (Vezérlőpult) */
+#mailCard{ display:flex; flex-direction:column; gap:16px; }
+.mail-prev{ border:1px solid var(--border); border-radius:var(--r-md); overflow:hidden; }
+.mail-subj{ display:flex; flex-wrap:wrap; gap:8px 12px; align-items:baseline; padding:10px 16px; background:var(--surface-subtle); border-bottom:1px solid var(--border); font-size:var(--fs-sm); }
+.mail-subj .badge{ margin-left:auto; }
+.mail-body{ padding:16px; font-size:var(--fs-sm); line-height:1.55; white-space:pre-wrap; overflow-wrap:anywhere; max-width:75ch; }
+.mail-edit{ padding:16px; display:flex; flex-direction:column; gap:12px; }
+.mail-edit textarea{ font-family:inherit; line-height:1.5; min-height:280px; }
+#mailSettings textarea{ font-family:inherit; line-height:1.5; }
+#dlgDesc{ white-space:pre-line; }
+
 /* ================= 18. TÖRÉSPONTOK (mindig a CSS végén) ================= */
 @media (max-width:1279px){ .layout{ grid-template-columns:minmax(0,1fr); } .w-8, .w-4{ grid-column:span 12; } }
 @media (max-width:1023px){ .files-layout{ grid-template-columns:minmax(0,1fr); } .folders{ display:none; } .folder-select{ display:block; } .w-6{ grid-column:span 12; } }

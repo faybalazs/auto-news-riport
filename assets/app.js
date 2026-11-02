@@ -634,6 +634,77 @@ if (APP.page === 'attekintes'){
 }
 
 /* ==================================================================
+   12/I. HAVI E-MAIL (Vezérlőpult): generálás, szerkesztés, teszt, jóváhagyás és küldés
+   ================================================================== */
+if (APP.page === 'vezerlo' && $('#mailCard')){
+  const M = APP.data.mail || {}; let email = M.email || null; let editing = false;
+  const sel = $('#mailMonth');
+  sel.innerHTML = (M.months || []).map(m => `<option value="${esc(m.month)}">${esc(m.label)}</option>`).join('');
+  const st = M.settings || {};
+  $('#mailMeta').textContent = st.to ? `Címzett: ${st.to}${st.cc ? ' · másolat: ' + st.cc : ''} · csak jóváhagyás után megy ki, piszkozat nélkül` : 'Nincs megadva címzett (Ügyfelek → Havi e-mail beállításai) · csak jóváhagyás után megy ki';
+  const BADGE = { jovahagyasra_var:['b-warning','clock'], kuldes:['b-info','send'], elkuldve:['b-success','check'], hiba:['b-danger','x-circle'] };
+  const showErr = msg => { $('#mailErr').hidden = !msg; $('#mailErrText').textContent = msg || ''; };
+  function render(){
+    const has = !!email, sent = has && (email.status === 'elkuldve' || email.status === 'kuldes');
+    $('#mailNone').hidden = (M.months || []).length > 0;
+    $('#mailEmpty').hidden = !(M.months || []).length || has;
+    $('#mailPrev').hidden = !has; $('#mailActs').hidden = !has || sent;
+    $('#mailGen').disabled = !(M.months || []).length || sent;
+    $('#mailGen').innerHTML = ic('sparkle','icon icon-sm') + (has ? 'Újragenerálás' : 'E-mail generálása');
+    if (!has){ $('#mailStatus').innerHTML = ''; return; }
+    const b = BADGE[email.status] || ['b-neutral','info'];
+    $('#mailStatus').innerHTML = `<span class="badge ${b[0]}">${ic(b[1],'icon')}${esc(email.status_label)}${email.status === 'elkuldve' && email.sent_at_hu ? ' · ' + esc(email.sent_at_hu) : ''}</span>`;
+    $('#mailSubj').textContent = email.subject; $('#mailBody').textContent = email.body;
+    $('#mailBody').hidden = editing; $('#mailEditWrap').hidden = !editing;
+    ['mailApprove','mailEditBtn','mailTest'].forEach(id => $('#' + id).hidden = editing);
+    ['mailSave','mailCancel'].forEach(id => $('#' + id).hidden = !editing);
+    $('#mailApprove').disabled = !M.ready || !st.to;
+    $('#mailApprove').title = !M.ready ? 'Az e-mail-küldés nincs beállítva (config.php: smtp).' : !st.to ? 'Nincs megadva címzett.' : '';
+    $('#mailTest').disabled = !M.ready;
+    if (email.status === 'hiba') showErr('A legutóbbi küldés nem sikerült: ' + email.error);
+    if (email.status === 'elkuldve') $('#mailMeta').textContent = `Elküldve: ${email.sent_at_hu} → ${email.sent_to}`;
+  }
+  async function load(){
+    showErr('');
+    try { const d = await api('email', { month: sel.value }); email = d.email; editing = false; render(); } catch(e){ showErr(e.message); }
+  }
+  sel.addEventListener('change', load);
+  $('#mailGen').addEventListener('click', async () => {
+    if (email){ const ok = await confirmBox({ title:'Újra megírja a levelet?', body:'A jelenlegi szöveg (a kézi módosításokkal együtt) felülíródik. Az ügyfél nem kap semmit.', confirm:'Újragenerálás', danger:false }); if (!ok) return; }
+    const btn = $('#mailGen'); busy(btn, true); showErr('');
+    try { const d = await api('emailgen', { month: sel.value }); email = d.row; editing = false; render(); toast('A levél elkészült. Nézze át, és ha rendben van: Jóváhagyom, mehet.'); }
+    catch(e){ showErr(e.message); } finally { busy(btn, false); render(); }
+  });
+  $('#mailEditBtn').addEventListener('click', () => { editing = true; $('#mailEditSubj').value = email.subject; $('#mailEdit').value = email.body; render(); $('#mailEdit').focus(); });
+  $('#mailCancel').addEventListener('click', () => { editing = false; render(); });
+  $('#mailSave').addEventListener('click', async () => {
+    const btn = $('#mailSave'); busy(btn, true);
+    try { const d = await api('emailmentes', { month: sel.value, subject: $('#mailEditSubj').value, body: $('#mailEdit').value }); email = d.email; editing = false; render(); toast('A levél módosítása mentve.'); }
+    catch(e){ showErr(e.message); } finally { busy(btn, false); }
+  });
+  $('#mailTest').addEventListener('click', async () => {
+    const btn = $('#mailTest'); busy(btn, true); showErr('');
+    try { const d = await api('emailteszt', { month: sel.value }); toast(`Teszt e-mail elküldve ide: ${d.to}`); }
+    catch(e){ showErr(e.message); } finally { busy(btn, false); render(); }
+  });
+  $('#mailApprove').addEventListener('click', async () => {
+    const ok = await confirmBox({ title:'Elküldi a levelet az ügyfélnek?', body:`Címzett: ${st.to}${st.cc ? '\nMásolat: ' + st.cc : ''}\nTárgy: ${email.subject}\n\nA levél azonnal kimegy, és utána nem módosítható.`, confirm:'Küldés most', danger:false });
+    if (!ok) return;
+    const btn = $('#mailApprove'); busy(btn, true); showErr('');
+    try { const d = await api('emailkuldes', { month: sel.value }); email = d.email; toast('A levél elment az ügyfélnek.'); }
+    catch(e){ showErr(e.message); await load(); } finally { busy(btn, false); render(); }
+  });
+  render();
+}
+if (APP.page === 'ugyfelek' && $('#msSave')){
+  $('#msSave').addEventListener('click', async () => {
+    const btn = $('#msSave'); busy(btn, true);
+    try { const d = await api('emailbeallitas', { to: $('#msTo').value, cc: $('#msCc').value, style: $('#msStyle').value }); $('#msTo').value = d.settings.to; $('#msCc').value = d.settings.cc; toast('A havi e-mail beállításai mentve.'); }
+    catch(e){ toast(e.message, { type:'error' }); } finally { busy(btn, false); }
+  });
+}
+
+/* ==================================================================
    12/E. NAPLÓ
    ================================================================== */
 if (APP.page === 'naplo'){

@@ -31,7 +31,8 @@ return [
     // alapértelmezés: értékelés claude-haiku-5-5, összefoglaló claude-sonnet-5-5.
     'claude_api_key' => '',
 
-    // SMTP a havi e-mailhez, a meghívókhoz és az értesítésekhez (a 7. lépéstől kell; addig a meghívó link másolható).
+    // SMTP a havi e-mailhez és az értesítésekhez: a tárhelyen létrehozott postafiók adatai.
+    // secure: ssl (port 465) vagy tls (port 587). A from_email általában maga a postafiók címe.
     'smtp' => [
         'host' => '',
         'port' => 465,
@@ -41,6 +42,10 @@ return [
         'from_email' => '',
         'from_name' => 'Xperion sajtófigyelés',
     ],
+
+    // Az alkalmazás webcíme a levelek linkjeihez (pl. https://pelda.hu/xperion/). Üresen hagyható:
+    // böngészőből és URL-es cronból indított futásnál a program magától tudja.
+    'app_url' => '',
 
     'timezone' => 'Europe/Budapest',
 

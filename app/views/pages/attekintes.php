@@ -28,6 +28,9 @@ foreach ([['postsClient', 'LinkedIn-poszt jóváhagyásra vár'], ['postsApprove
         $todos[] = ['li', 'linkedin', $title, count($t[$k]), implode('<br>', array_map($e, $t[$k])), 'index.php?p=posztok', 'Posztok'];
     }
 }
+foreach ($t['mail'] ?? [] as $mm) {
+    $todos[] = [$mm['error'] ? 'warn' : 'info', 'send', $mm['error'] ? 'A havi e-mail küldése nem sikerült' : 'Havi e-mail jóváhagyásra vár', null, $e($mm['subject']) . ' · az ügyfél még nem kapta meg', 'index.php?p=vezerlo', 'Jóváhagyás'];
+}
 if (($t['ideas'] ?? 0) > 0) {
     $todos[] = ['ai', 'sparkle', 'Posztötlet generálásra vár', $t['ideas'], 'Küldje posztgenerálásra, vagy egészítse ki.', 'index.php?p=otletek', 'Ötletek'];
 }
