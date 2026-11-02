@@ -608,6 +608,12 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 .acts-row{ display:flex; gap:8px; flex-wrap:wrap; }
 #impCard .copy-box{ margin-top:0; }
 #impLines{ border-top:1px solid var(--border); padding-top:8px; }
+.collect-bar{ display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; }
+.collect-bar .field{ min-width:200px; }
+.sub-h{ font-size:var(--fs-sm); font-weight:600; margin:16px 0 8px; }
+.cell-title{ display:flex; flex-direction:column; gap:2px; min-width:260px; max-width:560px; white-space:normal; }
+.cell-title a{ font-weight:500; }
+.cell-title span{ color:var(--text-2); font-size:var(--fs-xs); }
 
 /* ================= 18. TÖRÉSPONTOK (mindig a CSS végén) ================= */
 @media (max-width:1279px){ .layout{ grid-template-columns:minmax(0,1fr); } .w-8, .w-4{ grid-column:span 12; } }

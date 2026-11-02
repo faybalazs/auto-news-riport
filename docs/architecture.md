@@ -7,7 +7,7 @@ PHP 8.1+ (a szerveren 8.2), MySQL/MariaDB, éles függőség nélkül (PDO, cURL
 | Fájl | Mire | Védelem |
 |---|---|---|
 | `index.php` | Oldalak: `?p=attekintes`, `felhasznalok`, `ugyfelek`, `vezerlo`, `naplo`, `profil` (és a későbbi lépések helyőrzői); belépés nélkül: `belepes`, `meghivo&t=`, `jelszo&t=`, első indításkor beállítóoldal | munkamenet (e-mail + jelszó); jogosultság oldalanként; CSRF minden POST-on |
-| `api.php` | JSON-műveletek: `?m=felhasznalok`, `meghivas`, `felhasznalo`, `letiltas`, `torles`, `link`, `ugyfel`, `jelszocsere`, `futtatas`, `atvetel` | munkamenet + `X-CSRF-Token`; minden művelet a szerveren ellenőrzi a jogosultságot és az ügyfélhatárt |
+| `api.php` | JSON-műveletek: `?m=felhasznalok`, `meghivas`, `felhasznalo`, `letiltas`, `torles`, `link`, `ugyfel`, `jelszocsere`, `futtatas`, `atvetel`, `gyujtes` | munkamenet + `X-CSRF-Token`; minden művelet a szerveren ellenőrzi a jogosultságot és az ügyfélhatárt |
 | `cron.php` | Időzített futás: `?feladat=havi\|orankenti&k=<cron_key>[&dry=1]`, vagy `php cron.php havi [--dry]` | cron-kulcs; hibánál HTTP 500 |
 
 Minden webes kérés elején a `Migrator` lefuttatja a még hiányzó adatbázis-migrációkat (`app/migrations/*.sql`, MySQL `GET_LOCK`-kal).
@@ -30,6 +30,9 @@ Minden webes kérés elején a `Migrator` lefuttatja a még hiányzó adatbázis
 | `Task\*`, `Log\LocalLog` | Futások (havi, óránkénti), zárolás, helyi futásnapló | `cron.php`, Vezérlőpult |
 | `Import\SheetParser`, `Import\Url` | A Sheet lapjainak értelmezése (régi és 2609+ havi formátum, posztok, ötletek, kulcs–érték lapok), linkek egységesítése | `SheetImporter` |
 | `Import\SheetImporter`, `Import\ImportService` | Adatátvétel az aktuális ügyfél saját Sheetjéből: szárazon számol, élesben tranzakcióban upsert; zárolás, futás- és műveleti napló | `api.php?m=atvetel`, Ügyfelek oldal |
+| `Collect\Collector` | Egy forrás cikkei: RSS/Atom → a listaoldal által hirdetett hírcsatorna → HubSpot `/rss.xml` → listaoldal-elemzés; dátum nélküli cikknél a cikkoldal (legfeljebb 10) | `CollectService` |
+| `Collect\FeedParser`, `Collect\Html`, `Collect\DateText` | Hírcsatorna- és HTML-elemzés, dátumfelismerés (angol, magyar, gépi; Budapest szerinti nap) | `Collector` |
+| `Collect\CollectService` | Havi gyűjtés ügyfelenként: aktív források, hónapszűrés, duplikátum (az adatbázis cikkei + a futáson belül), kizáró kulcsszavak; most nem ment | `api.php?m=gyujtes`, `MonthlyTask` (cron, minden nem szüneteltetett ügyfél) |
 | `Google\*`, `Sheets\*` | Szolgáltatásfiókos Sheets-olvasás (`App::sheetsFor(id)`, ügyfelenként) | `ImportService` |
 
 ## Adatbázis

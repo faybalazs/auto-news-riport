@@ -499,6 +499,25 @@ if (APP.page === 'vezerlo'){
     finally { running = false; busy(btn, false); $$('[data-run]').forEach(b => b.disabled = false); }
   }));
   $('#resultClose').addEventListener('click', () => { $('#resultCard').hidden = true; $('#h-page').focus(); });
+  // Cikkgyűjtés (szárazon)
+  const colRows = [];
+  const colTable = DataTable({ id:'gyujtes', caption:'Talált új cikkek', rows:colRows, labelKey:'title', selectable:false, table:$('#colItems'), pager:$('#colPager'), sort:{ key:'date', dir:'asc' }, pageSize:25,
+    columns:[ { key:'date', label:'Dátum', render:r => esc(r.date ? r.date.replace(/-/g, '. ') + '.' : '–') }, { key:'source', label:'Forrás', render:r => esc(r.source) + (r.new_source ? ` <span class="badge b-ai">${ic('plus','icon')}új forrás</span>` : '') },
+      { key:'title', label:'Cím és leírás', render:r => `<div class="cell-title"><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a><span>${esc(r.description)}</span></div>` } ],
+    emptyHtml:() => 'Ebben a hónapban nem találtam új cikket.' });
+  $('#colRun')?.addEventListener('click', async () => {
+    const b = $('#colRun'); busy(b, true); announce('A gyűjtés fut, ez 1–3 percig tarthat…');
+    try {
+      const r = await api('gyujtes', { month:$('#colMonth').value });
+      const d = r.data || { sources:[], items:[] };
+      $('#colMeta').innerHTML = (r.ok ? `<span class="badge b-success">${ic('check','icon')}Kész</span>` : `<span class="badge b-danger">${ic('x-circle','icon')}Hiba</span>`) + `<span>${esc(r.time_hu)} · ${HU.num.format(Math.round(r.duration_ms / 1000))} s · ${d.items.length} új cikk</span>` + (r.ok ? '' : `<span>${esc(r.lines.filter(l => l.level === 'error').map(l => l.text).join(' '))}</span>`);
+      $('#colSources').innerHTML = d.sources.length ? `<table><caption class="sr-only">Források</caption><thead><tr><th scope="col">Forrás</th><th scope="col">Mód</th><th scope="col" class="num">Talált</th><th scope="col" class="num">A hónapban</th><th scope="col" class="num">Duplikátum</th><th scope="col" class="num">Kizárt</th><th scope="col" class="num">Marad</th><th scope="col">Megjegyzés</th></tr></thead><tbody>${d.sources.map(s => `<tr><td>${esc(s.name || s.url)}</td><td>${esc(s.method)}</td><td class="num">${s.found}</td><td class="num">${s.in_month}</td><td class="num">${s.duplicate}</td><td class="num">${s.excluded}</td><td class="num"><b>${s.kept}</b></td><td>${s.error ? `<span class="badge b-warning">${ic('alert','icon')}${esc(s.error)}</span>` : (s.undated ? `<span class="meta">${s.undated} dátum nélkül</span>` : '')}</td></tr>`).join('')}</tbody></table>` : `<div class="empty-state"><b>Nincs aktív forrás</b><span>${esc(r.lines.map(l => l.text).join(' '))}</span></div>`;
+      colRows.splice(0, colRows.length, ...d.items.map((x, i) => ({ ...x, id:String(i) }))); colTable.render();
+      $('#colOut').hidden = false;
+      toast(r.ok ? `Gyűjtés kész: ${d.items.length} új cikk.` : 'A gyűjtés nem sikerült.', { type:r.ok ? 'success' : 'error' });
+    } catch(e){ toast(e.message, { type:'error' }); }
+    finally { busy(b, false); }
+  });
 }
 
 /* ==================================================================

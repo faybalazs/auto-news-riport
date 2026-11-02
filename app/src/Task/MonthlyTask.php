@@ -4,11 +4,19 @@ declare(strict_types=1);
 namespace Xperion\Task;
 
 /**
- * Havi futás (product.md 6.1). Most a célhónapot határozza meg; a gyűjtés
- * (4. lépés) és az értékelés (5. lépés) később kerül bele, ügyfelenként.
+ * Havi futás (product.md 6.1): az előző hónap cikkeinek gyűjtése minden aktív
+ * ügyfélnek (4. lépés, egyelőre mentés nélkül). Az értékelés és a mentés az 5. lépés.
  */
 final class MonthlyTask implements Task
 {
+    /** @var (callable(TaskContext, string):void)|null minden aktív ügyfél gyűjtése */
+    private $collectAll;
+
+    public function __construct(?callable $collectAll = null)
+    {
+        $this->collectAll = $collectAll;
+    }
+
     public function id(): string
     {
         return 'havi';
@@ -40,6 +48,11 @@ final class MonthlyTask implements Task
     {
         $month = self::targetMonth($ctx->now);
         $ctx->info('Célhónap: ' . $month->format('Y. m.') . ' (' . self::monthKey($month) . ').');
-        $ctx->warn('A cikkgyűjtés és az értékelés a 4–5. lépésben készül el; most nem történt írás.');
+        if ($this->collectAll === null) {
+            $ctx->warn('A cikkgyűjtés nincs bekötve; most nem történt semmi.');
+            return;
+        }
+        ($this->collectAll)($ctx, self::monthKey($month));
+        $ctx->warn('A gyűjtés eredménye még nem kerül mentésre: a mentés és a Claude-értékelés az 5. lépésben készül el.');
     }
 }

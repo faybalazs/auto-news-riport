@@ -7,7 +7,7 @@ Frissítve: 2026-11-02, a saját felületre és adatbázisra váltás után (lá
 | 1 | Alap | kész, élesben ellenőrzött | konfiguráció, zárolás, napló, cron, admin felület, Sheets-kapcsolat (az adatátvételhez marad) |
 | 2 | Adatbázis, ügyfelek, felhasználók | kész, élesben nem ellenőrzött | adatbázis és migrációk; ügyfél (tenant); belépés e-mail + jelszó; szerepkörök; meghívás (SMTP nélkül másolható meghívólinkkel is); a felület kerete a prototípus szerint |
 | 3 | Adatátvétel a Sheetből | kész, valódi Sheettel nem ellenőrzött | ügyfelenkénti Sheet; ismételhető import: források, kulcsszavak, korábbi havi lapok linkjei (duplikátumszűrés), feltöltöttség, posztok; szabályok a megadott listából |
-| 4 | Cikkgyűjtés | tervezett | RSS és listaoldalak, dátum-, duplikátum- és kizáró szűrés; szárazfuttatás forrásonkénti kimutatással |
+| 4 | Cikkgyűjtés | kész (szárazon), valódi forrásokon nem ellenőrzött | RSS és listaoldalak, dátum-, duplikátum- és kizáró szűrés; szárazfuttatás forrásonkénti kimutatással |
 | 5 | Értékelés és Havi cikkek | tervezett | Claude-értékelés (Desc, Javaslat, Indoklás), vezetői összefoglaló; Havi cikkek oldal döntésekkel (Mehet / LinkedIn poszt / Nem kell) |
 | 6 | Áttekintés | tervezett | időszakválasztó, teendő-widgetek, összefoglaló, KPI-k, megoszlás, források |
 | 7 | Havi e-mail | tervezett | generálás hónap szerint, szerkesztés, jóváhagyás, küldés SMTP-vel |

@@ -13,6 +13,8 @@ final class RunResult
         public readonly bool $ok,
         public readonly array $lines,
         public readonly int $durationMs,
+        /** @var array<string,mixed> kiegészítő adat a felületnek (pl. talált cikkek) */
+        public readonly array $data = [],
     ) {
     }
 
@@ -38,6 +40,7 @@ final class RunResult
             'ok' => $this->ok,
             'lines' => $this->lines,
             'duration_ms' => $this->durationMs,
+            'data' => $this->data,
         ];
     }
 

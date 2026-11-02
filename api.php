@@ -91,6 +91,13 @@ try {
             @set_time_limit(600);
             return $app->importer()->run($access, !empty($in['dry']))->toArray() + ['time_hu' => date('Y. m. d. H:i'), 'clients' => $app->clients()->all($access)];
         })(),
+        'gyujtes' => (function () use ($app, $access, $str) {
+            $access->require('ops');
+            session_write_close();
+            ignore_user_abort(true);
+            @set_time_limit(900);
+            return $app->collector()->run($access, $str('month'))->toArray() + ['time_hu' => date('Y. m. d. H:i')];
+        })(),
         default => throw new \InvalidArgumentException('Ismeretlen művelet.'),
     };
     Http::json($out);

@@ -16,6 +16,7 @@ final class CurlHttpClient implements HttpClient
         private int $maxRetries = 3,
         private int $timeoutSeconds = 60,
         ?callable $sleeper = null,
+        private string $userAgent = 'XperionAutomatizalas/0.4 (+https://xperion.hu)',
     ) {
         $this->sleeper = $sleeper ?? static function (int $ms): void { usleep($ms * 1000); };
     }
@@ -60,7 +61,8 @@ final class CurlHttpClient implements HttpClient
             CURLOPT_CONNECTTIMEOUT => 15,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_MAXREDIRS => 5,
-            CURLOPT_USERAGENT => 'XperionAutomatizalas/0.1 (+https://xperion.hu)',
+            CURLOPT_USERAGENT => $this->userAgent,
+            CURLOPT_ENCODING => '',
         ]);
         if ($body !== null) {
             curl_setopt($ch, CURLOPT_POSTFIELDS, $body);

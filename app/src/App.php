@@ -120,6 +120,12 @@ final class App
         }
     }
 
+    public function collector(): \Xperion\Collect\CollectService
+    {
+        $http = new CurlHttpClient(1, 20, null, 'Mozilla/5.0 (compatible; XperionSajtofigyelo/0.4; +https://xperion.hu)');
+        return new \Xperion\Collect\CollectService($this->db(), new \Xperion\Collect\Collector($http), $this->log(), $this->storageDir . '/futas.lock');
+    }
+
     public function authenticator(): Authenticator
     {
         return new Authenticator($this->db());
@@ -138,7 +144,12 @@ final class App
     public function runner(): Runner
     {
         return $this->runner ??= new Runner(
-            [new MonthlyTask(), new HourlyTask()],
+            [new MonthlyTask(function (\Xperion\Task\TaskContext $ctx, string $month): void {
+                foreach ($this->db()->all("SELECT id, name FROM clients WHERE status <> 'szunetel' ORDER BY name") as $c) {
+                    $ctx->info('— ' . $c['name'] . ' —');
+                    $this->collector()->collectForClient((int) $c['id'], $month, $ctx);
+                }
+            }), new HourlyTask()],
             fn (): SheetsClient => $this->sheets(),
             $this->log(),
             $this->storageDir . '/futas.lock',
