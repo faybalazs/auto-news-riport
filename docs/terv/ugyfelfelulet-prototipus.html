@@ -4,9 +4,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <!--
-  XPERION ÜGYFÉLFELÜLET – PROTOTÍPUS
-  Az Auris admin sablon v1.0.2 alapján (CSS 1–18., JS 0–3. és 9. szekció), Xperion-színekkel.
-  Kiegészítések: DataTable „render” oszlop, „selectable:false”, „setLoading()”; „P. PROJEKT” CSS-szekció.
+  SAJTÓFIGYELÉS ÜGYFÉLFELÜLET – PROTOTÍPUS v2 (többügyfeles)
+  Auris admin sablon v1.0.2 alapján (CSS 1–18., JS 0–3. és 9. szekció + sorművelet-menü), Xperion-színekkel.
+  Kiegészítések: DataTable „render” oszlop és „selectable:false”; „P. PROJEKT” CSS-szekció (teendő-widgetek, AI-jelölés).
   Mintaadatokkal, háttérprogram nélkül.
 -->
 <style>
@@ -549,8 +549,6 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 .auth-side.xp{ background:linear-gradient(160deg,#1B2260 0%,#2D388A 55%,#0B7FB5 100%); }
 .proto-bar{ align-items:center; flex-wrap:wrap; }
 .proto-bar .b-body{ min-width:200px; }
-.proto-bar .seg{ background:var(--surface); }
-.month-pill{ display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-sm); font-weight:600; color:var(--text-2); }
 [data-role-only][hidden]{ display:none !important; }
 .cnt-badge{ display:inline-grid; place-items:center; min-width:20px; height:20px; padding:0 6px; margin-left:6px; border-radius:999px; background:var(--accent); color:#fff; font-size:12px; font-weight:600; }
 .kpis.card{ padding:var(--pad-card); }
@@ -558,19 +556,10 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 .sum-text{ display:flex; flex-direction:column; gap:6px; }
 .sum-text h3{ font-size:var(--fs-sm); font-weight:600; }
 .sum-text p{ font-size:var(--fs-sm); color:var(--text-2); max-width:70ch; }
-.todo-links{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
-.todo-links li{ border-top:1px solid var(--border); }
-.todo-links li:first-child{ border-top:0; }
-.todo-links a{ display:flex; gap:12px; align-items:center; min-height:var(--ctl); padding:8px 0; color:var(--text); text-decoration:none; font-size:var(--fs-sm); }
-.todo-links a:hover .t{ text-decoration:underline; }
-.todo-links .ti{ width:32px; height:32px; border-radius:50%; display:grid; place-items:center; flex:none; background:var(--accent-subtle); color:var(--accent-text); }
-.todo-links .t{ flex:1; }
-.todo-links .t small{ display:block; color:var(--text-3); font-size:var(--fs-xs); }
-.todo-links .chev{ color:var(--text-3); }
-.cell-title{ display:flex; flex-direction:column; gap:2px; min-width:260px; max-width:440px; white-space:normal; }
+.cell-title{ display:flex; flex-direction:column; gap:2px; min-width:240px; max-width:440px; }
 .cell-title a{ font-weight:500; }
 .cell-title span{ color:var(--text-2); font-size:var(--fs-xs); }
-.cell-why{ min-width:200px; max-width:280px; white-space:normal; color:var(--text-2); font-size:var(--fs-xs); }
+.cell-why{ max-width:280px; color:var(--text-2); font-size:var(--fs-xs); }
 .src-cell{ display:flex; flex-direction:column; gap:4px; align-items:flex-start; white-space:nowrap; }
 .dec{ min-width:150px; }
 .up-cell{ display:flex; flex-direction:column; gap:2px; font-size:var(--fs-xs); white-space:nowrap; }
@@ -586,7 +575,7 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 .post-layout{ grid-template-columns:minmax(0,560px) minmax(0,1fr); }
 .li-card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); overflow:hidden; box-shadow:var(--shadow-sm); max-width:560px; }
 .li-head{ display:flex; gap:10px; padding:12px 16px 0; align-items:flex-start; }
-.li-head > div:not(.li-logo){ display:flex; flex-direction:column; line-height:1.3; flex:1; min-width:0; }
+.li-head > .li-meta{ display:flex; flex-direction:column; line-height:1.3; flex:1; min-width:0; }
 .li-head b{ font-size:var(--fs-sm); }
 .li-head span{ font-size:12px; color:var(--text-3); }
 .li-logo{ width:48px; height:48px; border-radius:4px; background:linear-gradient(135deg,#2D388A,#00AEEF); color:#fff; display:grid; place-items:center; font-weight:700; font-size:22px; flex:none; }
@@ -618,7 +607,7 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 .task .last{ font-size:var(--fs-xs); color:var(--text-3); display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
 .mail-prev{ border:1px solid var(--border); border-radius:var(--r-md); overflow:hidden; }
 .mail-subj{ display:flex; gap:12px; align-items:baseline; padding:10px 16px; background:var(--surface-subtle); border-bottom:1px solid var(--border); font-size:var(--fs-sm); }
-.mail-body{ padding:16px; font-size:var(--fs-sm); display:flex; flex-direction:column; gap:10px; max-width:70ch; }
+.mail-body{ padding:16px; font-size:var(--fs-sm); display:flex; flex-direction:column; gap:10px; max-width:70ch; white-space:pre-line; }
 .mail-body ul{ margin:0; padding-left:20px; }
 .users{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
 .users li{ display:flex; gap:12px; align-items:center; padding:10px 0; border-top:1px solid var(--border); }
@@ -626,6 +615,55 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 .users li > div{ display:flex; flex-direction:column; min-width:0; font-size:var(--fs-sm); }
 @media (max-width:1100px){ .post-layout, .idea-layout{ grid-template-columns:minmax(0,1fr); } }
 @media (max-width:767px){ .rule{ grid-template-columns:1fr; gap:6px; } .rule .rl{ padding-top:0; } .month-pill{ font-size:var(--fs-xs); } }
+/* v2: többügyfeles felület, teendő-widgetek, AI-jelölés */
+:root{ --li:#0A66C2; --li-bg:#E8F1FB; --ai-bg:#F1ECFE; --ai-text:#5B3CC4; }
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){ --li:#70B5F9; --li-bg:#0F2740; --ai-bg:#2A2150; --ai-text:#C4B5FD; } }
+:root[data-theme="dark"]{ --li:#70B5F9; --li-bg:#0F2740; --ai-bg:#2A2150; --ai-text:#C4B5FD; }
+.proto-bar .seg{ background:var(--surface); }
+.bn-success{ background:var(--success-bg); color:var(--success-text); border-color:color-mix(in srgb, var(--success-text) 30%, transparent); }
+.bn-success a{ color:inherit; font-weight:600; }
+.b-ai{ background:var(--ai-bg); color:var(--ai-text); }
+.sec-title{ font-size:16px; font-weight:600; display:flex; gap:10px; align-items:baseline; flex-wrap:wrap; }
+.todo-sec{ display:flex; flex-direction:column; gap:12px; }
+.todo-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr)); gap:16px; }
+.todo-w{ --tc:var(--accent-text); --tb:var(--accent-subtle); display:flex; flex-direction:column; gap:12px; padding:20px; border-top:4px solid var(--tc); }
+.todo-w .tw-head{ display:flex; gap:12px; align-items:flex-start; }
+.todo-w .tw-ic{ width:40px; height:40px; border-radius:10px; display:grid; place-items:center; flex:none; background:var(--tb); color:var(--tc); }
+.todo-w h3{ font-size:var(--fs-sm); font-weight:600; line-height:1.35; }
+.todo-w .tw-n{ font-size:28px; font-weight:600; line-height:1.1; color:var(--text); }
+.todo-w p{ font-size:var(--fs-xs); color:var(--text-2); }
+.todo-w .btn{ align-self:flex-start; margin-top:auto; }
+.tw-warn{ --tc:var(--warning-text); --tb:var(--warning-bg); }
+.tw-info{ --tc:var(--info-text); --tb:var(--info-bg); }
+.tw-li{ --tc:var(--li); --tb:var(--li-bg); }
+.tw-ok{ --tc:var(--success-text); --tb:var(--success-bg); }
+.tw-ai{ --tc:var(--ai-text); --tb:var(--ai-bg); }
+.kpi .delta{ flex-wrap:wrap; column-gap:6px; }
+.kpi .delta .nw{ white-space:nowrap; display:inline-flex; align-items:center; gap:4px; }
+.kpi .per{ font-size:var(--fs-xs); color:var(--text-3); }
+.ro-val{ min-height:var(--ctl); display:flex; align-items:center; padding:0 12px; border:1px dashed var(--border-strong); border-radius:var(--r-md); font-size:var(--fs-sm); color:var(--text-2); }
+.checklist{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+.checklist li{ display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-top:1px solid var(--border); font-size:var(--fs-sm); }
+.checklist li:first-child{ border-top:0; padding-top:0; }
+.checklist .ck{ width:24px; height:24px; border-radius:50%; display:grid; place-items:center; flex:none; border:2px solid var(--border-control); font-size:12px; font-weight:600; color:var(--text-2); }
+.checklist li.done .ck{ background:var(--success-bg); border-color:var(--success-text); color:var(--success-text); }
+.checklist small{ display:block; color:var(--text-3); font-size:var(--fs-xs); }
+.role-choices{ display:flex; flex-direction:column; gap:8px; }
+.empty-state{ display:flex; flex-direction:column; gap:4px; padding:24px; border:1px dashed var(--border-strong); border-radius:var(--r-md); font-size:var(--fs-sm); color:var(--text-2); }
+.empty-state b{ color:var(--text); }
+.mail-gen{ display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; }
+.mail-gen .field{ min-width:220px; }
+.mail-subj{ flex-wrap:wrap; }
+.rule{ grid-template-columns:220px minmax(0,1fr) auto; }
+.rule .rl-in{ display:flex; flex-direction:column; gap:4px; }
+.rule .rl-in .input{ font-weight:600; }
+.post-card .row .badge{ flex:none; }
+.matrix td, .matrix th{ text-align:center; }
+.matrix td:first-child, .matrix th:first-child{ text-align:left; }
+.matrix .yes{ color:var(--success-text); }
+.matrix .no{ color:var(--text-3); }
+.tabs .tab .icon{ margin-right:2px; }
+@media (max-width:767px){ .rule{ grid-template-columns:1fr; } .rule .icon-btn{ justify-self:end; } }
 
 /* ================= 18. TÖRÉSPONTOK (mindig a CSS végén) ================= */
 @media (max-width:1279px){ .layout{ grid-template-columns:minmax(0,1fr); } .w-8, .w-4{ grid-column:span 12; } }
@@ -658,7 +696,10 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
   .notif{ width:calc(100vw - 32px); }
   .dp-pop{ width:min(304px, calc(100vw - 48px)); }
 }
-</style>
+
+.user-cell{ display:flex; gap:10px; align-items:center; white-space:nowrap; }
+.user-cell > div{ display:flex; flex-direction:column; }
+
 </style>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9v12h14V9"/></symbol>
@@ -721,25 +762,27 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
   <symbol id="i-thumb" viewBox="0 0 24 24"><path d="M7 10v11H3V10zM7 10l4-8a3 3 0 0 1 3 3v4h6a2 2 0 0 1 2 2.3l-1.4 8A2 2 0 0 1 18.6 21H7"/></symbol>
   <symbol id="i-msg" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.4A8 8 0 1 1 21 12z"/></symbol>
   <symbol id="i-repeat" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/></symbol>
+  <symbol id="i-linkedin" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 11v6M8 7.5v.01M12 17v-6M12 13.5a2.5 2.5 0 0 1 5 0V17"/></symbol>
+  <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol>
 </svg>
 <!-- =============================================================
-     XPERION ÜGYFÉLFELÜLET – PROTOTÍPUS (Auris admin sablon v1.0.2 alapján)
-     Mintaadatokkal, háttérprogram nélkül. A változások nem mentődnek.
+     XPERION ÜGYFÉLFELÜLET – PROTOTÍPUS v2 (Auris admin sablon v1.0.2 alapján)
+     Többügyfeles felépítés, mintaadatokkal, háttérprogram nélkül.
      ============================================================= -->
 
 <!-- ================= NÉZET: BELÉPÉS (#belepes) ================= -->
 <div class="auth" id="v-belepes" hidden>
   <aside class="auth-side xp">
-    <div class="brand" style="padding:0"><div class="brand-mark xp" aria-hidden="true"><svg class="icon" aria-hidden="true"><use href="#i-file"/></svg></div><div class="brand-text"><b>Xperion</b><span style="color:#fff">Sajtófigyelés és LinkedIn</span></div></div>
+    <div class="brand" style="padding:0"><div class="brand-mark xp" aria-hidden="true"><svg class="icon" aria-hidden="true"><use href="#i-file"/></svg></div><div class="brand-text"><b>Sajtófigyelés</b><span style="color:#fff">Auris Dynamics</span></div></div>
     <div><h2>A hónap cikkei és posztjai egy helyen</h2><p style="margin-top:12px">Döntsön a havi cikkekről, hagyja jóvá a LinkedIn-posztokat, és küldjön be saját posztötletet.</p></div>
-    <p style="font-size:var(--fs-xs)">© 2026 Auris Dynamics · az Xperion számára</p>
+    <p style="font-size:var(--fs-xs)">© 2026 Auris Dynamics</p>
   </aside>
   <main class="auth-main">
     <form class="auth-card" id="loginForm" novalidate aria-labelledby="h-belepes">
       <div><h1 id="h-belepes" tabindex="-1">Belépés</h1><p class="page-sub">Lépjen be a saját fiókjával.</p></div>
       <div class="banner bn-info" role="note">
         <svg class="icon" aria-hidden="true"><use href="#i-info"/></svg>
-        <div class="b-body"><b>Prototípus mintafiókokkal</b><span>attila@pelda.hu (ügyfél), emi@pelda.hu (LinkedIn), balazs@pelda.hu (üzemeltető). Bármilyen jelszó jó.</span></div>
+        <div class="b-body"><b>Prototípus mintafiókokkal</b><span>attila@pelda.hu (ügyfél-adminisztrátor), emi@pelda.hu (tartalomkezelő), balazs@pelda.hu (üzemeltető). Bármilyen jelszó jó.</span></div>
       </div>
       <div class="banner bn-error" id="loginErr" role="alert" hidden>
         <svg class="icon" aria-hidden="true"><use href="#i-x-circle"/></svg>
@@ -761,17 +804,19 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
   <nav class="sidebar" id="sidebar" aria-label="Fő menü">
     <div class="brand">
       <div class="brand-mark xp" aria-hidden="true"><svg class="icon" aria-hidden="true"><use href="#i-file"/></svg></div>
-      <div class="brand-text"><b>Xperion</b><span>Sajtófigyelés</span></div>
+      <div class="brand-text"><b>Sajtófigyelés</b><span>Auris Dynamics</span></div>
     </div>
     <a class="nav-item" href="#attekintes" data-nav="attekintes" title="Áttekintés"><svg class="icon" aria-hidden="true"><use href="#i-home"/></svg><span class="nav-label">Áttekintés</span></a>
     <div class="nav-group-title">Havi munka</div>
     <a class="nav-item" href="#cikkek" data-nav="cikkek" title="Havi cikkek"><svg class="icon" aria-hidden="true"><use href="#i-list"/></svg><span class="nav-label">Havi cikkek</span><span class="nav-count" id="navCount">0</span></a>
-    <a class="nav-item" href="#posztok" data-nav="posztok poszt" title="LinkedIn-posztok"><svg class="icon" aria-hidden="true"><use href="#i-image"/></svg><span class="nav-label">LinkedIn-posztok</span></a>
-    <a class="nav-item" href="#otletek" data-nav="otletek" title="Posztötletek"><svg class="icon" aria-hidden="true"><use href="#i-bulb"/></svg><span class="nav-label">Posztötletek</span></a>
-    <a class="nav-item" href="#szabalyok" data-nav="szabalyok" title="Posztszabályok"><svg class="icon" aria-hidden="true"><use href="#i-bookmark"/></svg><span class="nav-label">Posztszabályok</span></a>
-    <div class="nav-group-title" data-role-only="uzemelteto">Üzemeltetés</div>
-    <a class="nav-item" href="#vezerlo" data-nav="vezerlo" data-role-only="uzemelteto" title="Vezérlőpult"><svg class="icon" aria-hidden="true"><use href="#i-settings"/></svg><span class="nav-label">Vezérlőpult</span></a>
-    <a class="nav-item" href="#naplo" data-nav="naplo" data-role-only="uzemelteto" title="Napló"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg><span class="nav-label">Napló</span></a>
+    <a class="nav-item" href="#posztok" data-nav="posztok poszt" title="LinkedIn-posztok"><svg class="icon" aria-hidden="true"><use href="#i-linkedin"/></svg><span class="nav-label">LinkedIn-posztok</span></a>
+    <a class="nav-item" href="#otletek" data-nav="otletek otlet" title="Posztötletek"><svg class="icon" aria-hidden="true"><use href="#i-bulb"/></svg><span class="nav-label">Posztötletek</span></a>
+    <a class="nav-item" href="#szabalyok" data-nav="szabalyok" data-perm="rules" title="Posztszabályok"><svg class="icon" aria-hidden="true"><use href="#i-bookmark"/></svg><span class="nav-label">Posztszabályok</span></a>
+    <div class="nav-group-title" data-perm="users">Adminisztráció</div>
+    <a class="nav-item" href="#felhasznalok" data-nav="felhasznalok" data-perm="users" title="Felhasználók"><svg class="icon" aria-hidden="true"><use href="#i-users"/></svg><span class="nav-label">Felhasználók</span></a>
+    <a class="nav-item" href="#ugyfelek" data-nav="ugyfelek" data-perm="ops" title="Ügyfelek"><svg class="icon" aria-hidden="true"><use href="#i-folder"/></svg><span class="nav-label">Ügyfelek</span></a>
+    <a class="nav-item" href="#vezerlo" data-nav="vezerlo" data-perm="ops" title="Vezérlőpult"><svg class="icon" aria-hidden="true"><use href="#i-settings"/></svg><span class="nav-label">Vezérlőpult</span></a>
+    <a class="nav-item" href="#naplo" data-nav="naplo" data-perm="ops" title="Napló"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg><span class="nav-label">Napló</span></a>
     <div class="sidebar-foot">
       <button class="nav-item collapse-btn" type="button" id="collapseBtn" aria-expanded="true" title="Menü összecsukása"><svg class="icon" aria-hidden="true" id="collapseIcon"><use href="#i-chev-left"/></svg><span class="nav-label" id="collapseLabel">Összecsukás</span></button>
     </div>
@@ -781,7 +826,11 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
   <div class="main-col">
     <header class="topbar">
       <button class="icon-btn menu-toggle" type="button" id="menuToggle" aria-label="Menü megnyitása" aria-controls="sidebar" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="#i-menu"/></svg></button>
-      <span class="month-pill" id="monthPill"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-calendar"/></svg>2026. október</span>
+      <!-- Ügyfélváltó: mindig látszik, melyik ügyfélben dolgozik (többügyfeles működés) -->
+      <div class="pop-wrap">
+        <button class="workspace" type="button" id="wsBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="wsMenu" title="Ügyfél váltása"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-folder"/></svg><span id="wsName">Xperion</span><small id="wsHint">ügyfél</small><svg class="icon icon-sm" aria-hidden="true" id="wsChev"><use href="#i-chev-down"/></svg></button>
+        <div class="pop menu" id="wsMenu" role="menu" aria-label="Ügyfél váltása" hidden style="left:0;top:calc(100% + 6px);min-width:260px"></div>
+      </div>
       <span style="flex:1"></span>
       <div class="topbar-actions">
         <button class="icon-btn" type="button" id="densityBtn" aria-pressed="false" title="Kompakt sűrűség" aria-label="Kompakt sűrűség"><svg class="icon" aria-hidden="true"><use href="#i-rows"/></svg></button>
@@ -789,7 +838,7 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
         <div class="pop-wrap">
           <button class="profile-btn" type="button" id="profileBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="profileMenu" aria-label="Profil"><span class="avatar" aria-hidden="true" id="avatar">BA</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-chev-down"/></svg></button>
           <div class="pop right menu" id="profileMenu" role="menu" aria-label="Profil" hidden>
-            <div class="menu-head" role="presentation"><span class="avatar" aria-hidden="true" id="avatar2">BA</span><div><b id="pmName">Berényi Attila</b><span class="meta" id="pmRole">Ügyfél · Xperion</span></div></div>
+            <div class="menu-head" role="presentation"><span class="avatar" aria-hidden="true" id="avatar2">BA</span><div><b id="pmName">Berényi Attila</b><span class="meta" id="pmRole">Ügyfél-adminisztrátor · Xperion</span></div></div>
             <hr role="separator">
             <button role="menuitem" type="button" data-pact="pw"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-key"/></svg>Jelszó módosítása</button>
             <hr role="separator">
@@ -802,11 +851,11 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
     <main class="content" id="main">
       <div class="banner bn-info proto-bar" role="note">
         <svg class="icon" aria-hidden="true"><use href="#i-info"/></svg>
-        <div class="b-body"><b>Prototípus mintaadatokkal</b><span>A változtatások nem mentődnek. Próbálja ki, mit lát egy-egy szereplő:</span></div>
+        <div class="b-body"><b>Prototípus mintaadatokkal</b><span>A változtatások nem mentődnek. Nézet mint:</span></div>
         <div class="seg" role="group" aria-label="Nézet mint" id="roleSeg">
-          <button type="button" data-role="ugyfel" aria-pressed="true">Attila</button>
-          <button type="button" data-role="linkedin" aria-pressed="false">Emi</button>
-          <button type="button" data-role="uzemelteto" aria-pressed="false">Balázs</button>
+          <button type="button" data-user="attila" aria-pressed="true">Attila</button>
+          <button type="button" data-user="emi" aria-pressed="false">Emi</button>
+          <button type="button" data-user="balazs" aria-pressed="false">Balázs</button>
         </div>
       </div>
 
@@ -814,28 +863,46 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
       <section class="view" id="v-attekintes" aria-labelledby="h-att" hidden>
         <div class="page-head">
           <div>
-            <div class="page-title"><h1 id="h-att" tabindex="-1">Jó reggelt, <span id="hello">Attila</span>!</h1></div>
-            <p class="page-sub">A 2026. októberi sajtófigyelés elkészült 2026. 11. 01-jén 06:04-kor.</p>
+            <div class="page-title"><h1 id="h-att" tabindex="-1">Áttekintés</h1></div>
+            <p class="page-sub"><span id="attSub">Xperion · 2026. október</span> · <span id="attSync">Utoljára frissítve: 2026. 11. 02. 14:00</span></p>
           </div>
-          <div class="page-actions"><a class="btn btn-primary" href="#cikkek" id="attCta"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-list"/></svg>Cikkek áttekintése</a></div>
+          <div class="page-actions">
+            <label class="sr-only" for="period">Időszak</label>
+            <select class="select" id="period" style="width:auto"></select>
+            <button class="btn btn-secondary" type="button" id="attRefresh"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-refresh"/></svg>Frissítés</button>
+          </div>
         </div>
-        <div class="kpis card" id="kpis" aria-label="A hónap számai"></div>
+
+        <!-- Teendők: soronként külön widget, típus szerinti színnel -->
+        <section aria-labelledby="h-todo" class="todo-sec">
+          <h2 id="h-todo" class="sec-title">Teendők <span class="meta" id="todoMeta"></span></h2>
+          <div class="todo-grid" id="todoGrid"></div>
+        </section>
+
+        <!-- KPI-kártyák: címke → érték → változás (jó/rossz külön) → trendvonal → időszak -->
+        <div class="kpis" id="kpis"></div>
+
         <div class="dash-grid">
           <section class="card widget w-8" aria-labelledby="w-sum">
-            <div class="widget-head"><div><h2 id="w-sum">Vezetői összefoglaló</h2><p class="meta" style="margin-top:4px">2026. október · a rendszer készítette, a havi lap 1–3. sora</p></div></div>
-            <dl class="kv" id="sumKv"></dl>
-            <div class="sum-text">
-              <h3>Részletek</h3>
-              <p>Októberben a sorkezelési piac szereplői főként az önkiszolgáló bejelentkezésről és az ügyfélút mérhetőségéről publikáltak. A Vemco Group két esettanulmánya (bank és egészségügy) közvetlenül illeszkedik az Xperion hazai referenciáihoz. Az új, próbaidőszakos forrás (Acrelec) három cikket adott, ebből egy javasolt.</p>
+            <div class="widget-head">
+              <div><h2 id="w-sum">Vezetői összefoglaló</h2><p class="meta" id="sumMeta">2026. október · a havi futás készítette</p></div>
+              <span class="badge b-ai"><svg class="icon" aria-hidden="true"><use href="#i-sparkle"/></svg>AI által generált</span>
             </div>
+            <dl class="kv" id="sumKv"></dl>
+            <div class="sum-text"><h3>Részletek</h3><p id="sumText"></p></div>
           </section>
-          <section class="card widget w-4" aria-labelledby="w-todo">
-            <div class="widget-head"><h2 id="w-todo">Teendők</h2></div>
-            <ul class="todo-links" id="todoList"></ul>
+          <section class="card widget w-4" aria-labelledby="w-dec">
+            <div class="widget-head"><div><h2 id="w-dec">Döntések megoszlása</h2><p class="meta" id="decMeta">A hónap cikkei</p></div></div>
+            <div class="stack100" id="decBar" role="img"></div>
+            <ul class="legend-list" id="decLegend"></ul>
           </section>
           <section class="card widget w-12" aria-labelledby="w-src">
-            <div class="widget-head"><div><h2 id="w-src">Cikkek forrásonként</h2><p class="meta" style="margin-top:4px">darab, a duplikátumok és a kizárt témák nélkül</p></div></div>
+            <div class="widget-head">
+              <div><h2 id="w-src">Cikkek forrásonként</h2><p class="meta" id="srcMeta">A duplikátumok és a kizárt témák nélkül</p></div>
+              <div class="seg" role="group" aria-label="Megjelenítés"><button type="button" data-sv="chart" aria-pressed="true">Diagram</button><button type="button" data-sv="table" aria-pressed="false">Táblázat</button></div>
+            </div>
             <ul class="hbar" id="srcBars"></ul>
+            <div class="mini-table table-wrap" id="srcTable" hidden style="border:1px solid var(--border);border-radius:var(--r-lg)"></div>
           </section>
         </div>
       </section>
@@ -845,16 +912,20 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
         <div class="page-head">
           <div>
             <div class="page-title"><h1 id="h-cikkek" tabindex="-1">Havi cikkek</h1></div>
-            <p class="page-sub" id="cikkSub">Jelölje meg, melyik cikk kerüljön fel az xperion.hu-ra (Mehet), és melyikből készüljön LinkedIn-poszt. A Mehet jelölésű cikkeket a következő óránkénti futás élesben, magyarul és angolul tölti fel.</p>
+            <p class="page-sub" id="cikkSub">Jelölje meg, melyik cikk kerüljön fel az xperion.hu-ra (Mehet), és melyikből készüljön LinkedIn-poszt. A Mehet cikkeket a következő óránkénti futás élesben, magyarul és angolul tölti fel.</p>
           </div>
           <div class="page-actions">
             <label class="sr-only" for="monthSel">Hónap</label>
-            <select class="select" id="monthSel" style="width:auto"><option value="2610">2026. október</option><option value="2609">2026. szeptember</option><option value="2608">2026. augusztus</option></select>
+            <select class="select" id="monthSel" style="width:auto"></select>
           </div>
         </div>
         <div class="banner bn-info" id="readonlyNote" hidden role="note">
           <svg class="icon" aria-hidden="true"><use href="#i-info"/></svg>
-          <div class="b-body"><b>Csak megtekintés</b><span>A cikkekről Attila dönt. Ön a LinkedIn-poszt jelölésű cikkekből készült posztokat a LinkedIn-posztok menüpontban éri el.</span></div>
+          <div class="b-body"><b>Csak megtekintés</b><span>A cikkekről az ügyfél-adminisztrátor dönt. A LinkedIn poszt jelölésű cikkekből készült posztok a LinkedIn-posztok menüpontban vannak.</span></div>
+        </div>
+        <div class="banner bn-info" id="pastMonthNote" hidden role="note">
+          <svg class="icon" aria-hidden="true"><use href="#i-info"/></svg>
+          <div class="b-body"><b>Lezárt hónap</b><span>A prototípusban csak a 2026. októberi cikklista van kitöltve.</span></div>
         </div>
         <div class="seg" role="group" aria-label="Nézetek" id="artViews">
           <button type="button" data-v="todo" aria-pressed="true">Döntésre vár <span class="cnt-badge" id="cntTodo">0</span></button>
@@ -867,7 +938,7 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
           <div class="bulkbar" id="bulk" hidden>
             <b id="bulkCount">0 kiválasztva</b>
             <button type="button" class="btn btn-secondary sm" data-bulk="Mehet"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-upload"/></svg>Mehet</button>
-            <button type="button" class="btn btn-secondary sm" data-bulk="LinkedIn poszt"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-image"/></svg>LinkedIn poszt</button>
+            <button type="button" class="btn btn-secondary sm" data-bulk="LinkedIn poszt"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-linkedin"/></svg>LinkedIn poszt</button>
             <button type="button" class="btn btn-ghost sm" data-bulk="">Döntés törlése</button>
             <button type="button" class="btn btn-ghost sm" id="bulkClear">Kijelölés megszüntetése</button>
           </div>
@@ -892,8 +963,16 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
         <div class="page-head">
           <div>
             <div class="page-title"><h1 id="h-posztok" tabindex="-1">LinkedIn-posztok</h1></div>
-            <p class="page-sub">A rendszer a LinkedIn poszt jelölésű cikkekből és a posztötletekből készít posztot, a Posztszabályok szerint. Jóváhagyás után Emi másolja ki, és időzíti a LinkedInen.</p>
+            <p class="page-sub">A LinkedIn poszt jelölésű cikkekből és a posztötletekből készülnek, a Posztszabályok szerint. Jóváhagyás után a tartalomkezelő teszi közzé a LinkedInen.</p>
           </div>
+          <div class="page-actions"><a class="btn btn-secondary" href="#otletek"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-bulb"/></svg>Posztötletek</a></div>
+        </div>
+        <div class="seg" role="group" aria-label="Állapot szerint" id="postFilter">
+          <button type="button" data-pf="" aria-pressed="true">Mind</button>
+          <button type="button" data-pf="Tervezet" aria-pressed="false">Tervezet</button>
+          <button type="button" data-pf="Ügyfélnél" aria-pressed="false">Ügyfélnél</button>
+          <button type="button" data-pf="Jóváhagyva" aria-pressed="false">Jóváhagyva</button>
+          <button type="button" data-pf="Megjelent" aria-pressed="false">Megjelent</button>
         </div>
         <div class="post-grid" id="postGrid" role="list" aria-label="Posztok"></div>
       </section>
@@ -903,47 +982,83 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
         <nav class="breadcrumb" aria-label="Morzsamenü"><ol><li><a href="#posztok">LinkedIn-posztok</a></li><li aria-current="page" id="bcPost">LI-2610-01</li></ol></nav>
         <div class="page-head">
           <div>
-            <div class="page-title"><h1 id="h-poszt" tabindex="-1">LI-2610-01</h1><span id="postStatus"></span></div>
+            <div class="page-title"><h1 id="h-poszt" tabindex="-1">LI-2610-01</h1><span id="postStatus"></span><span class="badge b-ai"><svg class="icon" aria-hidden="true"><use href="#i-sparkle"/></svg>AI által generált</span></div>
             <p class="page-sub" id="postSub"></p>
           </div>
-          <div class="page-actions" id="postActions"></div>
+          <div class="page-actions">
+            <span id="postActions" class="page-actions"></span>
+            <div class="pop-wrap" id="postMoreWrap">
+              <button class="icon-btn" type="button" id="postMore" aria-haspopup="menu" aria-expanded="false" aria-controls="postMenu" aria-label="További műveletek a poszttal"><svg class="icon" aria-hidden="true"><use href="#i-more"/></svg></button>
+              <div class="pop right menu" id="postMenu" role="menu" aria-label="Poszt műveletei" hidden>
+                <button role="menuitem" type="button" data-pm="regen"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-sparkle"/></svg>Újragenerálás a szabályok szerint</button>
+                <hr role="separator">
+                <button role="menuitem" type="button" class="danger" data-pm="delete"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-trash"/></svg>Poszt törlése…</button>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="layout post-layout">
           <div class="stack">
-            <div class="tabs" role="tablist" aria-label="Előnézet">
-              <button class="tab" role="tab" id="tab-zart" aria-selected="true" aria-controls="p-preview" tabindex="0">Zárt nézet</button>
-              <button class="tab" role="tab" id="tab-nyitott" aria-selected="false" aria-controls="p-preview" tabindex="-1">Kibontott nézet</button>
+            <div class="tabs" role="tablist" aria-label="Poszt">
+              <button class="tab" role="tab" id="tab-elo" aria-selected="true" aria-controls="p-elo" tabindex="0"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-eye"/></svg>Előnézet</button>
+              <button class="tab" role="tab" id="tab-szerk" aria-selected="false" aria-controls="p-szerk" tabindex="-1"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-edit"/></svg>Szerkesztés</button>
             </div>
-            <div id="p-preview" role="tabpanel" aria-labelledby="tab-zart">
+            <div id="p-elo" role="tabpanel" aria-labelledby="tab-elo" class="stack">
+              <div class="seg" role="group" aria-label="Nézet" id="liMode"><button type="button" data-m="closed" aria-pressed="true">Zárt nézet</button><button type="button" data-m="open" aria-pressed="false">Kibontott nézet</button></div>
               <article class="li-card" aria-label="LinkedIn-előnézet">
                 <header class="li-head">
                   <div class="li-logo" aria-hidden="true">X</div>
-                  <div><b>Xperion Ltd.</b><span>1 284 követő</span><span>Most · <svg class="icon" aria-hidden="true" style="width:12px;height:12px;vertical-align:-2px"><use href="#i-globe"/></svg></span></div>
+                  <div class="li-meta"><b>Xperion Ltd.</b><span>1 284 követő</span><span>Most · <svg class="icon" aria-hidden="true" style="width:12px;height:12px;vertical-align:-2px"><use href="#i-globe"/></svg></span></div>
                   <span class="li-follow" aria-hidden="true">+ Követés</span>
                 </header>
                 <div class="li-text" id="liText"></div>
                 <canvas id="postCanvas" width="1200" height="1200" role="img" aria-label="A poszt képe"></canvas>
                 <div class="li-react" aria-hidden="true"><span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-thumb"/></svg>Tetszik</span><span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-msg"/></svg>Hozzászólás</span><span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-repeat"/></svg>Megosztás</span><span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-send"/></svg>Küldés</span></div>
               </article>
+              <div class="acts-row">
+                <button class="btn btn-secondary" type="button" id="copyText"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-copy"/></svg>Szöveg másolása</button>
+                <button class="btn btn-secondary" type="button" id="dlImage"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-download"/></svg>Kép letöltése (PNG)</button>
+              </div>
             </div>
-            <div class="acts-row">
-              <button class="btn btn-secondary" type="button" id="copyText"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-copy"/></svg>Szöveg másolása</button>
-              <button class="btn btn-secondary" type="button" id="dlImage"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-download"/></svg>Kép letöltése (PNG)</button>
-            </div>
+            <form id="p-szerk" role="tabpanel" aria-labelledby="tab-szerk" class="card stack" hidden novalidate style="gap:16px">
+              <p class="help">A „LinkedIn posztok” lap mezői. A Teljes poszt ezekből áll össze (a forráslink szándékosan nincs benne).</p>
+              <div class="grid-2">
+                <div class="field"><label for="pe-topic">Témakör</label><input class="input" id="pe-topic"></div>
+                <div class="field"><label for="pe-src">Forráscikkek</label><input class="input" id="pe-src" readonly></div>
+                <div class="field full"><label for="pe-o0">Nyitó sor</label><input class="input" id="pe-o0" maxlength="140"></div>
+                <div class="field"><label for="pe-o1">Alternatív nyitó 1</label><input class="input" id="pe-o1" maxlength="140"></div>
+                <div class="field"><label for="pe-o2">Alternatív nyitó 2</label><input class="input" id="pe-o2" maxlength="140"></div>
+                <div class="field full"><label for="pe-ctx">Kontextus</label><textarea class="input" id="pe-ctx" rows="3"></textarea></div>
+                <div class="field full"><label for="pe-high">Kiemelések</label><textarea class="input" id="pe-high" rows="3"></textarea></div>
+                <div class="field full"><label for="pe-view">Xperion szemszög</label><textarea class="input" id="pe-view" rows="2"></textarea></div>
+                <div class="field"><label for="pe-close">Zárás</label><input class="input" id="pe-close"></div>
+                <div class="field"><label for="pe-tags">Hashtagek</label><input class="input" id="pe-tags"></div>
+                <div class="field"><label for="pe-link">Forráslink</label><input class="input" id="pe-link" type="url"></div>
+                <div class="field"><label for="pe-note">Megjegyzés</label><input class="input" id="pe-note"></div>
+              </div>
+              <fieldset class="field-set"><legend class="label">Kép adatok</legend>
+                <div class="grid-2">
+                  <div class="field"><label for="pe-it">Kép címe</label><input class="input" id="pe-it" maxlength="40"></div>
+                  <div class="field"><label for="pe-is">Alcím</label><input class="input" id="pe-is" maxlength="80"></div>
+                  <div class="field"><label for="pe-e1">Számpélda: mért <span class="opt">(nem kötelező)</span></label><input class="input" id="pe-e1"></div>
+                  <div class="field"><label for="pe-e2">Számpélda: valós <span class="opt">(nem kötelező)</span></label><input class="input" id="pe-e2"></div>
+                </div>
+              </fieldset>
+              <div class="acts-row"><button class="btn btn-primary" type="submit"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg>Módosítások mentése</button><button class="btn btn-ghost" type="button" id="peReset">Elvetés</button></div>
+            </form>
           </div>
           <aside class="stack" aria-label="A poszt adatai">
-            <section class="card" aria-labelledby="h-open">
-              <h2 id="h-open">Nyitó sor</h2>
-              <p class="help" style="margin-top:6px">Ez jelenik meg a „…több” előtt. Válassza ki a legjobbat.</p>
+            <section class="card widget" aria-labelledby="h-open">
+              <div class="widget-head"><div><h2 id="h-open">Nyitó sor</h2><p class="meta">A „…több” előtt csak ez látszik</p></div></div>
               <fieldset class="open-choices" id="openChoices"><legend class="sr-only">Nyitó sor választása</legend></fieldset>
             </section>
-            <section class="card" aria-labelledby="h-src">
-              <h2 id="h-src">Forrás</h2>
-              <dl class="kv" style="margin-top:16px" id="postKv"></dl>
+            <section class="card widget" aria-labelledby="h-src">
+              <div class="widget-head"><div><h2 id="h-src">Adatok</h2><p class="meta">A „LinkedIn posztok” lap sora</p></div></div>
+              <dl class="kv" id="postKv"></dl>
             </section>
-            <section class="card" aria-labelledby="h-hist">
-              <h2 id="h-hist">Előzmények</h2>
-              <ol class="timeline" id="postTl" style="margin-top:16px"></ol>
+            <section class="card widget" aria-labelledby="h-hist">
+              <div class="widget-head"><div><h2 id="h-hist">Előzmények</h2><p class="meta">Ki, mit, mikor</p></div></div>
+              <ol class="timeline" id="postTl"></ol>
             </section>
           </aside>
         </div>
@@ -954,39 +1069,69 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
         <div class="page-head">
           <div>
             <div class="page-title"><h1 id="h-otletek" tabindex="-1">Posztötletek</h1></div>
-            <p class="page-sub">Saját ötlet rendezvényről, díjról, partnerről vagy a csapatról. Az óránkénti futás posztot készít belőle, amely a LinkedIn-posztok között jelenik meg.</p>
+            <p class="page-sub">Saját ötlet szakmai témáról, rendezvényről, díjról, partnerről vagy a csapatról. A „Küldés posztgenerálásra” gombbal a rendszer a Posztszabályok szerint posztot készít belőle.</p>
           </div>
+          <div class="page-actions"><a class="btn btn-primary" href="#otlet" id="newIdea"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-plus"/></svg>Új ötlet</a></div>
         </div>
-        <div class="layout idea-layout">
-          <div class="card table-card">
-            <div class="toolbar"><h2 class="tb-title">Beküldött ötletek</h2></div>
-            <div class="table-wrap" id="ideaTable"></div>
-            <div class="pager" id="ideaPager"></div>
-          </div>
-          <form class="card stack" id="ideaForm" novalidate aria-labelledby="h-newidea" style="gap:16px">
-            <h2 id="h-newidea">Új ötlet</h2>
-            <div class="banner bn-error" id="ideaErr" role="alert" tabindex="-1" hidden>
-              <svg class="icon" aria-hidden="true"><use href="#i-x-circle"/></svg>
-              <div class="b-body"><b>Néhány mező hiányzik</b><ul id="ideaErrList"></ul></div>
+        <div class="card table-card">
+          <div class="toolbar" role="search" aria-label="Ötletek szűrése">
+            <div class="search">
+              <svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>
+              <label class="sr-only" for="ideaQ">Keresés az ötletek között</label>
+              <input class="input" id="ideaQ" type="search" placeholder="Keresés témában, üzenetben…" autocomplete="off">
             </div>
-            <div class="field"><label for="i-tema">Téma</label><input class="input" id="i-tema" required data-msg="Adja meg a témát." placeholder="pl. Ügyfélélmény-konferencia, Budapest"></div>
-            <div class="field"><label for="i-uzenet">Fő üzenet</label><textarea class="input" id="i-uzenet" maxlength="600" required data-msg="Írja le röviden a fő üzenetet." aria-describedby="i-uzenet-c"></textarea><span class="help counter" id="i-uzenet-c" aria-live="polite">0 / 600</span></div>
-            <div class="field"><label for="i-link">Forrás- vagy fotólink <span class="opt">(nem kötelező)</span></label><input class="input" id="i-link" type="url" placeholder="https://"></div>
-            <fieldset class="field-set">
-              <legend class="label">Poszttípus</legend>
-              <div class="seg" role="radiogroup" aria-label="Poszttípus" id="i-tipus">
-                <label><input type="radio" name="tipus" value="szakmai" checked>szakmai</label>
-                <label><input type="radio" name="tipus" value="rendezvény">rendezvény</label>
-                <label><input type="radio" name="tipus" value="díj">díj</label>
-                <label><input type="radio" name="tipus" value="partner">partner</label>
-                <label><input type="radio" name="tipus" value="csapat">csapat</label>
-              </div>
-            </fieldset>
-            <div class="field"><label for="i-het">Kívánt hét</label><select class="select" id="i-het"><option>2026. 11. 09–15. (46. hét)</option><option>2026. 11. 16–22. (47. hét)</option><option>2026. 11. 23–29. (48. hét)</option><option>Mindegy</option></select></div>
-            <div class="field"><label for="i-megj">Megjegyzés <span class="opt">(nem kötelező)</span></label><input class="input" id="i-megj"></div>
-            <button class="btn btn-primary" type="submit" id="ideaSubmit"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-send"/></svg>Ötlet beküldése</button>
-          </form>
+            <label class="sr-only" for="ideaSt">Állapot</label>
+            <select class="select" id="ideaSt"><option value="">Minden állapot</option><option>Új</option><option>Elkészült</option><option>Jóváhagyva</option><option>Ütemezve</option><option>Elvetve</option></select>
+          </div>
+          <div class="table-wrap" id="ideaTable"></div>
+          <div class="pager" id="ideaPager"></div>
         </div>
+      </section>
+
+      <!-- ================= NÉZET: EGY ÖTLET (#otlet) ================= -->
+      <section class="view" id="v-otlet" aria-labelledby="h-otlet" hidden>
+        <nav class="breadcrumb" aria-label="Morzsamenü"><ol><li><a href="#otletek">Posztötletek</a></li><li aria-current="page" id="bcIdea">Új ötlet</li></ol></nav>
+        <div class="page-head">
+          <div>
+            <div class="page-title"><h1 id="h-otlet" tabindex="-1">Új ötlet</h1><span id="ideaStatus"></span></div>
+            <p class="page-sub" id="ideaSub">A *-gal jelölt mezők kötelezők.</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-secondary" type="submit" form="ideaForm" id="ideaSave"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg>Mentés</button>
+            <button class="btn btn-primary" type="button" id="ideaGen"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-sparkle"/></svg>Küldés posztgenerálásra</button>
+            <div class="pop-wrap" id="ideaMoreWrap">
+              <button class="icon-btn" type="button" id="ideaMore" aria-haspopup="menu" aria-expanded="false" aria-controls="ideaMenu" aria-label="További műveletek az ötlettel"><svg class="icon" aria-hidden="true"><use href="#i-more"/></svg></button>
+              <div class="pop right menu" id="ideaMenu" role="menu" aria-label="Ötlet műveletei" hidden>
+                <button role="menuitem" type="button" data-im="reject"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-x"/></svg>Elvetés (megtartva)</button>
+                <hr role="separator">
+                <button role="menuitem" type="button" class="danger" data-im="delete"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-trash"/></svg>Ötlet törlése…</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="banner bn-success" id="ideaDone" role="status" hidden>
+          <svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>
+          <div class="b-body"><b>A poszt elkészült</b><span>Tervezet állapotban van a LinkedIn-posztok között. <a href="#poszt" id="ideaDoneLink">Poszt megnyitása</a></span></div>
+        </div>
+        <div class="banner bn-error" id="ideaErr" role="alert" tabindex="-1" hidden>
+          <svg class="icon" aria-hidden="true"><use href="#i-x-circle"/></svg>
+          <div class="b-body"><b>Néhány mező hiányzik vagy hibás</b><ul id="ideaErrList"></ul></div>
+        </div>
+        <form class="card" id="ideaForm" novalidate aria-labelledby="h-otlet">
+          <div class="grid-2">
+            <div class="field"><label for="f-id">ID</label><input class="input" id="f-id" readonly><span class="help">Automatikus: PO-ÉÉHH-NN</span></div>
+            <div class="field"><label for="f-from">Beküldő</label><input class="input" id="f-from" readonly></div>
+            <div class="field full"><label for="f-tema">Téma *</label><input class="input" id="f-tema" required data-msg="Adja meg a témát." placeholder="pl. Ügyfélélmény-konferencia, Budapest"></div>
+            <div class="field full"><label for="f-uzenet">Fő üzenet *</label><textarea class="input" id="f-uzenet" maxlength="600" rows="4" required data-msg="Írja le röviden a fő üzenetet." aria-describedby="f-uzenet-c"></textarea><span class="help counter" id="f-uzenet-c" aria-live="polite">0 / 600</span></div>
+            <div class="field full"><label for="f-link">Forrás- vagy fotólink</label><input class="input" id="f-link" type="url" placeholder="https://" data-msg="A link https://-sel kezdődjön."></div>
+            <div class="field"><label for="f-tipus">Poszttípus *</label><select class="select" id="f-tipus"><option>szakmai</option><option>rendezvény</option><option>díj</option><option>partner</option><option>csapat</option></select></div>
+            <div class="field"><label for="f-het">Kívánt hét</label><select class="select" id="f-het"><option>2026. 11. 09–15. (46. hét)</option><option>2026. 11. 16–22. (47. hét)</option><option>2026. 11. 23–29. (48. hét)</option><option>2026. 11. 30. – 12. 06. (49. hét)</option><option>Mindegy</option></select></div>
+            <div class="field"><label for="f-allapot">Állapot</label><select class="select" id="f-allapot"><option>Új</option><option>Elkészült</option><option>Jóváhagyva</option><option>Ütemezve</option><option>Elvetve</option></select></div>
+            <div class="field"><span class="label" id="f-elo-l">Előnézet link</span><div class="ro-val" id="f-elo" aria-labelledby="f-elo-l">–</div></div>
+            <div class="field"><span class="label" id="f-post-l">Poszt ID</span><div class="ro-val" id="f-post" aria-labelledby="f-post-l">–</div></div>
+            <div class="field"><label for="f-megj">Megjegyzés</label><input class="input" id="f-megj"></div>
+          </div>
+        </form>
       </section>
 
       <!-- ================= NÉZET: POSZTSZABÁLYOK (#szabalyok) ================= -->
@@ -994,10 +1139,74 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
         <div class="page-head">
           <div>
             <div class="page-title"><h1 id="h-szab" tabindex="-1">Posztszabályok</h1></div>
-            <p class="page-sub">A posztgenerálás ezekből dolgozik. A módosítás a következő generált posztnál már érvényes. Legutóbb módosította: Emi, 2026. 10. 21. 10:12.</p>
+            <p class="page-sub">A posztgenerálás egyetlen szabályforrása (a „LinkedIn szabályok” lap). A módosítás a következő generálásnál már érvényes. Legutóbb módosította: Emi, 2026. 10. 21. 10:12.</p>
           </div>
+          <div class="page-actions"><button class="btn btn-secondary" type="button" id="ruleAdd"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-plus"/></svg>Új szabály</button></div>
         </div>
-        <form class="rules" id="rulesForm" aria-labelledby="h-szab"></form>
+        <div class="banner bn-info" role="note">
+          <svg class="icon" aria-hidden="true"><use href="#i-info"/></svg>
+          <div class="b-body"><b>Csak a specifikációban felsorolt szabályok</b><span>A valós lap minden sora ide kerül. A prototípusban csak azok szerepelnek, amelyeket a specifikáció megnevez; a többit a lap tartalma alapján töltjük be.</span></div>
+        </div>
+        <div class="rules" id="rulesList"></div>
+      </section>
+
+      <!-- ================= NÉZET: FELHASZNÁLÓK (#felhasznalok) ================= -->
+      <section class="view" id="v-felhasznalok" aria-labelledby="h-users" hidden>
+        <div class="page-head">
+          <div>
+            <div class="page-title"><h1 id="h-users" tabindex="-1">Felhasználók</h1></div>
+            <p class="page-sub" id="usersSub">Meghívás e-maillel; a meghívott a linkről állítja be a jelszavát. Egy személy több ügyfélnél is dolgozhat, ügyfelenként más szerepkörrel.</p>
+          </div>
+          <div class="page-actions"><button class="btn btn-primary" type="button" id="inviteBtn"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-plus"/></svg>Meghívás</button></div>
+        </div>
+        <div class="card table-card">
+          <div class="bulkbar" id="uBulk" hidden>
+            <b id="uBulkCount">0 kiválasztva</b>
+            <button type="button" class="btn btn-secondary sm" id="uBulkDisable"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-x-circle"/></svg>Letiltás</button>
+            <button type="button" class="btn btn-danger-outline sm" id="uBulkDelete"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-trash"/></svg>Törlés…</button>
+            <button type="button" class="btn btn-ghost sm" id="uBulkClear">Kijelölés megszüntetése</button>
+          </div>
+          <div class="toolbar" id="uToolbar" role="search" aria-label="Felhasználók szűrése">
+            <div class="search">
+              <svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>
+              <label class="sr-only" for="uQ">Keresés név vagy e-mail szerint</label>
+              <input class="input" id="uQ" type="search" placeholder="Név vagy e-mail…" autocomplete="off">
+            </div>
+            <label class="sr-only" for="uRole">Szerepkör</label>
+            <select class="select" id="uRole"><option value="">Minden szerepkör</option></select>
+            <label class="sr-only" for="uSt">Állapot</label>
+            <select class="select" id="uSt"><option value="">Minden állapot</option><option>Aktív</option><option>Meghívva</option><option>Letiltva</option></select>
+          </div>
+          <div class="table-wrap" id="userTable"></div>
+          <div class="pager" id="userPager"></div>
+        </div>
+        <section class="card widget" aria-labelledby="h-roles">
+          <div class="widget-head"><div><h2 id="h-roles">Szerepkörök és jogosultságok</h2><p class="meta">Ügyfelenként adható; az üzemeltető minden ügyfélhez hozzáfér</p></div></div>
+          <div class="table-wrap mini-table" style="border:1px solid var(--border);border-radius:var(--r-lg)" id="roleMatrix"></div>
+        </section>
+      </section>
+
+      <!-- ================= NÉZET: ÜGYFELEK (#ugyfelek, csak üzemeltető) ================= -->
+      <section class="view" id="v-ugyfelek" aria-labelledby="h-clients" hidden>
+        <div class="page-head">
+          <div>
+            <div class="page-title"><h1 id="h-clients" tabindex="-1">Ügyfelek</h1></div>
+            <p class="page-sub">Minden ügyfélnek saját forrásai, kulcsszavai, posztszabályai, felhasználói és weboldal-kapcsolata van; az adatok nem keverednek.</p>
+          </div>
+          <div class="page-actions"><button class="btn btn-primary" type="button" id="clientAdd"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-plus"/></svg>Új ügyfél</button></div>
+        </div>
+        <div class="layout">
+          <div class="card table-card">
+            <div class="table-wrap" id="clientTable"></div>
+            <div class="pager" id="clientPager"></div>
+          </div>
+          <aside class="stack">
+            <section class="card widget" aria-labelledby="h-onb">
+              <div class="widget-head"><div><h2 id="h-onb">Új ügyfél beállítása</h2><p class="meta" id="onbMeta">0 / 5 lépés kész</p></div></div>
+              <ol class="checklist" id="onbList"></ol>
+            </section>
+          </aside>
+        </div>
       </section>
 
       <!-- ================= NÉZET: VEZÉRLŐPULT (#vezerlo, csak üzemeltető) ================= -->
@@ -1005,49 +1214,44 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
         <div class="page-head">
           <div>
             <div class="page-title"><h1 id="h-vez" tabindex="-1">Vezérlőpult</h1></div>
-            <p class="page-sub">Csak az üzemeltető látja. A havi e-mail jóváhagyása, a futások és a fiókok kezelése.</p>
+            <p class="page-sub" id="vezSub">Xperion · a havi e-mail és a futások kezelése.</p>
           </div>
         </div>
         <div class="layout">
           <div class="stack">
-            <section class="card" aria-labelledby="h-mail">
-              <div class="card-head">
-                <div><h2 id="h-mail">Havi e-mail az ügyfélnek</h2><p>Címzett: Berényi Attila, másolat: Emi. Csak jóváhagyás után megy ki, piszkozat nélkül.</p></div>
+            <section class="card widget" aria-labelledby="h-mail">
+              <div class="widget-head">
+                <div><h2 id="h-mail">Havi e-mail az ügyfélnek</h2><p class="meta">Címzett: Berényi Attila · másolat: Emi · csak jóváhagyás után megy ki, piszkozat nélkül</p></div>
                 <span id="mailStatus"></span>
               </div>
-              <div class="mail-prev">
-                <div class="mail-subj"><span class="meta">Tárgy</span><b>Sajtófigyelés – 2026. október</b></div>
-                <div class="mail-body">
-                  <p>Kedves Attila!</p>
-                  <p>Elkészült az októberi sajtófigyelés. A cikkeket és a javaslatainkat a felületen találja: <a href="#cikkek">Havi cikkek</a>.</p>
-                  <p><b>Újdonságok</b></p>
-                  <ul>
-                    <li>Önkiszolgálás: két bankfiókos esettanulmány a Vemco Grouptól.</li>
-                    <li>Mérés: a Qmatic új riportja a várakozási idő és az elégedettség kapcsolatáról.</li>
-                    <li>Új forrás: az Acrelec próbaidőszakban, három cikkel.</li>
-                  </ul>
-                  <p><b>A hónap számai:</b> 18 cikk, ebből 5 erősen javasolt.</p>
-                  <p>Üdvözlettel:<br>az Auris Dynamics csapata</p>
-                </div>
+              <div class="mail-gen">
+                <div class="field"><label for="mailMonth">Melyik hónapból?</label><select class="select" id="mailMonth"></select></div>
+                <button class="btn btn-secondary" type="button" id="mailGen"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-sparkle"/></svg>E-mail generálása</button>
               </div>
-              <div class="acts-row" style="margin-top:16px">
+              <div id="mailEmpty" class="empty-state" hidden><b>Ehhez a hónaphoz még nincs e-mail</b><span>Válassza ki a hónapot, és generálja le. A szöveg a hónap cikkeiből és a mentett stílusból készül.</span></div>
+              <div class="mail-prev" id="mailPrev">
+                <div class="mail-subj"><span class="meta">Tárgy</span><b id="mailSubj"></b><span class="badge b-ai" style="margin-left:auto"><svg class="icon" aria-hidden="true"><use href="#i-sparkle"/></svg>AI által generált</span></div>
+                <div class="mail-body" id="mailBody"></div>
+                <div class="field" id="mailEditWrap" hidden style="padding:16px"><label for="mailEdit">Az e-mail szövege</label><textarea class="input" id="mailEdit" rows="12"></textarea></div>
+              </div>
+              <div class="acts-row" id="mailActs">
                 <button class="btn btn-primary" type="button" id="mailApprove"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-send"/></svg>Jóváhagyom, mehet</button>
-                <button class="btn btn-secondary" type="button" id="mailEdit"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-edit"/></svg>Szöveg szerkesztése</button>
+                <button class="btn btn-secondary" type="button" id="mailEditBtn"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-edit"/></svg>Szöveg szerkesztése</button>
               </div>
             </section>
             <div class="task-grid" role="list" aria-label="Futások">
-              <section class="card task" role="listitem" aria-labelledby="t1"><h2 id="t1">Havi futás</h2><p>Minden hónap 1-jén 06:00-kor. Gyűjtés, értékelés, havi cikklista, összefoglaló, e-mail-szöveg.</p><div class="last"><span>Legutóbb: 2026. 11. 01. 06:04 · éles</span><span class="badge b-success"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>OK</span></div><div class="acts"><button class="btn btn-secondary sm" type="button" data-fake-run="Havi futás"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-flask"/></svg>Szárazfuttatás</button></div></section>
+              <section class="card task" role="listitem" aria-labelledby="t1"><h2 id="t1">Havi futás</h2><p>Minden hónap 1-jén 06:00-kor. Gyűjtés, értékelés, havi cikklista, összefoglaló.</p><div class="last"><span>Legutóbb: 2026. 11. 01. 06:04 · éles</span><span class="badge b-success"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>OK</span></div><div class="acts"><button class="btn btn-secondary sm" type="button" data-fake-run="Havi futás"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-flask"/></svg>Szárazfuttatás</button></div></section>
               <section class="card task" role="listitem" aria-labelledby="t2"><h2 id="t2">Óránkénti futás</h2><p>Döntések figyelése, feltöltés két nyelven, posztgenerálás, jóváhagyott e-mail küldése.</p><div class="last"><span>Legutóbb: 2026. 11. 02. 14:00 · éles</span><span class="badge b-success"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>OK</span></div><div class="acts"><button class="btn btn-secondary sm" type="button" data-fake-run="Óránkénti futás"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-flask"/></svg>Szárazfuttatás</button></div></section>
             </div>
           </div>
-          <aside class="stack" aria-label="Fiókok">
-            <section class="card" aria-labelledby="h-users">
-              <div class="card-head"><h2 id="h-users">Fiókok</h2><button class="btn btn-ghost sm" type="button" id="inviteBtn"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-plus"/></svg>Meghívás</button></div>
-              <ul class="users">
-                <li><span class="avatar" aria-hidden="true">BA</span><div><b>Berényi Attila</b><span class="meta">Ügyfél: dönt a cikkekről, jóváhagyja a posztokat</span></div></li>
-                <li><span class="avatar" aria-hidden="true">E</span><div><b>Emi</b><span class="meta">LinkedIn-kezelő: ötletek, posztok közzététele</span></div></li>
-                <li><span class="avatar" aria-hidden="true">B</span><div><b>Balázs</b><span class="meta">Üzemeltető: minden, és a havi e-mail jóváhagyása</span></div></li>
-              </ul>
+          <aside class="stack">
+            <section class="card widget" aria-labelledby="h-sys">
+              <div class="widget-head"><div><h2 id="h-sys">Kapcsolatok</h2><p class="meta">Xperion</p></div></div>
+              <dl class="kv">
+                <div><dt>Weboldal-feltöltés</dt><dd><span class="badge b-success"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>xperion.hu</span></dd></div>
+                <div><dt>Claude API</dt><dd><span class="badge b-success"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>működik</span></dd></div>
+                <div><dt>E-mail (SMTP)</dt><dd><span class="badge b-success"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>működik</span></dd></div>
+              </dl>
             </section>
           </aside>
         </div>
@@ -1058,10 +1262,13 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
         <div class="page-head">
           <div>
             <div class="page-title"><h1 id="h-naplo" tabindex="-1">Napló</h1></div>
-            <p class="page-sub">Futások és felhasználói műveletek. Hibánál e-mail is megy az üzemeltetőnek.</p>
+            <p class="page-sub">Futások és felhasználói műveletek (ki, mit, mikor). Hibánál e-mail is megy az üzemeltetőnek.</p>
           </div>
         </div>
         <div class="card table-card">
+          <div class="toolbar" role="search" aria-label="Napló szűrése">
+            <div class="search"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg><label class="sr-only" for="logQ">Keresés a naplóban</label><input class="input" id="logQ" type="search" placeholder="Keresés a naplóban…" autocomplete="off"></div>
+          </div>
           <div class="table-wrap" id="logTable"></div>
           <div class="pager" id="logPager"></div>
         </div>
@@ -1075,6 +1282,25 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
     <button class="btn btn-primary" type="button" id="saveBtn"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"/></svg>Mentés</button>
   </div>
 </div>
+
+<!-- Sorművelet menü (közös) -->
+<div class="pop menu" id="rowMenu" role="menu" aria-label="Sor műveletei" hidden></div>
+
+<!-- Felhasználó meghívása / szerkesztése -->
+<dialog id="userDlg" aria-labelledby="userDlgTitle">
+  <form method="dialog" id="userForm" novalidate>
+    <div class="dlg-body">
+      <h2 id="userDlgTitle">Felhasználó meghívása</h2>
+      <p id="userDlgDesc">A meghívott e-mailben kap linket a jelszó beállításához. A link 7 napig érvényes.</p>
+      <div class="field"><label for="u-name">Név</label><input class="input" id="u-name" autocomplete="off" required data-msg="Adja meg a nevet."></div>
+      <div class="field"><label for="u-email">E-mail-cím</label><input class="input" id="u-email" type="email" autocomplete="off" required data-msg="Adjon meg érvényes e-mail-címet."></div>
+      <div class="field"><label for="u-client">Ügyfél</label><select class="select" id="u-client"></select></div>
+      <fieldset class="field-set"><legend class="label">Szerepkör</legend><div class="role-choices" id="u-roles"></div></fieldset>
+      <p class="error" id="userErr" hidden></p>
+    </div>
+    <div class="dlg-foot"><button class="btn btn-secondary" type="button" id="userCancel">Mégse</button><button class="btn btn-primary" type="submit" id="userSubmit">Meghívó küldése</button></div>
+  </form>
+</dialog>
 
 <dialog id="dlg" aria-labelledby="dlgTitle" aria-describedby="dlgDesc">
   <div class="dlg-body"><h2 id="dlgTitle"></h2><p id="dlgDesc"></p><div class="field" id="dlgField" hidden><label for="dlgInput" id="dlgLabel"></label><input class="input" id="dlgInput" type="text" autocomplete="off"></div></div>
@@ -1316,7 +1542,6 @@ function DataTable(cfg){
     render,
     setPred(fn){ st.pred = fn; st.page = 1; render(); },
     load(ms = 700){ st.loading = true; render(); setTimeout(() => { st.loading = false; render(); }, ms); },
-    setLoading(on){ st.loading = !!on; render(); },
     clearSel(){ st.sel.clear(); render(); },
     get selected(){ return [...st.sel]; },
     toggle(id, on){ on ? st.sel.add(id) : st.sel.delete(id); render(); },
@@ -1325,15 +1550,77 @@ function DataTable(cfg){
   };
 }
 
+/* Közös sorművelet-menü */
+const rowMenu = $('#rowMenu'); let rmCtx = null;
+const ROW_ITEMS = [ { k:'open', l:'Megnyitás', i:'chev-right' }, { k:'dup', l:'Duplikálás', i:'dup' }, { k:'archive', l:'Archiválás', i:'archive' }, { k:'delete', l:'Törlés…', i:'trash', danger:true, sep:true } ];
+function openRowMenu(btn, row, handlers, items = ROW_ITEMS){
+  closeAll();
+  rowMenu.innerHTML = items.map(it => (it.sep ? '<hr role="separator">' : '') + `<button role="menuitem" type="button" data-ract="${it.k}"${it.danger ? ' class="danger"' : ''}>${ic(it.i)}${esc(it.l)}</button>`).join('');
+  rowMenu.hidden = false;
+  const r = btn.getBoundingClientRect(), w = rowMenu.offsetWidth, h = rowMenu.offsetHeight;
+  let top = r.bottom + 6; if (top + h > innerHeight - 8) top = r.top - h - 6;
+  rowMenu.style.top = Math.max(8, top) + 'px'; rowMenu.style.left = Math.max(8, r.right - w) + 'px';
+  btn.setAttribute('aria-expanded','true');
+  const api = { close(ret = true){ rowMenu.hidden = true; btn.setAttribute('aria-expanded','false'); openPops.delete(api); rmCtx = null; if (ret && btn.isConnected) btn.focus(); } };
+  rmCtx = { row, handlers, api }; openPops.add(api);
+  $('[role=menuitem]', rowMenu).focus();
+}
+rowMenu.addEventListener('click', e => { e.stopPropagation(); const b = e.target.closest('[data-ract]'); if (!b || !rmCtx) return; const { row, handlers, api } = rmCtx; api.close(false); handlers[b.dataset.ract](row); });
+rowMenu.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && rmCtx) rmCtx.api.close();
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); const it = $$('[role=menuitem]', rowMenu), i = it.indexOf(document.activeElement); it[(i + (e.key === 'ArrowDown' ? 1 : -1) + it.length) % it.length].focus(); }
+});
+window.addEventListener('scroll', () => { if (rmCtx) rmCtx.api.close(false); }, { passive:true });
+
 
 
 /* ==================================================================
-   10. MINTAADAT (prototípus; az éles rendszerben a havi futás tölti)
+   10. MINTAADAT (prototípus; élesben az adatbázisból, ügyfelenként)
    ================================================================== */
-const USERS = {
-  ugyfel:{ email:'attila@pelda.hu', name:'Berényi Attila', short:'Attila', ini:'BA', role:'Ügyfél · Xperion' },
-  linkedin:{ email:'emi@pelda.hu', name:'Emi', short:'Emi', ini:'E', role:'LinkedIn-kezelő · Xperion' },
-  uzemelteto:{ email:'balazs@pelda.hu', name:'Balázs', short:'Balázs', ini:'B', role:'Üzemeltető · Auris Dynamics' }
+const sparkline = (vals, color) => {
+  const v = vals.map(x => x ?? 0), mx = Math.max(1, ...v), n = v.length - 1 || 1;
+  const pts = v.map((x, i) => `${(i / n * 100).toFixed(1)},${(28 - x / mx * 24).toFixed(1)}`).join(' ');
+  return `<svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>`;
+};
+const ROLES = {
+  uzemelteto:{ label:'Üzemeltető', desc:'Minden ügyfél: futások, havi e-mail, ügyfelek és felhasználók kezelése', cls:'b-ai', icon:'key' },
+  ugyfeladmin:{ label:'Ügyfél-adminisztrátor', desc:'Dönt a cikkekről, jóváhagyja a posztokat, meghívja a saját munkatársait', cls:'b-info', icon:'user' },
+  tartalom:{ label:'Tartalomkezelő', desc:'Posztötletek és -szabályok, posztok közzététele a LinkedInen', cls:'b-success', icon:'edit' },
+  olvaso:{ label:'Olvasó', desc:'Mindent lát az ügyfélnél, de nem módosít', cls:'b-neutral', icon:'eye' }
+};
+const PERMS = [
+  ['decide','Döntés a havi cikkekről (Mehet / LinkedIn poszt)'], ['approve','Poszt jóváhagyása, módosítás kérése'], ['ideas','Posztötletek kezelése, küldés generálásra'],
+  ['rules','Posztszabályok szerkesztése'], ['publish','Poszt megjelentnek jelölése'], ['deletePost','Poszt törlése'], ['users','Felhasználók meghívása (saját ügyfél)'], ['ops','Futások, havi e-mail, ügyfelek, napló']
+];
+const GRANT = {
+  uzemelteto:['decide','approve','ideas','rules','publish','deletePost','users','ops','send'],
+  ugyfeladmin:['decide','approve','ideas','rules','deletePost','users'],
+  tartalom:['ideas','rules','publish'],
+  olvaso:[]
+};
+const CLIENTS = [
+  { id:'xperion', name:'Xperion', status:'Aktív', users:3, site:'xperion.hu', source:'Google Sheet (átköltözik)', run:'minden hó 1., 06:00', last:'2026. 11. 01. 06:04' },
+  { id:'next', name:'[Következő ügyfél]', status:'Beállítás alatt', users:0, site:'–', source:'–', run:'–', last:'–' }
+];
+const USERS = [
+  { id:'attila', name:'Berényi Attila', email:'attila@pelda.hu', ini:'BA', client:'xperion', role:'ugyfeladmin', status:'Aktív', last:'2026. 11. 02. 11:40' },
+  { id:'emi', name:'Emi', email:'emi@pelda.hu', ini:'E', client:'xperion', role:'tartalom', status:'Aktív', last:'2026. 11. 01. 15:12' },
+  { id:'balazs', name:'Balázs', email:'balazs@pelda.hu', ini:'B', client:'*', role:'uzemelteto', status:'Aktív', last:'2026. 11. 02. 14:05' },
+  { id:'u4', name:'[Xperion munkatárs]', email:'munkatars@pelda.hu', ini:'XM', client:'xperion', role:'olvaso', status:'Meghívva', last:'–' }
+];
+let me = USERS[0];
+const role = () => me.role;
+const can = p => GRANT[role()].includes(p);
+const clientName = id => id === '*' ? 'Minden ügyfél' : (CLIENTS.find(c => c.id === id)?.name || id);
+
+const PERIODS = ['2610','2609','2608','2607','2606','2605'];
+const MLABEL = { '2610':'2026. október', '2609':'2026. szeptember', '2608':'2026. augusztus', '2607':'2026. július', '2606':'2026. június', '2605':'2026. május' };
+const PAST = {
+  '2609':{ n:26, strong:6, up:9, li:2, todo:0, dec:{ mehet:9, li:2, none:9, no:6 }, src:{ 'Vemco Group':14, 'Qmatic':6, 'Wavetec':3, 'Q-nomy':3 }, top:'Vemco Group (14 db)', theme:'bankfiókok, időpontfoglalás', text:'Szeptemberben a Vemco Group publikált a legtöbbet, főként banki esettanulmányokat. Az időpontfoglalás és a virtuális sorban állás volt a visszatérő téma.' },
+  '2608':{ n:19, strong:4, up:7, li:1, todo:0, dec:{ mehet:7, li:1, none:7, no:4 }, src:{ 'Vemco Group':8, 'Qmatic':6, 'Wavetec':3, 'Q-nomy':2 }, top:'Vemco Group (8 db)', theme:'egészségügy, kioszkok', text:'Augusztusban kevesebb cikk jelent meg; az egészségügyi betegirányítás és az önkiszolgáló kioszkok domináltak.' },
+  '2607':{ n:21, strong:5, up:8, li:2, todo:0, dec:{ mehet:8, li:2, none:7, no:4 }, src:{ 'Vemco Group':9, 'Qmatic':7, 'Wavetec':3, 'Q-nomy':2 }, top:'Vemco Group (9 db)', theme:'mérés, riportálás', text:'Júliusban a szolgáltatási mutatók mérése és a riportálás volt a fő téma.' },
+  '2606':{ n:17, strong:3, up:6, li:1, todo:0, dec:{ mehet:6, li:1, none:6, no:4 }, src:{ 'Vemco Group':7, 'Qmatic':6, 'Wavetec':2, 'Q-nomy':2 }, top:'Vemco Group (7 db)', theme:'közszféra', text:'Júniusban a közszféra digitalizációja és az ügyfélút-térképezés volt hangsúlyos.' },
+  '2605':{ n:15, strong:3, up:5, li:1, todo:0, dec:{ mehet:5, li:1, none:6, no:3 }, src:{ 'Vemco Group':6, 'Qmatic':5, 'Wavetec':2, 'Q-nomy':2 }, top:'Vemco Group (6 db)', theme:'önkiszolgálás', text:'Májusban az önkiszolgálás és a kioszkos bejelentkezés volt a fő téma.' }
 };
 const A = (no, src, d, title, desc, rec, why, extra = {}) => ({ id:'a' + no, no, src, date:new Date(2026, 9, d), title, desc, rec, why, dec:'', up:'', post:'', trial:false, ...extra });
 const ARTICLES = [
@@ -1357,115 +1644,146 @@ const ARTICLES = [
   A(18,'Wavetec',28,'Queue analytics dashboards: a buyer’s guide','Vásárlói útmutató sorkezelési elemző felületekhez.','Javasolt','Döntéshozói tartalom, de reklámízű.')
 ];
 const POSTS = [
-  { id:'LI-2610-01', month:'2610', status:'Ügyfélnél', topic:'Várakozás és elégedettség', origin:'2 cikk: Qmatic-riport, Vemco-útmutató', srcLink:'https://www.qmatic.com/blog/', updated:'2026. 11. 02. 09:00',
-    opens:['Minden 5 perc várakozás érezhetően rontja az ügyfél elégedettségét. Ez nem érzés, hanem mérés.','Mennyibe kerül egy ügyfélnek 5 perc a sorban? A friss adatok szerint többe, mint gondolnánk.','A várakozási idő nem csak üzemeltetési adat. Az ügyfélélmény egyik legerősebb előrejelzője.'],
-    open:0,
+  { id:'LI-2610-01', month:'2610', status:'Ügyfélnél', topic:'Várakozás és elégedettség', origin:'2 cikk: Qmatic-riport, Vemco-útmutató', idea:'', srcLink:'https://www.qmatic.com/blog/', note:'', updated:'2026. 11. 02. 09:00',
+    opens:['Minden 5 perc várakozás érezhetően rontja az ügyfél elégedettségét. Ez nem érzés, hanem mérés.','Mennyibe kerül egy ügyfélnek 5 perc a sorban? A friss adatok szerint többe, mint gondolnánk.','A várakozási idő nem csak üzemeltetési adat. Az ügyfélélmény egyik legerősebb előrejelzője.'], open:0,
     ctx:'A Qmatic októberi kutatása több ezer ügyfélinterakciót vizsgált bankfiókokban és egészségügyi intézményekben. A Vemco Group új útmutatója pedig azt mutatja meg, hogyan lehet a betegutat úgy szervezni, hogy a várakozás mérhetően rövidüljön.',
     high:'• A várakozás minden 5 perce csökkenti az elégedettséget.\n• Az előjegyzés és a sorkezelés összehangolása a leggyorsabb javítás.\n• Ami nincs mérve, azt nem lehet javítani.',
     view:'Az Xperionnál azt látjuk, hogy a hazai ügyfeleinknél is az első lépés a mérés: a valós várakozási idő gyakran eltér attól, amit a fiókban érzékelnek.',
-    close:'Ön tudja, mennyi a valós várakozási idő az ügyfélszolgálatán?',
-    tags:'#ügyfélélmény #sorkezelés #ügyfélút #xperion',
+    close:'Ön tudja, mennyi a valós várakozási idő az ügyfélszolgálatán?', tags:'#ügyfélélmény #sorkezelés #ügyfélút #xperion',
     img:{ title:'5 perc várakozás', sub:'ennyi kell, hogy romoljon az ügyfél elégedettsége', ex:['becsült várakozás: 4 perc','mért várakozás: 11 perc'] },
     tl:[{ when:'2026. 11. 02. 09:00', t:'Elküldve Attilának jóváhagyásra', who:'Balázs', st:'info' }, { when:'2026. 11. 01. 07:00', t:'A rendszer elkészítette 2 cikkből', who:'óránkénti futás', st:'ok' }] },
-  { id:'LI-2610-02', month:'2610', status:'Tervezet', topic:'Ügyfélélmény-konferencia', origin:'Posztötlet: PO-2610-01 (Emi)', srcLink:'', updated:'2026. 11. 01. 14:00',
-    opens:['Két nap, 400 szakember, egy kérdés: hogyan lesz rövidebb a sor?','Ott voltunk a budapesti ügyfélélmény-konferencián. Ezt hoztuk haza.','Mit tanultunk a hazai ügyfélszolgálati vezetőktől két nap alatt?'],
-    open:1,
+  { id:'LI-2610-02', month:'2610', status:'Tervezet', topic:'Ügyfélélmény-konferencia', origin:'Posztötlet: PO-2610-01 (Emi)', idea:'PO-2610-01', srcLink:'', note:'', updated:'2026. 11. 01. 14:00',
+    opens:['Két nap, 400 szakember, egy kérdés: hogyan lesz rövidebb a sor?','Ott voltunk a budapesti ügyfélélmény-konferencián. Ezt hoztuk haza.','Mit tanultunk a hazai ügyfélszolgálati vezetőktől két nap alatt?'], open:1,
     ctx:'Csapatunk részt vett a budapesti ügyfélélmény-konferencián, ahol bankok, közműszolgáltatók és egészségügyi intézmények vezetői osztották meg tapasztalataikat.',
     high:'• A legtöbb előadás a mérésről szólt, nem a technológiáról.\n• Az önkiszolgálás ott működik, ahol egyszerű marad.',
-    view:'Örültünk, hogy ügyfeleink közül többen is színpadra léptek a saját eredményeikkel.',
-    close:'Ön is ott volt? Írja meg, melyik előadás tetszett a legjobban!',
-    tags:'#rendezvény #ügyfélélmény #xperion',
+    view:'Örültünk, hogy ügyfeleink közül többen is színpadra léptek a saját eredményeikkel.', close:'Ön is ott volt? Írja meg, melyik előadás tetszett a legjobban!', tags:'#rendezvény #ügyfélélmény #xperion',
     img:{ title:'Ügyfélélmény-konferencia', sub:'Budapest, 2026. október', ex:null },
     tl:[{ when:'2026. 11. 01. 14:00', t:'A rendszer elkészítette Emi ötletéből', who:'óránkénti futás', st:'ok' }] },
-  { id:'LI-2609-01', month:'2609', status:'Megjelent', topic:'Önkiszolgálás a bankfiókban', origin:'1 cikk: Vemco Group', srcLink:'https://www.vemcogroup.com/', updated:'2026. 10. 08. 10:00',
+  { id:'LI-2609-01', month:'2609', status:'Megjelent', topic:'Önkiszolgálás a bankfiókban', origin:'1 cikk: Vemco Group', idea:'', srcLink:'https://www.vemcogroup.com/', note:'Kézzel készült minta', updated:'2026. 10. 08. 10:00',
     opens:['A sorszám már nem papír. De mitől lesz jobb a fiókban töltött idő?','',''], open:0,
-    ctx:'A Vemco Group szeptemberi esettanulmánya egy közép-európai bank fiókhálózatát mutatja be.',
-    high:'• Egyszerűbb belépés, kevesebb sorban állás.\n• A tanácsadók több időt töltenek az ügyféllel.',
-    view:'Az Xperion hazai bankfiókos projektjeiben hasonló eredményeket mértünk.',
-    close:'Hogyan változott az ügyfélút az Ön fiókjaiban az elmúlt egy évben?',
-    tags:'#bank #ügyfélélmény #xperion',
+    ctx:'A Vemco Group szeptemberi esettanulmánya egy közép-európai bank fiókhálózatát mutatja be.', high:'• Egyszerűbb belépés, kevesebb sorban állás.\n• A tanácsadók több időt töltenek az ügyféllel.',
+    view:'Az Xperion hazai bankfiókos projektjeiben hasonló eredményeket mértünk.', close:'Hogyan változott az ügyfélút az Ön fiókjaiban az elmúlt egy évben?', tags:'#bank #ügyfélélmény #xperion',
     img:{ title:'Bankfiók 2026', sub:'önkiszolgálás és tanácsadás', ex:['várakozás 2025: 14 perc','várakozás 2026: 6 perc'] },
     tl:[{ when:'2026. 10. 08. 10:00', t:'Megjelent a LinkedInen', who:'Emi', st:'ok' }, { when:'2026. 10. 03. 16:20', t:'Jóváhagyva', who:'Attila', st:'ok' }] }
 ];
 const IDEAS = [
-  { id:'PO-2610-01', from:'Emi', topic:'Ügyfélélmény-konferencia, Budapest', type:'rendezvény', week:'2026. 11. 09–15. (46. hét)', status:'Elkészült', post:'LI-2610-02' },
-  { id:'PO-2610-02', from:'Berényi Attila', topic:'Az év beszállítója díj a partnerünktől', type:'díj', week:'2026. 11. 16–22. (47. hét)', status:'Új', post:'' }
+  { id:'PO-2610-01', from:'Emi', topic:'Ügyfélélmény-konferencia, Budapest', msg:'Ott voltunk a konferencián; a mérés volt a fő téma. Két ügyfelünk is előadott.', link:'', type:'rendezvény', week:'2026. 11. 09–15. (46. hét)', status:'Elkészült', preview:'/posztok/LI-2610-02', post:'LI-2610-02', note:'' },
+  { id:'PO-2610-02', from:'Berényi Attila', topic:'Az év beszállítója díj a partnerünktől', msg:'Partnerünk az év beszállítójának választott minket. Köszönet a csapatnak.', link:'https://', type:'díj', week:'2026. 11. 16–22. (47. hét)', status:'Új', preview:'', post:'', note:'Fotó később érkezik' }
 ];
 const RULES = [
-  ['Hangnem','szakértő, közvetlen, többes szám első személy („mi az Xperionnál”); nincs túlzó jelző','a teljes poszt stílusa'],
-  ['Szerkezet','nyitó sor (kérdés vagy meglepő adat) → kontextus → 2–3 kiemelés → Xperion-szemszög → kérdés zárásként','sorrend, blokkok'],
-  ['Hossz','800–1300 karakter; a nyitó sor legfeljebb 140 karakter','a „…több” előtt csak a nyitó sor látszik'],
-  ['Hashtagek','3–5 db, mindig: #xperion; témánként: #ügyfélélmény #sorkezelés #ügyfélút','a poszt végén'],
-  ['Poszttípusok','szakmai (cikkekből), rendezvény, díj, partner, csapat','az ötletek típusai'],
-  ['Kerülendők','versenytárs dicsérete, árak, ügyfél neve engedély nélkül, emoji a szöveg közepén','soha'],
-  ['Kép','1200×1200, sötétkék háttér, logószínek; rövid cím, alcím; számpéldánál „Illusztratív példa” címke','a kép sablonja']
+  { name:'Hangnem', value:'szakértő, közvetlen, többes szám első személy („mi az Xperionnál”); nincs túlzó jelző', hint:'a teljes poszt stílusa' },
+  { name:'Szerkezet', value:'nyitó sor (kérdés vagy meglepő adat) → kontextus → 2–3 kiemelés → Xperion-szemszög → kérdés zárásként', hint:'sorrend, blokkok' },
+  { name:'Hossz', value:'800–1300 karakter; a nyitó sor legfeljebb 140 karakter', hint:'a „…több” előtt csak a nyitó sor látszik' },
+  { name:'Hashtagek', value:'3–5 db, mindig: #xperion; témánként: #ügyfélélmény #sorkezelés #ügyfélút', hint:'a poszt végén' },
+  { name:'Poszttípusok', value:'szakmai (cikkekből), rendezvény, díj, partner, csapat', hint:'az ötletek típusai' },
+  { name:'Kerülendők', value:'versenytárs dicsérete, árak, ügyfél neve engedély nélkül, emoji a szöveg közepén', hint:'soha' },
+  { name:'Kép', value:'1200×1200, sötétkék háttér, logószínek; rövid cím, alcím; számpéldánál „Illusztratív példa” címke', hint:'a kép sablonja' }
 ];
 const LOG = [
-  ['2026. 11. 02. 14:00','Óránkénti futás','Rendszer','OK','2 cikk feltöltve (HU, EN)'],
-  ['2026. 11. 02. 11:42','Döntés: 3 cikk → Mehet','Berényi Attila','OK','2610 / 1., 8., 12. sor'],
-  ['2026. 11. 02. 09:00','Poszt ügyfélnek küldve','Balázs','OK','LI-2610-01'],
-  ['2026. 11. 01. 14:00','Óránkénti futás','Rendszer','OK','1 poszt ötletből: LI-2610-02'],
-  ['2026. 11. 01. 07:00','Óránkénti futás','Rendszer','OK','1 poszt cikkekből: LI-2610-01'],
-  ['2026. 11. 01. 06:04','Havi futás','Rendszer','OK','2610: 18 cikk, összefoglaló, e-mail-szöveg'],
-  ['2026. 11. 01. 06:02','Gyűjtés: Wavetec listaoldal','Rendszer','Hiba','A listaoldal 2 cikkénél nincs dátum; a cikkoldalról olvasva'],
-  ['2026. 10. 21. 10:12','Posztszabályok módosítva','Emi','OK','Hashtagek']
-];
-const CAN = { decide:['ugyfel','uzemelteto'], approve:['ugyfel','uzemelteto'], publish:['linkedin','uzemelteto'], send:['uzemelteto'] };
-let role = 'ugyfel';
-const can = k => CAN[k].includes(role);
+  ['2026. 11. 02. 14:00','Óránkénti futás','Rendszer','ok','2 cikk feltöltve (HU, EN)'],
+  ['2026. 11. 02. 11:42','Döntés: 3 cikk → Mehet','Berényi Attila','ok','2610 / 1., 8., 12. sor'],
+  ['2026. 11. 02. 09:00','Poszt ügyfélnek küldve','Balázs','ok','LI-2610-01'],
+  ['2026. 11. 01. 14:00','Óránkénti futás','Rendszer','ok','1 poszt ötletből: LI-2610-02'],
+  ['2026. 11. 01. 07:00','Óránkénti futás','Rendszer','ok','1 poszt cikkekből: LI-2610-01'],
+  ['2026. 11. 01. 06:04','Havi futás','Rendszer','ok','2610: 18 cikk, összefoglaló, e-mail-szöveg'],
+  ['2026. 11. 01. 06:02','Gyűjtés: Wavetec listaoldal','Rendszer','warn','2 cikknél nincs dátum a listaoldalon; a cikkoldalról olvasva'],
+  ['2026. 10. 21. 10:12','Posztszabályok módosítva','Emi','ok','Hashtagek']
+].map((r, i) => ({ id:'l' + i, i:-i, when:r[0], what:r[1], who:r[2], res:r[3], det:r[4] }));
+let logSeq = 0;
+const stamp = () => '2026. 11. 02. ' + now();
+function logEvent(what, det){ LOG.unshift({ id:'n' + (++logSeq), i:logSeq, when:stamp(), what, who:me.name, res:'ok', det }); if (currentView === 'naplo') logTable.render(); }
 
 /* ==================================================================
-   11. ÁTTEKINTÉS
+   11. ÁTTEKINTÉS: időszak, teendő-widgetek, KPI-k, összefoglaló
    ================================================================== */
+let period = '2610';
 const todoCount = () => ARTICLES.filter(a => !a.dec && a.up !== 'ok' && !a.rec.startsWith('Nem')).length;
-function renderOverview(){
-  const u = USERS[role];
-  $('#hello').textContent = u.short;
-  const n = ARTICLES.length, strong = ARTICLES.filter(a => a.rec === 'Erősen javasolt').length, up = ARTICLES.filter(a => a.up === 'ok' || a.dec === 'Mehet').length, li = ARTICLES.filter(a => a.dec === 'LinkedIn poszt').length;
-  const k = (label, v, unit = '') => `<div class="kpi"><span class="k">${label}</span><span class="v">${v}${unit ? `<small>${unit}</small>` : ''}</span></div>`;
-  $('#kpis').innerHTML = k('Cikkek a hónapban', n, 'db') + k('Erősen javasolt', strong, 'db') + k('Döntésre vár', todoCount(), 'db') + k('Mehet / feltöltve', up, 'db') + k('LinkedIn poszt jelölés', li, 'db');
-  const bySrc = {}; ARTICLES.forEach(a => bySrc[a.src] = (bySrc[a.src] || 0) + 1);
-  const top = Object.entries(bySrc).sort((a,b) => b[1]-a[1]);
-  $('#sumKv').innerHTML = [['Cikkek száma', n], ['Legtöbb cikk', `${top[0][0]} (${top[0][1]} db)`], ['Erősen javasolt', `${strong} db`], ['Új forrás (próbaidőszak)', 'Acrelec (3 db)'], ['Fő téma', 'önkiszolgálás, mérhető ügyfélút']].map(([a,b]) => `<div><dt>${a}</dt><dd>${esc(b)}</dd></div>`).join('');
-  const max = top[0][1];
-  $('#srcBars').innerHTML = top.map(([s, c]) => `<li><span>${esc(s)}</span><span class="track"><span style="width:${c / max * 100}%"></span></span><b>${c} db</b></li>`).join('');
-  const T = (href, icon, t, sub) => `<li><a href="${href}"><span class="ti">${ic(icon)}</span><span class="t">${t}<small>${sub}</small></span>${ic('chev-right','icon icon-sm chev')}</a></li>`;
-  const p1 = POSTS[0], items = [];
-  if (can('decide') && todoCount()) items.push(T('#cikkek','list', `${todoCount()} cikk vár döntésre`, 'Mehet vagy LinkedIn poszt'));
-  if (can('approve') && p1.status === 'Ügyfélnél') items.push(T('#poszt','image', `${p1.id} jóváhagyásra vár`, p1.topic));
-  if (role === 'linkedin'){
-    const ok = POSTS.filter(p => p.status === 'Jóváhagyva');
-    items.push(ok.length ? T('#posztok','send', `${ok.length} jóváhagyott poszt közzétehető`, ok.map(p => p.id).join(', ')) : T('#posztok','clock', 'Nincs közzétehető poszt', `${p1.id} Attilánál van jóváhagyáson`));
-  }
-  if (can('send') && mailState === 'wait') items.push(T('#vezerlo','send', 'A havi e-mail jóváhagyásra vár', 'Sajtófigyelés – 2026. október'));
-  items.push(T('#otletek','bulb', 'Van egy posztötlete?', 'Küldje be, a rendszer posztot készít belőle'));
-  $('#todoList').innerHTML = items.join('');
-  $('#attCta').hidden = !can('decide');
+function stats(m){
+  if (m !== '2610') return PAST[m];
+  const src = {}; ARTICLES.forEach(a => src[a.src] = (src[a.src] || 0) + 1);
+  const top = Object.entries(src).sort((a, b) => b[1] - a[1])[0];
+  return { n:ARTICLES.length, strong:ARTICLES.filter(a => a.rec === 'Erősen javasolt').length, up:ARTICLES.filter(a => a.dec === 'Mehet').length, li:POSTS.filter(p => p.month === '2610').length, todo:todoCount(),
+    dec:{ mehet:ARTICLES.filter(a => a.dec === 'Mehet').length, li:ARTICLES.filter(a => a.dec === 'LinkedIn poszt').length, none:todoCount(), no:ARTICLES.filter(a => !a.dec && a.rec.startsWith('Nem')).length },
+    src, top:`${top[0]} (${top[1]} db)`, theme:'önkiszolgálás, mérhető ügyfélút',
+    text:'Októberben a sorkezelési piac szereplői főként az önkiszolgáló bejelentkezésről és az ügyfélút mérhetőségéről publikáltak. A Vemco Group két esettanulmánya (bank és egészségügy) közvetlenül illeszkedik az Xperion hazai referenciáihoz. Az új, próbaidőszakos forrás (Acrelec) három cikket adott, ebből kettő javasolt.' };
 }
+function fillMonthSelect(sel, list = PERIODS){ sel.innerHTML = list.map(m => `<option value="${m}">${MLABEL[m]}</option>`).join(''); }
+const TW = (tone, icon, title, n, sub, href, cta) => `<section class="card todo-w tw-${tone}" aria-label="${esc(title)}"><div class="tw-head"><span class="tw-ic">${ic(icon,'icon')}</span><div><h3>${esc(title)}</h3>${n !== null ? `<div class="tw-n">${n}</div>` : ''}</div></div><p>${sub}</p><a class="btn btn-secondary sm" href="${href}">${esc(cta)}${ic('chev-right')}</a></section>`;
+function renderTodos(){
+  const items = [], byS = s => POSTS.filter(p => p.status === s);
+  if (can('decide') && todoCount()) items.push(TW('warn','list','Cikk vár döntésre', todoCount(), 'Októberi lista · Mehet vagy LinkedIn poszt', '#cikkek', 'Döntések'));
+  if (can('approve') && byS('Ügyfélnél').length) items.push(`<section class="card todo-w tw-li" aria-label="LinkedIn-poszt jóváhagyásra vár"><div class="tw-head"><span class="tw-ic">${ic('linkedin','icon')}</span><div><h3>LinkedIn-poszt jóváhagyásra vár</h3><div class="tw-n">${byS('Ügyfélnél').length}</div></div></div><p>${byS('Ügyfélnél').map(p => esc(p.id + ' · ' + p.topic)).join('<br>')}</p><a class="btn btn-secondary sm" href="#poszt" data-post="${byS('Ügyfélnél')[0].id}">Jóváhagyás${ic('chev-right')}</a></section>`);
+  if (can('publish') && byS('Jóváhagyva').length) items.push(`<section class="card todo-w tw-li" aria-label="Közzétehető LinkedIn-poszt"><div class="tw-head"><span class="tw-ic">${ic('linkedin','icon')}</span><div><h3>Közzétehető a LinkedInen</h3><div class="tw-n">${byS('Jóváhagyva').length}</div></div></div><p>Másolja ki a szöveget és a képet, és időzítse a LinkedIn ütemezőjével.</p><a class="btn btn-secondary sm" href="#poszt" data-post="${byS('Jóváhagyva')[0].id}">Megnyitás${ic('chev-right')}</a></section>`);
+  if (can('ops') && byS('Tervezet').length) items.push(`<section class="card todo-w tw-li" aria-label="LinkedIn-tervezet"><div class="tw-head"><span class="tw-ic">${ic('linkedin','icon')}</span><div><h3>LinkedIn-tervezet, ügyfélnek küldhető</h3><div class="tw-n">${byS('Tervezet').length}</div></div></div><p>${byS('Tervezet').map(p => esc(p.id + ' · ' + p.topic)).join('<br>')}</p><a class="btn btn-secondary sm" href="#poszt" data-post="${byS('Tervezet')[0].id}">Átnézés${ic('chev-right')}</a></section>`);
+  const newIdeas = IDEAS.filter(i => i.status === 'Új').length;
+  if (can('ideas') && newIdeas) items.push(TW('ai','sparkle','Posztötlet generálásra vár', newIdeas, 'Küldje posztgenerálásra, vagy egészítse ki', '#otletek', 'Ötletek'));
+  const pend = ARTICLES.filter(a => a.dec === 'Mehet' && a.up !== 'ok').length;
+  if (pend) items.push(TW('info','upload','Feltöltésre vár (15:00)', pend, 'Az óránkénti futás élesben feltölti magyarul és angolul', '#cikkek', 'Megtekintés'));
+  if (can('ops') && mails['2610']?.state === 'wait') items.push(TW('info','send','Havi e-mail jóváhagyásra vár', null, 'Sajtófigyelés – 2026. október', '#vezerlo', 'Jóváhagyás'));
+  if (!items.length) items.push(TW('ok','check','Nincs teendő', null, 'Minden döntés és jóváhagyás kész. Köszönjük!', '#posztok', 'Posztok'));
+  $('#todoGrid').innerHTML = items.join('');
+  $('#todoMeta').textContent = `· most, 2026. 11. 02. · ${items.length} tétel`;
+}
+const KPIS = [
+  { k:'n', label:'Cikkek a hónapban', good:'up' }, { k:'strong', label:'Erősen javasolt', good:'up' },
+  { k:'todo', label:'Döntésre vár', good:'down' }, { k:'up', label:'Feltöltve (Mehet)', good:'up' }, { k:'li', label:'LinkedIn-posztok', good:'up' }
+];
+function renderKpis(){
+  const idx = PERIODS.indexOf(period), prevM = PERIODS[idx + 1], cur = stats(period), prev = prevM ? stats(prevM) : null;
+  const series = PERIODS.slice(idx, idx + 6).reverse();
+  $('#kpis').innerHTML = KPIS.map(K => {
+    const c = cur[K.k], p = prev ? prev[K.k] : null; let delta;
+    if (p === null) delta = '<span class="delta flat">Nincs összehasonlító adat</span>';
+    else if (c === p) delta = '<span class="delta flat">Változatlan az előző hónaphoz</span>';
+    else { const up = c > p, good = up === (K.good === 'up'), d = c - p; delta = `<span class="delta ${good ? 'good' : 'bad'}"><span class="nw">${ic(up ? 'arrow-up' : 'arrow-down')}${up ? '+' : '−'}${Math.abs(d)} db</span><span style="font-weight:400">az előző hónaphoz</span></span>`; }
+    return `<div class="card kpi"><span class="k">${K.label}</span><span class="v">${c}</span>${delta}${sparkline(series.map(m => stats(m)[K.k]), 'var(--data-1)')}<span class="per">${MLABEL[period]}</span></div>`;
+  }).join('');
+}
+let srcView = 'chart';
+function renderOverview(){
+  const s = stats(period), lbl = MLABEL[period];
+  $('#attSub').textContent = `${clientName('xperion')} · ${lbl}`;
+  renderTodos(); renderKpis();
+  $('#sumMeta').textContent = `${lbl} · a havi futás készítette`;
+  $('#sumKv').innerHTML = [['Cikkek száma', s.n + ' db'], ['Legtöbb cikk', s.top], ['Erősen javasolt', s.strong + ' db'], ['Fő téma', s.theme]].map(([a, b]) => `<div><dt>${a}</dt><dd>${esc(b)}</dd></div>`).join('');
+  $('#sumText').textContent = s.text;
+  const D = [['Mehet', s.dec.mehet, 'var(--data-3)'], ['LinkedIn poszt', s.dec.li, 'var(--data-1)'], ['Nincs döntés', s.dec.none, 'var(--data-4)'], ['Nem javasolt', s.dec.no, 'var(--data-7)']], tot = D.reduce((a, d) => a + d[1], 0) || 1;
+  $('#decMeta').textContent = `${lbl} · ${s.n} cikk`;
+  $('#decBar').setAttribute('aria-label', D.map(d => `${d[0]}: ${d[1]} db`).join(', '));
+  $('#decBar').innerHTML = D.filter(d => d[1]).map(d => `<span style="width:${d[1] / tot * 100}%;background:${d[2]}"></span>`).join('');
+  $('#decLegend').innerHTML = D.map(d => `<li><span class="sw" style="background:${d[2]}"></span>${d[0]}<b>${d[1]} db</b><span class="meta">${Math.round(d[1] / tot * 100)}%</span></li>`).join('');
+  const top = Object.entries(s.src).sort((a, b) => b[1] - a[1]), max = top[0][1];
+  $('#srcMeta').textContent = `${lbl} · a duplikátumok és a kizárt témák nélkül`;
+  $('#srcBars').innerHTML = top.map(([n, c]) => `<li><span>${esc(n)}</span><span class="track"><span style="width:${c / max * 100}%"></span></span><b>${c} db</b></li>`).join('');
+  $('#srcTable').innerHTML = `<table><caption class="sr-only">Cikkek forrásonként</caption><thead><tr><th scope="col">Forrás</th><th scope="col" class="num">Cikkek</th><th scope="col" class="num">Arány</th></tr></thead><tbody>${top.map(([n, c]) => `<tr><td>${esc(n)}</td><td class="num">${c} db</td><td class="num">${Math.round(c / s.n * 100)}%</td></tr>`).join('')}</tbody></table>`;
+  $('#srcBars').hidden = srcView !== 'chart'; $('#srcTable').hidden = srcView !== 'table';
+}
+fillMonthSelect($('#period'));
+$('#period').addEventListener('change', e => { period = e.target.value; $('#monthSel').value = period; renderOverview(); artPred(); announce(`Időszak: ${MLABEL[period]}`); });
+$('#attRefresh').addEventListener('click', () => { const b = $('#attRefresh'); b.setAttribute('aria-busy','true'); setTimeout(() => { b.removeAttribute('aria-busy'); $('#attSync').textContent = 'Utoljára frissítve: 2026. 11. 02. ' + now(); renderOverview(); toast('Frissítve.'); }, 600); });
+$$('#v-attekintes [data-sv]').forEach(b => b.addEventListener('click', () => { srcView = b.dataset.sv; $$('#v-attekintes [data-sv]').forEach(x => x.setAttribute('aria-pressed', x === b)); renderOverview(); }));
 
 /* ==================================================================
    12. HAVI CIKKEK: döntések soronként és tömegesen
    ================================================================== */
 const REC = {
-  'Erősen javasolt':{ label:'Erősen javasolt', cls:'b-success', icon:'arrow-up' },
-  'Javasolt':{ label:'Javasolt', cls:'b-info', icon:'check' },
-  'Nem javasolt':{ label:'Nem javasolt', cls:'b-neutral', icon:'minus' },
-  'Nem javasolt (már fent)':{ label:'Már fent van', cls:'b-neutral', icon:'archive' }
+  'Erősen javasolt':{ label:'Erősen javasolt', cls:'b-success', icon:'arrow-up' }, 'Javasolt':{ label:'Javasolt', cls:'b-info', icon:'check' },
+  'Nem javasolt':{ label:'Nem javasolt', cls:'b-neutral', icon:'minus' }, 'Nem javasolt (már fent)':{ label:'Már fent van', cls:'b-neutral', icon:'archive' }
 };
 let artView = 'todo';
 function decCell(r){
   if (r.up === 'ok') return `<span class="badge b-success">${ic('check','icon')}Mehet</span>`;
-  if (!can('decide')) return r.dec ? `<span class="badge ${r.dec === 'Mehet' ? 'b-info' : 'b-neutral'}">${ic(r.dec === 'Mehet' ? 'upload' : 'image','icon')}${esc(r.dec)}</span>` : '<span class="meta">nincs döntés</span>';
+  if (!can('decide')) return r.dec ? `<span class="badge ${r.dec === 'Mehet' ? 'b-info' : 'b-neutral'}">${ic(r.dec === 'Mehet' ? 'upload' : 'linkedin','icon')}${esc(r.dec)}</span>` : '<span class="meta">nincs döntés</span>';
   return `<label class="sr-only" for="dec-${r.id}">Döntés: ${esc(r.title)}</label><select class="select sm dec" id="dec-${r.id}" data-dec="${r.id}"><option value=""${r.dec ? '' : ' selected'}>Nincs döntés</option><option${r.dec === 'Mehet' ? ' selected' : ''}>Mehet</option><option${r.dec === 'LinkedIn poszt' ? ' selected' : ''}>LinkedIn poszt</option></select>`;
 }
 function upCell(r){
   if (r.up === 'ok') return `<div class="up-cell"><span class="links"><a href="#cikkek" data-noop>HU</a><a href="#cikkek" data-noop>EN</a></span><span class="meta">feltöltve 11. 02. 14:00</span></div>`;
   if (r.dec === 'Mehet') return `<div class="up-cell"><span class="badge b-warning">${ic('clock','icon')}15:00-kor</span><span class="meta">a következő futás tölti fel</span></div>`;
-  if (r.dec === 'LinkedIn poszt') return r.post ? `<div class="up-cell"><a href="#poszt" data-post="${r.post}">${r.post}</a><span class="meta">poszt</span></div>` : `<div class="up-cell"><span class="badge b-warning">${ic('clock','icon')}15:00-kor</span><span class="meta">poszt készül</span></div>`;
+  if (r.dec === 'LinkedIn poszt') return r.post && POSTS.some(p => p.id === r.post) ? `<div class="up-cell"><a href="#poszt" data-post="${r.post}">${r.post}</a><span class="meta">poszt</span></div>` : `<div class="up-cell"><span class="badge b-warning">${ic('clock','icon')}15:00-kor</span><span class="meta">poszt készül</span></div>`;
   return '<span class="meta">–</span>';
 }
 const artTable = DataTable({
-  id:'cikkek-2610', caption:'Havi cikkek, 2026. október', rows:ARTICLES, labelKey:'title',
+  id:'cikkek-2610', caption:'Havi cikkek', rows:ARTICLES, labelKey:'title',
   table:$('#artTable'), pager:$('#artPager'), sort:{ key:'no', dir:'asc' }, pageSize:25,
   columns:[
     { key:'no', label:'No', type:'num' },
@@ -1477,108 +1795,131 @@ const artTable = DataTable({
     { key:'dec', label:'Ügyfél döntése', sortable:false, render:decCell },
     { key:'up', label:'Feltöltés / poszt', sortable:false, render:upCell }
   ],
-  emptyHtml:() => artView === 'todo' ? 'Minden javasolt cikkről döntött. Köszönjük!' : 'Nincs a szűrésnek megfelelő cikk.',
+  emptyHtml:() => period !== '2610' ? 'Ehhez a hónaphoz a prototípusban nincs cikklista.' : artView === 'todo' ? 'Minden javasolt cikkről döntött. Köszönjük!' : 'Nincs a szűrésnek megfelelő cikk.',
   onSelect:n => { const show = n > 0 && can('decide'); $('#bulk').hidden = !show; $('#artToolbar').hidden = show; $('#bulkCount').textContent = `${n} kiválasztva`; },
   onRender:() => { $('#cntTodo').textContent = todoCount(); $('#navCount').textContent = todoCount(); }
 });
 function artPred(){
   const q = norm($('#artQ').value.trim()), rec = $('#artRec').value;
-  artTable.setPred(r => (!q || norm(r.title + ' ' + r.desc + ' ' + r.src).includes(q)) && (!rec || r.rec === rec) && ({
-    todo: !r.dec && r.up !== 'ok' && !r.rec.startsWith('Nem'), all:true, mehet: r.dec === 'Mehet', li: r.dec === 'LinkedIn poszt', trial: r.trial
-  })[artView]);
+  $('#pastMonthNote').hidden = period === '2610';
+  artTable.setPred(r => period === '2610' && (!q || norm(r.title + ' ' + r.desc + ' ' + r.src).includes(q)) && (!rec || r.rec === rec) && ({
+    todo: !r.dec && r.up !== 'ok' && !r.rec.startsWith('Nem'), all:true, mehet: r.dec === 'Mehet', li: r.dec === 'LinkedIn poszt', trial: r.trial })[artView]);
 }
+fillMonthSelect($('#monthSel'));
+$('#monthSel').addEventListener('change', e => { period = e.target.value; $('#period').value = period; artPred(); });
 $('#artQ').addEventListener('input', artPred); $('#artRec').addEventListener('change', artPred);
 $('#artExport').addEventListener('click', () => toast('Az éles felületen ez a szűrt listát CSV-fájlba menti. A prototípusban a letöltés nem működik.', { type:'info' }));
 $$('#artViews [data-v]').forEach(b => b.addEventListener('click', () => { artView = b.dataset.v; $$('#artViews [data-v]').forEach(x => x.setAttribute('aria-pressed', x === b)); artPred(); }));
 function setDecision(ids, val){
   const before = ids.map(id => { const r = ARTICLES.find(a => a.id === id); return [r, r.dec]; }).filter(([r]) => r.up !== 'ok');
-  before.forEach(([r]) => r.dec = val);
-  artTable.render();
+  before.forEach(([r]) => r.dec = val); artTable.render();
   const n = before.length;
-  const msg = !val ? `Döntés törölve: ${n} cikk.` : val === 'Mehet' ? `Mehet: ${n} cikk. A 15:00-s futás élesben feltölti magyarul és angolul.` : `LinkedIn poszt: ${n} cikk. A 15:00-s futás posztot készít belőlük.`;
-  toast(msg, { action:() => { before.forEach(([r, d]) => r.dec = d); artTable.render(); toast('Visszavonva.', { type:'info' }); } });
-  return n;
+  logEvent(`Döntés: ${n} cikk → ${val || 'törölve'}`, before.map(([r]) => r.no + '.').join(' ') + ' sor');
+  toast(!val ? `Döntés törölve: ${n} cikk.` : val === 'Mehet' ? `Mehet: ${n} cikk. A 15:00-s futás élesben feltölti magyarul és angolul.` : `LinkedIn poszt: ${n} cikk. A 15:00-s futás posztot készít belőlük.`,
+    { action:() => { before.forEach(([r, d]) => r.dec = d); artTable.render(); toast('Visszavonva.', { type:'info' }); } });
 }
-$('#artTable').addEventListener('change', e => {
-  const s = e.target.closest('[data-dec]'); if (!s) return;
-  const id = s.dataset.dec; setDecision([id], s.value);
-  $(`#dec-${id}`)?.focus();
-});
+$('#artTable').addEventListener('change', e => { const s = e.target.closest('[data-dec]'); if (!s) return; const id = s.dataset.dec; setDecision([id], s.value); $(`#dec-${id}`)?.focus(); });
 $$('[data-bulk]').forEach(b => b.addEventListener('click', () => { setDecision(artTable.selected, b.dataset.bulk); artTable.clearSel(); }));
 $('#bulkClear').addEventListener('click', () => artTable.clearSel());
-$('#monthSel').addEventListener('change', e => { if (e.target.value !== '2610'){ toast('A prototípusban csak a 2026. októberi lista van kitöltve.', { type:'info' }); e.target.value = '2610'; } });
 
 /* ==================================================================
-   12/B. LINKEDIN-POSZTOK: lista, előnézet, jóváhagyás
+   12/B. LINKEDIN-POSZTOK: lista, előnézet, szerkesztés, jóváhagyás, törlés
    ================================================================== */
-const PST = {
-  'Tervezet':{ cls:'b-neutral', icon:'edit' }, 'Ügyfélnél':{ cls:'b-warning', icon:'clock' },
-  'Jóváhagyva':{ cls:'b-success', icon:'check' }, 'Megjelent':{ cls:'b-info', icon:'send' }
-};
+const PST = { 'Tervezet':{ cls:'b-neutral', icon:'edit' }, 'Ügyfélnél':{ cls:'b-warning', icon:'clock' }, 'Jóváhagyva':{ cls:'b-success', icon:'check' }, 'Megjelent':{ cls:'b-info', icon:'linkedin' } };
 const pBadge = s => `<span class="badge ${PST[s].cls}">${ic(PST[s].icon,'icon')}${s}</span>`;
-let curPost = POSTS[0];
+let curPost = POSTS[0], postFilter = '';
 const fullText = p => [p.opens[p.open], p.ctx, p.high, p.view, p.close, p.tags].filter(Boolean).join('\n\n');
 function renderPosts(){
-  $('#postGrid').innerHTML = POSTS.map(p => `<a class="card post-card" role="listitem" href="#poszt" data-post="${p.id}"><div class="row"><span class="id">${p.id}</span>${pBadge(p.status)}</div><h2>${esc(p.topic)}</h2><p>${esc(p.opens[p.open])}</p><span class="meta">${esc(p.origin)} · ${esc(p.updated)}</span></a>`).join('');
+  const list = POSTS.filter(p => !postFilter || p.status === postFilter);
+  $('#postGrid').innerHTML = list.length ? list.map(p => `<a class="card post-card" role="listitem" href="#poszt" data-post="${p.id}"><div class="row"><span class="id">${p.id}</span>${pBadge(p.status)}</div><h2>${esc(p.topic)}</h2><p>${esc(p.opens[p.open])}</p><span class="meta">${esc(p.origin)} · ${esc(p.updated)}</span></a>`).join('')
+    : `<div class="empty-state"><b>Nincs ilyen állapotú poszt</b><span>Válasszon másik szűrőt, vagy küldjön be egy posztötletet.</span></div>`;
 }
-document.addEventListener('click', e => { const a = e.target.closest('[data-post]'); if (a){ curPost = POSTS.find(p => p.id === a.dataset.post) || curPost; if (location.hash === '#poszt'){ e.preventDefault(); renderPost(); } } });
+$$('#postFilter [data-pf]').forEach(b => b.addEventListener('click', () => { postFilter = b.dataset.pf; $$('#postFilter [data-pf]').forEach(x => x.setAttribute('aria-pressed', x === b)); renderPosts(); }));
+document.addEventListener('click', e => { const a = e.target.closest('[data-post]'); if (a && a.dataset.post){ curPost = POSTS.find(p => p.id === a.dataset.post) || curPost; if (location.hash === '#poszt'){ e.preventDefault(); renderPost(); } } });
 let expanded = false;
-function renderLiText(){
-  const p = curPost, t = fullText(p);
-  $('#liText').innerHTML = expanded ? esc(t) : esc(p.opens[p.open]) + ' <span class="more">…több</span>';
+function renderLiText(){ const p = curPost; $('#liText').innerHTML = expanded ? esc(fullText(p)) : esc(p.opens[p.open]) + ' <span class="more">…több</span>'; }
+const PE = { topic:'#pe-topic', srcLabel:'#pe-src', o0:'#pe-o0', o1:'#pe-o1', o2:'#pe-o2', ctx:'#pe-ctx', high:'#pe-high', view:'#pe-view', close:'#pe-close', tags:'#pe-tags', srcLink:'#pe-link', note:'#pe-note', it:'#pe-it', is:'#pe-is', e1:'#pe-e1', e2:'#pe-e2' };
+function fillPostForm(){
+  const p = curPost, v = { topic:p.topic, srcLabel:p.origin, o0:p.opens[0], o1:p.opens[1], o2:p.opens[2], ctx:p.ctx, high:p.high, view:p.view, close:p.close, tags:p.tags, srcLink:p.srcLink, note:p.note, it:p.img.title, is:p.img.sub, e1:p.img.ex?.[0] || '', e2:p.img.ex?.[1] || '' };
+  Object.entries(PE).forEach(([k, s]) => $(s).value = v[k] ?? '');
+  const locked = p.status === 'Megjelent' || !(can('ideas') || can('approve'));
+  $$('#p-szerk .input').forEach(i => { if (i.id !== 'pe-src') i.readOnly = locked; });
+  $('#p-szerk [type=submit]').hidden = $('#peReset').hidden = locked;
 }
 function renderPost(){
   const p = curPost;
+  if (!POSTS.includes(p)) { location.hash = '#posztok'; return; }
   $('#h-poszt').textContent = p.id; $('#bcPost').textContent = p.id;
   $('#postStatus').innerHTML = pBadge(p.status);
   $('#postSub').textContent = `${p.topic} · ${p.origin}`;
   const acts = [];
-  if (p.status === 'Tervezet' && can('send')) acts.push(`<button class="btn btn-primary" type="button" data-pa="send">${ic('send')}Elküldöm Attilának</button>`);
+  if (p.status === 'Tervezet' && can('send')) acts.push(`<button class="btn btn-primary" type="button" data-pa="send">${ic('send')}Elküldöm jóváhagyásra</button>`);
   if (p.status === 'Ügyfélnél' && can('approve')) acts.push(`<button class="btn btn-secondary" type="button" data-pa="change">${ic('edit')}Módosítást kérek</button><button class="btn btn-primary" type="button" data-pa="approve">${ic('check')}Jóváhagyom</button>`);
-  if (p.status === 'Jóváhagyva' && can('publish')) acts.push(`<button class="btn btn-primary" type="button" data-pa="publish">${ic('send')}Megjelentnek jelölöm</button>`);
-  if (!acts.length) acts.push(`<span class="meta">${p.status === 'Ügyfélnél' ? 'Attila jóváhagyására vár.' : p.status === 'Megjelent' ? 'Megjelent a LinkedInen.' : p.status === 'Jóváhagyva' ? 'Jóváhagyva, Emi teszi közzé.' : 'Tervezet, az üzemeltető küldi tovább.'}</span>`);
+  if (p.status === 'Jóváhagyva' && can('publish')) acts.push(`<button class="btn btn-primary" type="button" data-pa="publish">${ic('linkedin')}Megjelentnek jelölöm</button>`);
+  if (!acts.length) acts.push(`<span class="meta">${p.status === 'Ügyfélnél' ? 'Az ügyfél jóváhagyására vár.' : p.status === 'Megjelent' ? 'Megjelent a LinkedInen.' : p.status === 'Jóváhagyva' ? 'Jóváhagyva, a tartalomkezelő teszi közzé.' : 'Tervezet, az üzemeltető küldi jóváhagyásra.'}</span>`);
   $('#postActions').innerHTML = acts.join('');
+  $('#postMoreWrap').hidden = !(can('deletePost') || can('ideas'));
+  $('[data-pm="delete"]').hidden = !can('deletePost'); $('[data-pm="delete"]').previousElementSibling.hidden = !can('deletePost');
+  $('[data-pm="regen"]').hidden = !can('ideas') || p.status === 'Megjelent';
   const locked = p.status === 'Megjelent';
   $('#openChoices').innerHTML = '<legend class="sr-only">Nyitó sor választása</legend>' + p.opens.map((o, i) => o ? `<label class="open-opt"><input type="radio" name="open" value="${i}"${i === p.open ? ' checked' : ''}${locked ? ' disabled' : ''}><span>${esc(o)}</span></label>` : '').join('');
-  $('#postKv').innerHTML = [['Hónap', p.month], ['Forrás', p.origin], ['Forráslink', p.srcLink ? `<a href="${p.srcLink}" target="_blank" rel="noopener">megnyitás</a>` : '–'], ['Hossz', `${HU.num.format(fullText(p).length)} karakter`]].map(([a,b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join('');
+  $('#postKv').innerHTML = [['Hónap', p.month], ['Forrás', esc(p.origin)], ['Forráslink', p.srcLink ? `<a href="${esc(p.srcLink)}" target="_blank" rel="noopener">megnyitás</a>` : '–'], ['Hossz', `${HU.num.format(fullText(p).length)} karakter`], ['Előnézet link', `/posztok/${p.id}`], ['Megjegyzés', esc(p.note || '–')]].map(([a, b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join('');
   $('#postTl').innerHTML = p.tl.map((x, i) => `<li class="tl-item${i === p.tl.length - 1 ? ' last' : ''}"><span class="tl-dot" style="background:var(--${x.st === 'ok' ? 'success' : 'info'}-bg);color:var(--${x.st === 'ok' ? 'success' : 'info'}-text)">${ic(x.st === 'ok' ? 'check' : 'send','icon')}</span><div class="tl-body"><div class="tl-title">${esc(x.t)}</div><div class="tl-desc">${esc(x.who)} · ${esc(x.when)}</div></div></li>`).join('');
-  renderLiText(); drawImage(p.img);
+  fillPostForm(); renderLiText(); drawImage(p.img);
 }
 $('#openChoices').addEventListener('change', e => { curPost.open = +e.target.value; renderLiText(); toast('Nyitó sor kiválasztva.'); });
-function selectTab(t){ $$('#v-poszt [role=tab]').forEach(x => { const on = x === t; x.setAttribute('aria-selected', on); x.tabIndex = on ? 0 : -1; }); $('#p-preview').setAttribute('aria-labelledby', t.id); expanded = t.id === 'tab-nyitott'; renderLiText(); }
+$$('#liMode [data-m]').forEach(b => b.addEventListener('click', () => { expanded = b.dataset.m === 'open'; $$('#liMode [data-m]').forEach(x => x.setAttribute('aria-pressed', x === b)); renderLiText(); }));
+function selectTab(t){ $$('#v-poszt [role=tab]').forEach(x => { const on = x === t; x.setAttribute('aria-selected', on); x.tabIndex = on ? 0 : -1; $('#' + x.getAttribute('aria-controls')).hidden = !on; }); }
 $$('#v-poszt [role=tab]').forEach(t => { t.addEventListener('click', () => selectTab(t)); t.addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft'){ const o = $$('#v-poszt [role=tab]').find(x => x !== t); selectTab(o); o.focus(); } }); });
+$('#p-szerk').addEventListener('submit', e => {
+  e.preventDefault(); const p = curPost, g = s => $(s).value.trim();
+  if (!g('#pe-o0')){ $('#pe-o0').setAttribute('aria-invalid','true'); $('#pe-o0').focus(); toast('A nyitó sor nem lehet üres.', { type:'error' }); return; }
+  $('#pe-o0').removeAttribute('aria-invalid');
+  Object.assign(p, { topic:g('#pe-topic'), opens:[g('#pe-o0'), g('#pe-o1'), g('#pe-o2')], ctx:g('#pe-ctx'), high:$('#pe-high').value, view:g('#pe-view'), close:g('#pe-close'), tags:g('#pe-tags'), srcLink:g('#pe-link'), note:g('#pe-note') });
+  p.img = { title:g('#pe-it'), sub:g('#pe-is'), ex:g('#pe-e1') && g('#pe-e2') ? [g('#pe-e1'), g('#pe-e2')] : null };
+  p.tl.unshift({ when:stamp(), t:'Szöveg módosítva', who:me.name, st:'info' }); p.updated = stamp();
+  logEvent('Poszt módosítva', p.id); renderPost(); renderPosts(); selectTab($('#tab-elo')); toast('Módosítások mentve. Az előnézet frissült.');
+});
+$('#peReset').addEventListener('click', () => { fillPostForm(); toast('Módosítások elvetve.', { type:'info' }); });
 $('#postActions').addEventListener('click', async e => {
-  const b = e.target.closest('[data-pa]'); if (!b) return; const p = curPost, a = b.dataset.pa;
-  const stamp = { when:'2026. 11. 02. ' + now(), who:USERS[role].name };
-  if (a === 'approve'){ p.status = 'Jóváhagyva'; p.tl.unshift({ ...stamp, t:'Jóváhagyva', st:'ok' }); toast(`${p.id} jóváhagyva. Emi értesítést kap, és időzíti a LinkedInen.`); }
+  const b = e.target.closest('[data-pa]'); if (!b) return; const p = curPost, a = b.dataset.pa, st = { when:stamp(), who:me.name };
+  if (a === 'approve'){ p.status = 'Jóváhagyva'; p.tl.unshift({ ...st, t:'Jóváhagyva', st:'ok' }); toast(`${p.id} jóváhagyva. A tartalomkezelő értesítést kap, és időzíti a LinkedInen.`); }
   if (a === 'change'){
     const txt = await confirmBox({ title:'Mit módosítsunk?', body:'Írja le röviden. A poszt visszakerül tervezetbe, és a módosítás után újra megkapja.', confirm:'Kérés elküldése', danger:false, input:{ label:'Módosítási kérés' } });
-    if (!txt) return; p.status = 'Tervezet'; p.tl.unshift({ ...stamp, t:'Módosítást kért: ' + txt, st:'info' }); toast('A módosítási kérést továbbítottuk.');
+    if (!txt) return; p.status = 'Tervezet'; p.tl.unshift({ ...st, t:'Módosítást kért: ' + txt, st:'info' }); toast('A módosítási kérést továbbítottuk.');
   }
-  if (a === 'send'){ p.status = 'Ügyfélnél'; p.tl.unshift({ ...stamp, t:'Elküldve Attilának jóváhagyásra', st:'info' }); toast(`${p.id} elküldve Attilának.`); }
-  if (a === 'publish'){ p.status = 'Megjelent'; p.tl.unshift({ ...stamp, t:'Megjelent a LinkedInen', st:'ok' }); toast(`${p.id} megjelentként jelölve.`); }
-  renderPost(); renderPosts();
+  if (a === 'send'){ p.status = 'Ügyfélnél'; p.tl.unshift({ ...st, t:'Elküldve jóváhagyásra', st:'info' }); toast(`${p.id} elküldve jóváhagyásra.`); }
+  if (a === 'publish'){ p.status = 'Megjelent'; p.tl.unshift({ ...st, t:'Megjelent a LinkedInen', st:'ok' }); toast(`${p.id} megjelentként jelölve.`); }
+  logEvent('Poszt: ' + p.status, p.id); renderPost(); renderPosts();
+});
+const postMenuApi = popover($('#postMore'), $('#postMenu'));
+$('#postMenu').addEventListener('click', async e => {
+  const b = e.target.closest('[data-pm]'); if (!b) return; postMenuApi.close(false); const p = curPost;
+  if (b.dataset.pm === 'regen'){ toast(`${p.id}: újragenerálás a 15:00-s futásban, a jelenlegi Posztszabályok szerint.`, { type:'info' }); return; }
+  const ok = await confirmBox({ title:`Törli a(z) ${p.id} posztot?`, body:'A szöveg, a kép és az előzmények véglegesen törlődnek. A forráscikkek és az ötlet megmaradnak, és újra küldhetők generálásra.', confirm:'Poszt törlése' });
+  if (!ok) return;
+  POSTS.splice(POSTS.indexOf(p), 1);
+  IDEAS.filter(i => i.post === p.id).forEach(i => { i.post = ''; i.preview = ''; i.status = 'Új'; });
+  logEvent('Poszt törölve', p.id); renderPosts(); location.hash = '#posztok'; toast(`${p.id} törölve.`);
 });
 $('#copyText').addEventListener('click', async () => {
   try { await navigator.clipboard.writeText(fullText(curPost)); toast('A poszt szövege a vágólapra került. A forráslink szándékosan nincs benne.'); }
-  catch(e){ selectTab($('#tab-nyitott')); const r = document.createRange(); r.selectNodeContents($('#liText')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('A szöveget kijelöltük, másolja ki kézzel.', { type:'info' }); }
+  catch(e){ expanded = true; renderLiText(); const r = document.createRange(); r.selectNodeContents($('#liText')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('A szöveget kijelöltük, másolja ki kézzel.', { type:'info' }); }
 });
 $('#dlImage').addEventListener('click', () => toast('Az éles felületen ez 1200 × 1200-as PNG-t ment. A prototípusban a letöltés nem működik.', { type:'info' }));
-
-/* Kép: 1200 × 1200, a logó színeivel, Canvas-szal rajzolva a Kép adatok JSON-ból */
-function wrapLines(ctx, text, maxW){ const words = text.split(' '), out = []; let line = ''; words.forEach(w => { const t = line ? line + ' ' + w : w; if (ctx.measureText(t).width > maxW && line){ out.push(line); line = w; } else line = t; }); if (line) out.push(line); return out; }
+function wrapLines(ctx, text, maxW){ const words = String(text || '').split(' '), out = []; let line = ''; words.forEach(w => { const t = line ? line + ' ' + w : w; if (ctx.measureText(t).width > maxW && line){ out.push(line); line = w; } else line = t; }); if (line) out.push(line); return out; }
 function drawImage(img){
   const c = $('#postCanvas'), x = c.getContext('2d'), W = 1200;
   x.fillStyle = '#0F1640'; x.fillRect(0, 0, W, W);
   const g = x.createLinearGradient(0, 0, W, W); g.addColorStop(0, 'rgba(45,56,138,.95)'); g.addColorStop(1, 'rgba(0,174,239,.55)');
   x.fillStyle = g; x.beginPath(); x.arc(W * .95, W * .05, 760, 0, Math.PI * 2); x.fill();
-  x.fillStyle = 'rgba(255,255,255,.06)'; for (let i = 0; i < 12; i++) for (let j = 0; j < 12; j++) { x.beginPath(); x.arc(80 + i * 96, 80 + j * 96, 3, 0, Math.PI * 2); x.fill(); }
+  x.fillStyle = 'rgba(255,255,255,.06)'; for (let i = 0; i < 12; i++) for (let j = 0; j < 12; j++){ x.beginPath(); x.arc(80 + i * 96, 80 + j * 96, 3, 0, Math.PI * 2); x.fill(); }
   const grad = x.createLinearGradient(96, 0, 400, 0); grad.addColorStop(0, '#2D388A'); grad.addColorStop(1, '#00AEEF');
   x.fillStyle = grad; x.fillRect(96, 150, 140, 12);
   x.fillStyle = '#FFFFFF'; x.font = '600 96px Inter, Arial, sans-serif'; x.textBaseline = 'top';
-  let y = 210; wrapLines(x, img.title, W - 192).forEach(l => { x.fillText(l, 96, y); y += 112; });
+  let y = 210; wrapLines(x, img.title, W - 192).slice(0, 3).forEach(l => { x.fillText(l, 96, y); y += 112; });
   x.fillStyle = '#BFE9FB'; x.font = '400 44px Inter, Arial, sans-serif'; y += 16;
-  wrapLines(x, img.sub, W - 192).forEach(l => { x.fillText(l, 96, y); y += 58; });
+  wrapLines(x, img.sub, W - 192).slice(0, 3).forEach(l => { x.fillText(l, 96, y); y += 58; });
   if (img.ex){
     y = Math.max(y + 60, 640);
     x.fillStyle = 'rgba(255,255,255,.08)'; x.strokeStyle = 'rgba(255,255,255,.25)'; x.lineWidth = 2;
@@ -1592,104 +1933,314 @@ function drawImage(img){
 }
 
 /* ==================================================================
-   12/C. POSZTÖTLETEK: űrlap és lista
+   12/C. POSZTÖTLETEK: lista, megnyitás, szerkesztés, törlés, generálás
    ================================================================== */
 const IST = { 'Új':{ label:'Új', cls:'b-info', icon:'plus' }, 'Elkészült':{ label:'Elkészült', cls:'b-success', icon:'check' }, 'Jóváhagyva':{ label:'Jóváhagyva', cls:'b-success', icon:'check' }, 'Ütemezve':{ label:'Ütemezve', cls:'b-info', icon:'calendar' }, 'Elvetve':{ label:'Elvetve', cls:'b-neutral', icon:'x' } };
+let curIdea = null;
 const ideaTable = DataTable({
   id:'otletek', caption:'Beküldött posztötletek', rows:IDEAS, labelKey:'topic', selectable:false,
   table:$('#ideaTable'), pager:$('#ideaPager'), sort:{ key:'id', dir:'desc' }, pageSize:10,
   columns:[
-    { key:'id', label:'ID' }, { key:'topic', label:'Téma' }, { key:'type', label:'Típus' }, { key:'from', label:'Beküldő' },
-    { key:'week', label:'Kívánt hét' }, { key:'status', label:'Állapot', type:'status', map:IST },
-    { key:'post', label:'Poszt', sortable:false, render:r => r.post ? `<a href="#poszt" data-post="${r.post}">${r.post}</a>` : '<span class="meta">készül (15:00)</span>' }
+    { key:'id', label:'ID' },
+    { key:'topic', label:'Téma', render:r => `<div class="cell-title"><a href="#otlet" data-idea="${r.id}">${esc(r.topic)}</a><span>${esc(r.msg)}</span></div>` },
+    { key:'type', label:'Poszttípus' }, { key:'week', label:'Kívánt hét' }, { key:'from', label:'Beküldő' },
+    { key:'status', label:'Állapot', type:'status', map:IST },
+    { key:'post', label:'Poszt ID', sortable:false, render:r => r.post ? `<a href="#poszt" data-post="${r.post}">${r.post}</a>` : '<span class="meta">–</span>' }
   ],
-  emptyHtml:() => 'Még nincs beküldött ötlet. Az első ötletet a jobb oldali űrlappal küldheti be.'
+  rowMenu:(btn, r) => openRowMenu(btn, r, {
+    open:x => { curIdea = x; location.hash = '#otlet'; if (currentView === 'otlet') renderIdea(); },
+    gen:x => { curIdea = x; location.hash = '#otlet'; setTimeout(() => $('#ideaGen').click(), 50); },
+    delete:x => deleteIdea(x)
+  }, [{ k:'open', l:'Megnyitás és szerkesztés', i:'edit' }, { k:'gen', l:'Küldés posztgenerálásra', i:'sparkle' }, { k:'delete', l:'Törlés…', i:'trash', danger:true, sep:true }]),
+  emptyHtml:() => IDEAS.length ? 'Nincs a szűrésnek megfelelő ötlet.' : 'Még nincs beküldött ötlet. Az „Új ötlet” gombbal küldheti be az elsőt.'
 });
-const uz = $('#i-uzenet'); uz.addEventListener('input', () => { $('#i-uzenet-c').textContent = `${uz.value.length} / 600`; });
-$('#ideaForm').addEventListener('submit', e => {
-  e.preventDefault();
-  const bad = ['#i-tema','#i-uzenet'].map(s => $(s)).filter(el => !el.value.trim());
-  const link = $('#i-link'); const badLink = link.value.trim() && !/^https?:\/\/\S+\.\S+/.test(link.value.trim());
-  ['#i-tema','#i-uzenet','#i-link'].forEach(s => $(s).removeAttribute('aria-invalid'));
-  bad.forEach(el => el.setAttribute('aria-invalid','true')); if (badLink) link.setAttribute('aria-invalid','true');
-  if (bad.length || badLink){
-    $('#ideaErrList').innerHTML = bad.map(el => `<li><a href="#${el.id}">${esc(el.dataset.msg)}</a></li>`).join('') + (badLink ? '<li><a href="#i-link">A link https://-sel kezdődjön.</a></li>' : '');
-    $('#ideaErr').hidden = false; $('#ideaErr').focus(); return;
+function ideaPred(){ const q = norm($('#ideaQ').value.trim()), st = $('#ideaSt').value; ideaTable.setPred(r => (!q || norm(r.topic + ' ' + r.msg + ' ' + r.from).includes(q)) && (!st || r.status === st)); }
+$('#ideaQ').addEventListener('input', ideaPred); $('#ideaSt').addEventListener('change', ideaPred);
+document.addEventListener('click', e => { const a = e.target.closest('[data-idea]'); if (a){ curIdea = IDEAS.find(i => i.id === a.dataset.idea); if (location.hash === '#otlet'){ e.preventDefault(); renderIdea(); } } });
+$('#newIdea').addEventListener('click', () => { curIdea = null; if (location.hash === '#otlet') renderIdea(); });
+const F = { id:'#f-id', from:'#f-from', topic:'#f-tema', msg:'#f-uzenet', link:'#f-link', type:'#f-tipus', week:'#f-het', status:'#f-allapot', note:'#f-megj' };
+function renderIdea(){
+  const i = curIdea, isNew = !i;
+  $('#h-otlet').textContent = isNew ? 'Új ötlet' : i.id; $('#bcIdea').textContent = isNew ? 'Új ötlet' : i.id;
+  $('#ideaStatus').innerHTML = isNew ? '' : `<span class="badge ${IST[i.status].cls}">${ic(IST[i.status].icon,'icon')}${i.status}</span>`;
+  $('#ideaSub').textContent = isNew ? 'A *-gal jelölt mezők kötelezők. Mentés után bármikor szerkesztheti, vagy elküldheti posztgenerálásra.' : `Beküldte: ${i.from}. A *-gal jelölt mezők kötelezők.`;
+  const v = isNew ? { id:'(mentéskor)', from:me.name, topic:'', msg:'', link:'', type:'szakmai', week:'2026. 11. 16–22. (47. hét)', status:'Új', note:'' } : i;
+  Object.entries(F).forEach(([k, s]) => $(s).value = v[k] ?? '');
+  $('#f-allapot').disabled = isNew;
+  $('#f-uzenet-c').textContent = `${$('#f-uzenet').value.length} / 600`;
+  $('#f-elo').innerHTML = !isNew && i.preview ? `<a href="#poszt" data-post="${i.post}">${esc(i.preview)}</a>` : '–';
+  $('#f-post').innerHTML = !isNew && i.post ? `<a href="#poszt" data-post="${i.post}">${esc(i.post)}</a>` : '–';
+  $('#ideaMoreWrap').hidden = isNew; $('#ideaErr').hidden = true; $('#ideaDone').hidden = true;
+  $('#ideaGen').disabled = !isNew && !!i.post;
+  $('#ideaGen').title = !isNew && i.post ? 'Ebből az ötletből már készült poszt' : '';
+  $$('#ideaForm .input, #ideaForm .select').forEach(el => el.removeAttribute('aria-invalid'));
+}
+$('#f-uzenet').addEventListener('input', e => { $('#f-uzenet-c').textContent = `${e.target.value.length} / 600`; });
+function validIdea(){
+  const bad = [];
+  ['#f-tema', '#f-uzenet'].forEach(s => { const el = $(s); el.removeAttribute('aria-invalid'); if (!el.value.trim()){ el.setAttribute('aria-invalid','true'); bad.push(el); } });
+  const l = $('#f-link'); l.removeAttribute('aria-invalid'); if (l.value.trim() && l.value.trim() !== 'https://' && !/^https?:\/\/\S+\.\S+/.test(l.value.trim())){ l.setAttribute('aria-invalid','true'); bad.push(l); }
+  if (bad.length){ $('#ideaErrList').innerHTML = bad.map(el => `<li><a href="#${el.id}">${esc(el.dataset.msg)}</a></li>`).join(''); $('#ideaErr').hidden = false; $('#ideaErr').focus(); return false; }
+  $('#ideaErr').hidden = true; return true;
+}
+function saveIdea(){
+  const g = s => $(s).value.trim();
+  if (!curIdea){
+    curIdea = { id:'PO-2611-' + String(IDEAS.filter(i => i.id.startsWith('PO-2611')).length + 1).padStart(2, '0'), from:me.name, status:'Új', preview:'', post:'' };
+    IDEAS.push(curIdea); logEvent('Posztötlet beküldve', curIdea.id);
   }
-  $('#ideaErr').hidden = true;
-  const id = 'PO-2611-0' + (IDEAS.length - 1);
-  IDEAS.push({ id, from:USERS[role].name, topic:$('#i-tema').value.trim(), type:$('[name=tipus]:checked').value, week:$('#i-het').value, status:'Új', post:'' });
-  ideaTable.render(); e.target.reset(); $('#i-uzenet-c').textContent = '0 / 600';
-  toast(`Ötlet beküldve (${id}). A 15:00-s futás posztot készít belőle.`);
-});
+  Object.assign(curIdea, { topic:g('#f-tema'), msg:g('#f-uzenet'), link:g('#f-link') === 'https://' ? '' : g('#f-link'), type:$('#f-tipus').value, week:$('#f-het').value, note:g('#f-megj') });
+  if (!$('#f-allapot').disabled) curIdea.status = $('#f-allapot').value;
+  ideaTable.render();
+}
+$('#ideaForm').addEventListener('submit', e => { e.preventDefault(); if (!validIdea()) return; const isNew = !curIdea; saveIdea(); renderIdea(); toast(isNew ? `Ötlet mentve (${curIdea.id}).` : 'Módosítások mentve.'); });
 $('#ideaErr').addEventListener('click', e => { const a = e.target.closest('a'); if (a){ e.preventDefault(); $(a.getAttribute('href')).focus(); } });
+const TAGS = { szakmai:'#ügyfélélmény #sorkezelés #xperion', rendezvény:'#rendezvény #ügyfélélmény #xperion', díj:'#díj #partnerség #xperion', partner:'#partnerség #ügyfélélmény #xperion', csapat:'#csapat #xperionmindennap #xperion' };
+function generateFromIdea(i){
+  const n = POSTS.filter(p => p.month === '2611').length + 1, id = 'LI-2611-' + String(n).padStart(2, '0');
+  const first = i.msg.split(/(?<=[.!?])\s/)[0];
+  const p = { id, month:'2611', status:'Tervezet', topic:i.topic, origin:`Posztötlet: ${i.id} (${i.from})`, idea:i.id, srcLink:i.link, note:i.note, updated:stamp(),
+    opens:[`${i.topic}: ${first}`.slice(0, 140), `Miért fontos nekünk: ${i.topic.toLowerCase()}?`.slice(0, 140), `Egy hír, amire büszkék vagyunk: ${i.topic.toLowerCase()}.`.slice(0, 140)], open:0,
+    ctx:i.msg, high:'• [Kiemelés a szabályok szerint, 2–3 pont]\n• [A generálás az élesben a Claude API-val készül]', view:'Az Xperionnál [Xperion-szemszög a szabályok szerint].',
+    close:'Önnek mi a tapasztalata?', tags:TAGS[i.type] || '#xperion', img:{ title:i.topic.slice(0, 40), sub:i.type, ex:null },
+    tl:[{ when:stamp(), t:`A rendszer elkészítette ${i.from} ötletéből, a Posztszabályok szerint`, who:'posztgenerálás', st:'ok' }] };
+  POSTS.unshift(p); Object.assign(i, { status:'Elkészült', post:id, preview:'/posztok/' + id });
+  logEvent('Poszt generálva ötletből', `${i.id} → ${id}`); return p;
+}
+$('#ideaGen').addEventListener('click', () => {
+  if (!validIdea()) return; saveIdea();
+  const b = $('#ideaGen'); b.setAttribute('aria-busy','true'); announce('A poszt készül a Posztszabályok szerint…');
+  setTimeout(() => {
+    b.removeAttribute('aria-busy'); const p = generateFromIdea(curIdea); curPost = p;
+    ideaTable.render(); renderPosts(); renderIdea();
+    $('#ideaDone').hidden = false; $('#ideaDoneLink').dataset.post = p.id; $('#ideaDone').focus?.();
+    toast(`${p.id} elkészült Tervezet állapotban.`, { action:() => { curPost = p; location.hash = '#poszt'; }, actionLabel:'Megnyitás' });
+  }, 1400);
+});
+async function deleteIdea(i){
+  const ok = await confirmBox({ title:`Törli a(z) ${i.id} ötletet?`, body:i.post ? `A belőle készült poszt (${i.post}) megmarad. Az ötlet véglegesen törlődik.` : 'Az ötlet véglegesen törlődik.', confirm:'Ötlet törlése' });
+  if (!ok) return; IDEAS.splice(IDEAS.indexOf(i), 1); logEvent('Posztötlet törölve', i.id); ideaTable.render(); if (currentView === 'otlet') location.hash = '#otletek'; toast(`${i.id} törölve.`);
+}
+const ideaMenuApi = popover($('#ideaMore'), $('#ideaMenu'));
+$('#ideaMenu').addEventListener('click', e => {
+  const b = e.target.closest('[data-im]'); if (!b || !curIdea) return; ideaMenuApi.close(false);
+  if (b.dataset.im === 'delete') deleteIdea(curIdea);
+  if (b.dataset.im === 'reject'){ const prev = curIdea.status, i = curIdea; i.status = 'Elvetve'; renderIdea(); ideaTable.render(); toast(`${i.id} elvetve.`, { action:() => { i.status = prev; renderIdea(); ideaTable.render(); } }); }
+});
 
 /* ==================================================================
-   12/D. POSZTSZABÁLYOK: szerkesztés mentéssávval
+   12/D. POSZTSZABÁLYOK: szerkesztés, új szabály, törlés, mentéssáv
    ================================================================== */
-let saved = RULES.map(r => r[1]), dirty = false;
-function renderRules(){
-  $('#rulesForm').innerHTML = RULES.map((r, i) => `<div class="card rule"><label class="rl" for="r-${i}">${esc(r[0])}<small>${esc(r[2])}</small></label><textarea class="input" id="r-${i}" rows="2">${esc(saved[i])}</textarea></div>`).join('');
+let saved = RULES.map(r => ({ ...r })), dirty = false;
+function renderRules(list = saved){
+  $('#rulesList').innerHTML = list.map((r, i) => `<div class="card rule" data-ri="${i}"><div class="rl-in"><label class="sr-only" for="rn-${i}">Szabály neve</label><input class="input" id="rn-${i}" value="${esc(r.name)}" placeholder="Megnevezés"><span class="help">${esc(r.hint || 'új szabály')}</span></div><div class="field"><label class="sr-only" for="rv-${i}">${esc(r.name || 'Új szabály')} értéke</label><textarea class="input" id="rv-${i}" rows="2" placeholder="Érték">${esc(r.value)}</textarea></div>${can('rules') ? `<button class="icon-btn" type="button" data-rdel="${i}" aria-label="Szabály törlése: ${esc(r.name || 'új szabály')}">${ic('trash')}</button>` : ''}</div>`).join('');
+  $$('#rulesList .input').forEach(el => el.readOnly = !can('rules'));
 }
+const readRules = () => $$('#rulesList .rule').map((el, i) => ({ name:$('#rn-' + i).value.trim(), value:$('#rv-' + i).value.trim(), hint:saved[i]?.hint || '' }));
 function setDirty(v){ dirty = v; $('#savebar').hidden = !(v && currentView === 'szabalyok'); }
-$('#rulesForm').addEventListener('input', () => setDirty(true));
-$('#saveBtn').addEventListener('click', () => { saved = RULES.map((r, i) => $('#r-' + i).value); setDirty(false); toast('Szabályok mentve. A következő generált posztnál már érvényesek.'); });
-$('#discardBtn').addEventListener('click', () => { const prev = RULES.map((r, i) => $('#r-' + i).value); renderRules(); setDirty(false); toast('Módosítások elvetve.', { action:() => { prev.forEach((v, i) => $('#r-' + i).value = v); setDirty(true); } }); });
+$('#rulesList').addEventListener('input', () => setDirty(true));
+$('#rulesList').addEventListener('click', e => {
+  const b = e.target.closest('[data-rdel]'); if (!b) return;
+  const list = readRules(), i = +b.dataset.rdel, [gone] = list.splice(i, 1); renderRules(list); setDirty(true);
+  toast(`„${gone.name || 'Új szabály'}” törölve (mentéskor végleges).`, { action:() => { const l = readRules(); l.splice(i, 0, gone); renderRules(l); } });
+});
+$('#ruleAdd').addEventListener('click', () => { const l = readRules(); l.push({ name:'', value:'', hint:'' }); renderRules(l); setDirty(true); $('#rn-' + (l.length - 1)).focus(); });
+$('#saveBtn').addEventListener('click', () => {
+  const l = readRules(), bad = l.findIndex(r => !r.name || !r.value);
+  if (bad >= 0){ const el = $(!l[bad].name ? '#rn-' + bad : '#rv-' + bad); el.setAttribute('aria-invalid','true'); el.focus(); toast('Minden szabálynak legyen neve és értéke.', { type:'error' }); return; }
+  saved = l; renderRules(); setDirty(false); logEvent('Posztszabályok módosítva', `${l.length} szabály`); toast('Szabályok mentve. A következő generált posztnál már érvényesek.');
+});
+$('#discardBtn').addEventListener('click', () => { const prev = readRules(); renderRules(); setDirty(false); toast('Módosítások elvetve.', { action:() => { renderRules(prev); setDirty(true); } }); });
 
 /* ==================================================================
-   12/E. VEZÉRLŐPULT ÉS NAPLÓ (üzemeltető)
+   12/E. FELHASZNÁLÓK ÉS SZEREPKÖRÖK (ügyfelenként)
    ================================================================== */
-let mailState = 'wait';
-function renderMail(){
-  $('#mailStatus').innerHTML = mailState === 'wait' ? `<span class="badge b-warning">${ic('clock','icon')}Jóváhagyásra vár</span>` : `<span class="badge b-success">${ic('check','icon')}Mehet: a 15:00-s futás elküldi</span>`;
-  $('#mailApprove').disabled = mailState !== 'wait';
+const UST = { 'Aktív':{ label:'Aktív', cls:'b-success', icon:'check' }, 'Meghívva':{ label:'Meghívva', cls:'b-warning', icon:'send' }, 'Letiltva':{ label:'Letiltva', cls:'b-neutral', icon:'x-circle' } };
+const visibleUsers = () => USERS.filter(u => can('ops') || u.client === 'xperion');
+const userRows = [];
+const syncUserRows = () => userRows.splice(0, userRows.length, ...visibleUsers());
+const userTable = DataTable({
+  id:'felhasznalok', caption:'Felhasználók', rows:userRows, labelKey:'name',
+  table:$('#userTable'), pager:$('#userPager'), sort:{ key:'name', dir:'asc' }, pageSize:25,
+  columns:[
+    { key:'name', label:'Név', render:r => `<div class="user-cell"><span class="avatar" aria-hidden="true">${esc(r.ini)}</span><div><b>${esc(r.name)}</b><span class="meta">${esc(r.email)}</span></div></div>` },
+    { key:'client', label:'Ügyfél', render:r => esc(clientName(r.client)) },
+    { key:'role', label:'Szerepkör', render:r => `<span class="badge ${ROLES[r.role].cls}">${ic(ROLES[r.role].icon,'icon')}${ROLES[r.role].label}</span>` },
+    { key:'status', label:'Állapot', type:'status', map:UST },
+    { key:'last', label:'Utolsó belépés' }
+  ],
+  rowMenu:(btn, r) => {
+    if (r.id === me.id){ toast('A saját fiókját a profil menüben kezelheti.', { type:'info' }); return; }
+    if (r.role === 'uzemelteto' && !can('ops')){ toast('Az üzemeltető fiókját csak üzemeltető módosíthatja.', { type:'info' }); return; }
+    const items = [{ k:'edit', l:'Szerkesztés', i:'edit' }];
+    if (r.status === 'Meghívva') items.push({ k:'resend', l:'Meghívó újraküldése', i:'send' });
+    items.push(r.status === 'Letiltva' ? { k:'toggle', l:'Engedélyezés', i:'check' } : { k:'toggle', l:'Letiltás', i:'x-circle' });
+    items.push({ k:'delete', l:'Törlés…', i:'trash', danger:true, sep:true });
+    openRowMenu(btn, r, { edit:openUserDlg, resend:u => { toast(`Meghívó újraküldve: ${u.email}`); logEvent('Meghívó újraküldve', u.email); }, toggle:u => toggleUsers([u]), delete:u => deleteUsers([u]) }, items);
+  },
+  onSelect:n => { $('#uBulk').hidden = !n; $('#uToolbar').hidden = !!n; $('#uBulkCount').textContent = `${n} kiválasztva`; },
+  emptyHtml:() => 'Nincs a szűrésnek megfelelő felhasználó.'
+});
+function userPred(){ const q = norm($('#uQ').value.trim()), r = $('#uRole').value, s = $('#uSt').value; userTable.setPred(u => (!q || norm(u.name + ' ' + u.email).includes(q)) && (!r || u.role === r) && (!s || u.status === s)); }
+['#uQ','#uRole','#uSt'].forEach(s => $(s).addEventListener(s === '#uQ' ? 'input' : 'change', userPred));
+$('#uRole').innerHTML += Object.entries(ROLES).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('');
+function toggleUsers(list){
+  const prev = list.map(u => [u, u.status]); list.forEach(u => u.status = u.status === 'Letiltva' ? 'Aktív' : 'Letiltva'); userTable.clearSel(); userTable.render();
+  logEvent('Felhasználó ' + (list[0].status === 'Letiltva' ? 'letiltva' : 'engedélyezve'), list.map(u => u.email).join(', '));
+  toast(`${list.length} felhasználó ${list[0].status === 'Letiltva' ? 'letiltva: nem tud belépni' : 'engedélyezve'}.`, { action:() => { prev.forEach(([u, s]) => u.status = s); userTable.render(); } });
 }
+async function deleteUsers(list){
+  list = list.filter(u => u.id !== me.id);
+  const ok = await confirmBox({ title:list.length > 1 ? `Törli a(z) ${list.length} felhasználót?` : `Törli ${list[0].name} fiókját?`, body:'A fiók véglegesen törlődik, a korábbi műveletei a naplóban megmaradnak.', confirm:list.length > 1 ? `${list.length} felhasználó törlése` : 'Felhasználó törlése' });
+  if (!ok) return; list.forEach(u => USERS.splice(USERS.indexOf(u), 1)); syncUserRows(); userTable.clearSel(); userTable.render();
+  logEvent('Felhasználó törölve', list.map(u => u.email).join(', ')); toast(`${list.length} felhasználó törölve.`);
+}
+$('#uBulkDisable').addEventListener('click', () => toggleUsers(USERS.filter(u => userTable.selected.includes(u.id) && u.id !== me.id)));
+$('#uBulkDelete').addEventListener('click', () => deleteUsers(USERS.filter(u => userTable.selected.includes(u.id))));
+$('#uBulkClear').addEventListener('click', () => userTable.clearSel());
+let editUser = null;
+function openUserDlg(u = null){
+  editUser = u;
+  $('#userDlgTitle').textContent = u ? 'Felhasználó szerkesztése' : 'Felhasználó meghívása';
+  $('#userDlgDesc').textContent = u ? 'A szerepkör módosítása a következő belépéskor érvényes.' : 'A meghívott e-mailben kap linket a jelszó beállításához. A link 7 napig érvényes.';
+  $('#userSubmit').textContent = u ? 'Mentés' : 'Meghívó küldése';
+  $('#u-name').value = u?.name || ''; $('#u-email').value = u?.email || ''; $('#u-email').readOnly = !!u;
+  const clients = can('ops') ? CLIENTS : CLIENTS.filter(c => c.id === 'xperion');
+  $('#u-client').innerHTML = (can('ops') ? '<option value="*">Minden ügyfél (üzemeltető)</option>' : '') + clients.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  $('#u-client').value = u?.client || 'xperion';
+  const roles = Object.entries(ROLES).filter(([k]) => can('ops') || k !== 'uzemelteto');
+  $('#u-roles').innerHTML = roles.map(([k, v], i) => `<label class="open-opt"><input type="radio" name="urole" value="${k}"${(u ? u.role === k : k === 'olvaso') ? ' checked' : ''}><span><b>${v.label}</b><br><span class="meta">${esc(v.desc)}</span></span></label>`).join('');
+  $('#userErr').hidden = true; $$('#userForm .input').forEach(i => i.removeAttribute('aria-invalid'));
+  $('#userDlg').showModal(); $(u ? '#u-name' : '#u-name').focus();
+}
+$('#inviteBtn').addEventListener('click', () => openUserDlg());
+$('#userCancel').addEventListener('click', () => $('#userDlg').close());
+$('#userForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const name = $('#u-name').value.trim(), email = $('#u-email').value.trim(), bad = [];
+  if (!name) bad.push($('#u-name')); if (!/^\S+@\S+\.\S+$/.test(email)) bad.push($('#u-email'));
+  if (!editUser && USERS.some(u => u.email.toLowerCase() === email.toLowerCase())){ $('#userErr').textContent = 'Ezzel a címmel már van fiók. Szerkessze a meglévőt.'; $('#userErr').hidden = false; $('#u-email').setAttribute('aria-invalid','true'); $('#u-email').focus(); return; }
+  if (bad.length){ bad.forEach(i => i.setAttribute('aria-invalid','true')); $('#userErr').textContent = bad.map(i => i.dataset.msg).join(' '); $('#userErr').hidden = false; bad[0].focus(); return; }
+  const r = $('[name=urole]:checked').value, client = r === 'uzemelteto' ? '*' : $('#u-client').value;
+  if (editUser){ Object.assign(editUser, { name, role:r, client }); logEvent('Felhasználó módosítva', email); toast(`${name} adatai mentve.`); }
+  else { USERS.push({ id:'u' + Date.now(), name, email, ini:name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(), client, role:r, status:'Meghívva', last:'–' }); logEvent('Felhasználó meghívva', email); toast(`Meghívó elküldve: ${email}`); }
+  $('#userDlg').close(); syncUserRows(); userTable.render();
+});
+function renderMatrix(){
+  const rk = Object.keys(ROLES);
+  $('#roleMatrix').innerHTML = `<table class="matrix"><caption class="sr-only">Jogosultságok szerepkörönként</caption><thead><tr><th scope="col">Jogosultság</th>${rk.map(k => `<th scope="col">${ROLES[k].label}</th>`).join('')}</tr></thead><tbody>${PERMS.map(([p, l]) => `<tr><th scope="row" style="font-weight:500">${l}</th>${rk.map(k => GRANT[k].includes(p) ? `<td class="yes">${ic('check','icon icon-sm')}<span class="sr-only">igen</span></td>` : `<td class="no">${ic('minus','icon icon-sm')}<span class="sr-only">nem</span></td>`).join('')}</tr>`).join('')}</tbody></table>`;
+}
+
+/* ==================================================================
+   12/F. ÜGYFELEK (többügyfeles működés, üzemeltető)
+   ================================================================== */
+const CST = { 'Aktív':{ label:'Aktív', cls:'b-success', icon:'check' }, 'Beállítás alatt':{ label:'Beállítás alatt', cls:'b-warning', icon:'settings' }, 'Szüneteltetve':{ label:'Szüneteltetve', cls:'b-neutral', icon:'clock' } };
+const clientTable = DataTable({
+  id:'ugyfelek', caption:'Ügyfelek', rows:CLIENTS, labelKey:'name', selectable:false,
+  table:$('#clientTable'), pager:$('#clientPager'), sort:{ key:'name', dir:'asc' }, pageSize:25,
+  columns:[ { key:'name', label:'Ügyfél', render:r => `<b>${esc(r.name)}</b>` }, { key:'status', label:'Állapot', type:'status', map:CST }, { key:'users', label:'Felhasználók', type:'num', align:'right' },
+    { key:'site', label:'Weboldal' }, { key:'source', label:'Adatforrás' }, { key:'run', label:'Havi futás' }, { key:'last', label:'Utolsó futás' } ],
+  rowMenu:(btn, r) => openRowMenu(btn, r, { open:c => switchClient(c.id), settings:c => toast(`${c.name}: források, kulcsszavak, weboldal-kapcsolat, posztszabályok (az éles felületen külön oldal).`, { type:'info' }), pause:c => { const p = c.status; c.status = c.status === 'Szüneteltetve' ? 'Aktív' : 'Szüneteltetve'; clientTable.render(); toast(`${c.name}: ${c.status === 'Szüneteltetve' ? 'a futások szünetelnek' : 'a futások újraindultak'}.`, { action:() => { c.status = p; clientTable.render(); } }); } },
+    [{ k:'open', l:'Váltás erre az ügyfélre', i:'folder' }, { k:'settings', l:'Beállítások', i:'settings' }, { k:'pause', l:r.status === 'Szüneteltetve' ? 'Futások újraindítása' : 'Futások szüneteltetése', i:'clock' }]),
+  emptyHtml:() => 'Még nincs ügyfél.'
+});
+const ONB = [['Alapadatok','név, weboldal, kapcsolattartó', true], ['Források és kulcsszavak','figyelt oldalak, pozitív és kizáró kulcsszavak', false], ['Weboldal-kapcsolat','feltöltés a WordPress-oldalra, két nyelven', false], ['Felhasználók meghívása','ügyfél-adminisztrátor, tartalomkezelő', false], ['Első szárazfuttatás','a havi futás próbája írás nélkül', false]];
+function renderOnb(){ $('#onbList').innerHTML = ONB.map(([t, s, d], i) => `<li class="${d ? 'done' : ''}"><span class="ck" aria-hidden="true">${d ? ic('check','icon icon-sm') : i + 1}</span><div><b>${t}</b><small>${s}</small></div><span class="sr-only">${d ? 'kész' : 'hátravan'}</span></li>`).join(''); $('#onbMeta').textContent = `[Következő ügyfél] · ${ONB.filter(o => o[2]).length} / ${ONB.length} lépés kész`; }
+$('#clientAdd').addEventListener('click', async () => {
+  const name = await confirmBox({ title:'Új ügyfél', body:'A beállítási lépések (források, weboldal-kapcsolat, felhasználók) a létrehozás után következnek.', confirm:'Ügyfél létrehozása', danger:false, input:{ label:'Ügyfél neve' } });
+  if (!name) return; CLIENTS.push({ id:'c' + Date.now(), name, status:'Beállítás alatt', users:0, site:'–', source:'–', run:'–', last:'–' }); clientTable.render(); renderWs(); logEvent('Ügyfél létrehozva', name); toast(`${name} létrehozva. Következő lépés: források és kulcsszavak.`);
+});
+function renderWs(){
+  const list = can('ops') ? CLIENTS : CLIENTS.filter(c => c.id === 'xperion');
+  $('#wsMenu').innerHTML = `<div class="pop-title" style="padding:6px 12px">${can('ops') ? 'Ügyfél váltása' : 'Ön ehhez az ügyfélhez fér hozzá'}</div>` + list.map(c => `<button role="menuitemradio" aria-checked="${c.id === 'xperion'}" type="button" data-ws="${c.id}">${ic(c.id === 'xperion' ? 'check' : 'folder')}${esc(c.name)}${c.status !== 'Aktív' ? `<span class="meta" style="margin-left:auto">${c.status}</span>` : ''}</button>`).join('') + (can('ops') ? `<hr role="separator"><a role="menuitem" href="#ugyfelek">${ic('settings')}Ügyfelek kezelése</a>` : '');
+  $('#wsHint').textContent = can('ops') ? 'váltás' : 'ügyfél';
+}
+function switchClient(id){ if (id !== 'xperion'){ toast(`A prototípusban csak az Xperion adatai vannak kitöltve. Élesben itt a(z) ${clientName(id)} saját adatai jelennének meg.`, { type:'info' }); return; } toast('Xperion kiválasztva.', { type:'info' }); }
+const wsApi = popover($('#wsBtn'), $('#wsMenu'));
+$('#wsMenu').addEventListener('click', e => { const b = e.target.closest('[data-ws]'); if (b){ wsApi.close(); switchClient(b.dataset.ws); } else if (e.target.closest('a')) wsApi.close(false); });
+
+/* ==================================================================
+   12/G. VEZÉRLŐPULT: havi e-mail generálása hónap szerint, jóváhagyás
+   ================================================================== */
+const mails = { '2610':{ state:'wait' } };
+function mailText(m){
+  const s = stats(m), lbl = MLABEL[m];
+  return `Kedves Attila!\n\nElkészült a ${lbl.split(' ')[1]}i sajtófigyelés. A cikkeket és a javaslatainkat a felületen találja (Havi cikkek, ${lbl}).\n\nÚjdonságok\n• Fő téma: ${s.theme}.\n• Legtöbb cikk: ${s.top}.\n• Erősen javasolt: ${s.strong} cikk.\n\nA hónap számai: ${s.n} cikk, ebből ${s.strong} erősen javasolt.\n\nÜdvözlettel:\naz Auris Dynamics csapata`;
+}
+let mailM = '2610';
+function renderMail(){
+  const m = mails[mailM];
+  $('#mailEmpty').hidden = !!m; $('#mailPrev').hidden = !m; $('#mailActs').hidden = !m;
+  $('#mailGen').innerHTML = ic('sparkle') + (m ? 'Újragenerálás' : 'E-mail generálása');
+  $('#mailStatus').innerHTML = !m ? `<span class="badge b-neutral">${ic('minus','icon')}Nincs generálva</span>` : m.state === 'wait' ? `<span class="badge b-warning">${ic('clock','icon')}Jóváhagyásra vár</span>` : `<span class="badge b-success">${ic('check','icon')}Mehet: a 15:00-s futás elküldi</span>`;
+  if (!m) return;
+  if (!m.text) m.text = mailText(mailM);
+  $('#mailSubj').textContent = `Sajtófigyelés – ${MLABEL[mailM]}`;
+  $('#mailBody').textContent = m.text;
+  $('#mailApprove').disabled = m.state !== 'wait'; $('#mailEditBtn').disabled = m.state !== 'wait';
+}
+fillMonthSelect($('#mailMonth'));
+$('#mailMonth').addEventListener('change', e => { mailM = e.target.value; $('#mailEditWrap').hidden = true; $('#mailBody').hidden = false; renderMail(); });
+$('#mailGen').addEventListener('click', async () => {
+  if (mails[mailM]?.state === 'go'){ toast('Ez a levél már jóvá van hagyva, nem generálható újra.', { type:'warning' }); return; }
+  if (mails[mailM]){ const ok = await confirmBox({ title:'Újragenerálja a levelet?', body:'A jelenlegi szöveg és a kézi módosítások felülíródnak.', confirm:'Újragenerálás', danger:false }); if (!ok) return; }
+  const b = $('#mailGen'); b.setAttribute('aria-busy','true');
+  setTimeout(() => { b.removeAttribute('aria-busy'); mails[mailM] = { state:'wait', text:mailText(mailM) }; renderMail(); renderTodos(); logEvent('Havi e-mail generálva', MLABEL[mailM]); toast(`A(z) ${MLABEL[mailM]} e-mail elkészült. Nézze át, és hagyja jóvá.`); }, 1200);
+});
+$('#mailEditBtn').addEventListener('click', () => {
+  const m = mails[mailM], editing = !$('#mailEditWrap').hidden;
+  if (editing){ m.text = $('#mailEdit').value; $('#mailEditWrap').hidden = true; $('#mailBody').hidden = false; $('#mailEditBtn').innerHTML = ic('edit') + 'Szöveg szerkesztése'; renderMail(); toast('A levél szövege mentve.'); }
+  else { $('#mailEdit').value = m.text; $('#mailEditWrap').hidden = false; $('#mailBody').hidden = true; $('#mailEditBtn').innerHTML = ic('check') + 'Szöveg mentése'; $('#mailEdit').focus(); }
+});
 $('#mailApprove').addEventListener('click', async () => {
-  const ok = await confirmBox({ title:'Elküldi a havi e-mailt Berényi Attilának?', body:'A következő óránkénti futás (15:00) elküldi, egyszer. Utána nem vonható vissza.', confirm:'Jóváhagyom, mehet', danger:false });
-  if (ok){ mailState = 'go'; renderMail(); toast('Jóváhagyva. A levél 15:00-kor megy ki.'); }
+  const ok = await confirmBox({ title:`Elküldi a(z) ${MLABEL[mailM]} e-mailt Berényi Attilának?`, body:'A következő óránkénti futás (15:00) elküldi, egyszer. Utána nem vonható vissza.', confirm:'Jóváhagyom, mehet', danger:false });
+  if (ok){ mails[mailM].state = 'go'; renderMail(); renderTodos(); logEvent('Havi e-mail jóváhagyva', MLABEL[mailM]); toast('Jóváhagyva. A levél 15:00-kor megy ki.'); }
 });
-$('#mailEdit').addEventListener('click', () => toast('Az éles felületen itt szerkeszthető a levél szövege jóváhagyás előtt.', { type:'info' }));
 $$('[data-fake-run]').forEach(b => b.addEventListener('click', () => { b.setAttribute('aria-busy','true'); setTimeout(() => { b.removeAttribute('aria-busy'); toast(`${b.dataset.fakeRun}: szárazfuttatás kész, írás nem történt.`); }, 900); }));
-$('#inviteBtn').addEventListener('click', async () => { const em = await confirmBox({ title:'Új fiók meghívása', body:'A meghívott e-mailben kap linket a jelszó beállításához.', confirm:'Meghívó küldése', danger:false, input:{ label:'E-mail-cím' } }); if (em) toast(`Meghívó elküldve: ${em}`); });
+
+/* Napló */
 const logTable = DataTable({
-  id:'naplo', caption:'Napló', rows:LOG.map((r, i) => ({ id:'l' + i, i, when:r[0], what:r[1], who:r[2], res:r[3] === 'OK' ? 'ok' : 'err', det:r[4] })), labelKey:'what', selectable:false,
+  id:'naplo', caption:'Napló', rows:LOG, labelKey:'what', selectable:false,
   table:$('#logTable'), pager:$('#logPager'), sort:{ key:'when', dir:'desc' }, pageSize:25,
-  columns:[ { key:'when', label:'Időpont', sortValue:r => -r.i }, { key:'what', label:'Esemény' }, { key:'who', label:'Ki' },
-    { key:'res', label:'Eredmény', type:'status', map:{ ok:{ label:'OK', cls:'b-success', icon:'check' }, err:{ label:'Figyelmeztetés', cls:'b-warning', icon:'alert' } } },
+  columns:[ { key:'when', label:'Időpont', sortValue:r => r.i }, { key:'what', label:'Esemény' }, { key:'who', label:'Ki' },
+    { key:'res', label:'Eredmény', type:'status', map:{ ok:{ label:'OK', cls:'b-success', icon:'check' }, warn:{ label:'Figyelmeztetés', cls:'b-warning', icon:'alert' } } },
     { key:'det', label:'Részletek', sortable:false } ],
-  emptyHtml:() => 'Nincs bejegyzés.'
+  emptyHtml:() => 'Nincs a keresésnek megfelelő bejegyzés.'
 });
+$('#logQ').addEventListener('input', e => { const q = norm(e.target.value.trim()); logTable.setPred(r => !q || norm(r.what + ' ' + r.who + ' ' + r.det).includes(q)); });
 
 /* ==================================================================
    13. SZEREPKÖR, BELÉPÉS, NÉZETVÁLTÁS
    ================================================================== */
-function setRole(r){
-  role = r; const u = USERS[r];
-  $$('#roleSeg [data-role]').forEach(b => b.setAttribute('aria-pressed', b.dataset.role === r));
-  $('#avatar').textContent = $('#avatar2').textContent = u.ini; $('#pmName').textContent = u.name; $('#pmRole').textContent = u.role;
+const VIEW_PERM = { szabalyok:'rules', felhasznalok:'users', ugyfelek:'ops', vezerlo:'ops', naplo:'ops', otlet:'ideas' };
+function setUser(u){
+  me = u;
+  $$('#roleSeg [data-user]').forEach(b => b.setAttribute('aria-pressed', b.dataset.user === u.id));
+  $('#avatar').textContent = $('#avatar2').textContent = u.ini; $('#pmName').textContent = u.name; $('#pmRole').textContent = `${ROLES[u.role].label} · ${clientName(u.client)}`;
   $('#profileBtn').setAttribute('aria-label', 'Profil: ' + u.name);
-  $$('[data-role-only]').forEach(el => el.hidden = el.dataset.roleOnly !== r);
-  $('#readonlyNote').hidden = can('decide');
-  $('#cikkSub').hidden = !can('decide');
-  artTable.clearSel(); artPred(); renderOverview(); renderPosts();
+  $$('[data-perm]').forEach(el => el.hidden = !can(el.dataset.perm));
+  $('#readonlyNote').hidden = can('decide'); $('#cikkSub').hidden = !can('decide');
+  $('#newIdea').hidden = !can('ideas'); $('#ruleAdd').hidden = !can('rules');
+  $('#usersSub').textContent = can('ops') ? 'Minden ügyfél felhasználói. Meghívás e-maillel; egy személy több ügyfélnél is dolgozhat, ügyfelenként más szerepkörrel.' : 'Az Xperion felhasználói. Meghívhatja a munkatársait; az üzemeltető fiókját nem módosíthatja.';
+  syncUserRows(); userTable.clearSel(); artTable.clearSel(); artPred(); renderOverview(); renderPosts(); renderRules(); renderWs(); renderMatrix();
   if (currentView === 'poszt') renderPost();
-  if (!can('send') && (currentView === 'vezerlo' || currentView === 'naplo')) location.hash = '#attekintes';
+  if (currentView && VIEW_PERM[currentView] && !can(VIEW_PERM[currentView])) location.hash = '#attekintes';
 }
-$$('#roleSeg [data-role]').forEach(b => b.addEventListener('click', () => { setRole(b.dataset.role); toast(`Nézet: ${USERS[role].name}.`, { type:'info' }); }));
+$$('#roleSeg [data-user]').forEach(b => b.addEventListener('click', () => { if (dirty){ toast('Előbb mentse vagy vesse el a szabályok módosítását.', { type:'warning' }); return; } setUser(USERS.find(u => u.id === b.dataset.user)); toast(`Nézet: ${me.name} (${ROLES[me.role].label}).`, { type:'info' }); }));
 
 $$('.pw-toggle').forEach(b => b.addEventListener('click', () => { const i = document.getElementById(b.getAttribute('aria-controls')), s = i.type === 'password'; i.type = s ? 'text' : 'password'; b.setAttribute('aria-pressed', s); b.setAttribute('aria-label', s ? 'Jelszó elrejtése' : 'Jelszó megjelenítése'); $('use', b).setAttribute('href', s ? '#i-eye-off' : '#i-eye'); }));
 $('#loginForm').addEventListener('submit', e => {
-  e.preventDefault(); const em = $('#l-email').value.trim().toLowerCase(), r = Object.keys(USERS).find(k => USERS[k].email === em);
-  if (!r){ $('#loginErr').hidden = false; $('#l-email').setAttribute('aria-invalid','true'); $('#l-email').focus(); return; }
+  e.preventDefault(); const em = $('#l-email').value.trim().toLowerCase(), u = USERS.find(x => x.email === em && ['attila','emi','balazs'].includes(x.id));
+  if (!u){ $('#loginErr').hidden = false; $('#l-email').setAttribute('aria-invalid','true'); $('#l-email').focus(); return; }
   $('#loginErr').hidden = true; $('#l-email').removeAttribute('aria-invalid');
   const b = $('#loginBtn'); b.setAttribute('aria-busy','true');
-  setTimeout(() => { b.removeAttribute('aria-busy'); setRole(r); location.hash = '#attekintes'; toast(`Üdvözöljük, ${USERS[r].short}!`); }, 500);
+  setTimeout(() => { b.removeAttribute('aria-busy'); setUser(u); location.hash = '#attekintes'; toast(`Üdvözöljük, ${u.name.split(' ').pop()}!`); }, 500);
 });
 $('#forgot').addEventListener('click', e => { e.preventDefault(); toast('Ha a cím regisztrált, elküldtük a jelszó-visszaállító linket.', { type:'info' }); });
 document.addEventListener('click', e => { const a = e.target.closest('[data-noop]'); if (a){ e.preventDefault(); toast('A prototípusban ez a link a cikkre vagy az xperion.hu-n lévő oldalra mutatna.', { type:'info' }); } });
 
-const views = { belepes:$('#v-belepes'), attekintes:$('#v-attekintes'), cikkek:$('#v-cikkek'), posztok:$('#v-posztok'), poszt:$('#v-poszt'), otletek:$('#v-otletek'), szabalyok:$('#v-szabalyok'), vezerlo:$('#v-vezerlo'), naplo:$('#v-naplo') };
-const TITLES = { belepes:'Belépés', attekintes:'Áttekintés', cikkek:'Havi cikkek', posztok:'LinkedIn-posztok', poszt:'Poszt', otletek:'Posztötletek', szabalyok:'Posztszabályok', vezerlo:'Vezérlőpult', naplo:'Napló' };
+const views = { belepes:$('#v-belepes'), attekintes:$('#v-attekintes'), cikkek:$('#v-cikkek'), posztok:$('#v-posztok'), poszt:$('#v-poszt'), otletek:$('#v-otletek'), otlet:$('#v-otlet'), szabalyok:$('#v-szabalyok'), felhasznalok:$('#v-felhasznalok'), ugyfelek:$('#v-ugyfelek'), vezerlo:$('#v-vezerlo'), naplo:$('#v-naplo') };
+const TITLES = { belepes:'Belépés', attekintes:'Áttekintés', cikkek:'Havi cikkek', posztok:'LinkedIn-posztok', poszt:'Poszt', otletek:'Posztötletek', otlet:'Posztötlet', szabalyok:'Posztszabályok', felhasznalok:'Felhasználók', ugyfelek:'Ügyfelek', vezerlo:'Vezérlőpult', naplo:'Napló' };
 let currentView = null;
 function show(name){
   closeAll();
@@ -1697,17 +2248,22 @@ function show(name){
   shell.hidden = name === 'belepes';
   $$('#sidebar [data-nav]').forEach(a => a.dataset.nav.split(' ').includes(name) ? a.setAttribute('aria-current','page') : a.removeAttribute('aria-current'));
   const first = currentView === null; currentView = name;
-  document.title = TITLES[name] + ' · Xperion';
+  document.title = TITLES[name] + ' · Sajtófigyelés';
   if (name === 'attekintes') renderOverview();
-  if (name === 'poszt') renderPost();
-  if (name === 'naplo') logTable.render();
+  if (name === 'poszt'){ selectTab($('#tab-elo')); renderPost(); }
+  if (name === 'posztok') renderPosts();
+  if (name === 'otlet') renderIdea();
   if (name === 'otletek') ideaTable.render();
+  if (name === 'naplo') logTable.render();
+  if (name === 'felhasznalok'){ syncUserRows(); userTable.render(); renderMatrix(); }
+  if (name === 'ugyfelek'){ clientTable.render(); renderOnb(); }
+  if (name === 'vezerlo') renderMail();
   $('#savebar').hidden = !(dirty && name === 'szabalyok');
   if (!first){ window.scrollTo(0, 0); $('h1', views[name]).focus({ preventScroll:true }); }
 }
 function route(){
   let name = views[location.hash.slice(1)] ? location.hash.slice(1) : 'belepes';
-  if ((name === 'vezerlo' || name === 'naplo') && !can('send')) name = 'attekintes';
+  if (VIEW_PERM[name] && !can(VIEW_PERM[name])) name = 'attekintes';
   if (currentView === 'szabalyok' && name !== 'szabalyok' && dirty){
     history.replaceState(null, '', '#szabalyok');
     confirmBox({ title:'Elveti a módosításokat?', body:'A szabályok nem mentett módosításai elvesznek.', confirm:'Módosítások elvetése', cancel:'Maradok' }).then(ok => { if (ok){ renderRules(); setDirty(false); history.replaceState(null, '', '#' + name); show(name); } });
@@ -1721,7 +2277,7 @@ window.addEventListener('hashchange', route);
    14. SHELL: téma, sűrűség, oldalsáv, profil, mobilmenü
    ================================================================== */
 const themes = ['system','light','dark'], themeIcons = { system:'#i-monitor', light:'#i-sun', dark:'#i-moon' }, themeNames = { system:'rendszer', light:'világos', dark:'sötét' };
-function applyTheme(t){ t === 'system' ? root.removeAttribute('data-theme') : root.setAttribute('data-theme', t); $('#themeIcon').setAttribute('href', themeIcons[t]); $('#themeBtn').title = 'Téma: ' + themeNames[t]; $('#themeBtn').setAttribute('aria-label', 'Téma váltása, jelenleg: ' + themeNames[t]); }
+function applyTheme(t){ t === 'system' ? root.removeAttribute('data-theme') : root.setAttribute('data-theme', t); $('#themeIcon').setAttribute('href', themeIcons[t]); $('#themeBtn').title = 'Téma: ' + themeNames[t]; $('#themeBtn').setAttribute('aria-label', 'Téma váltása, jelenleg: ' + themeNames[t]); if (currentView === 'poszt') drawImage(curPost.img); }
 let theme = store.get('xp-theme') || 'system'; applyTheme(theme);
 $('#themeBtn').addEventListener('click', () => { theme = themes[(themes.indexOf(theme) + 1) % 3]; applyTheme(theme); store.set('xp-theme', theme); });
 function applyDensity(d){ root.setAttribute('data-density', d); $('#densityBtn').setAttribute('aria-pressed', d === 'compact'); }
@@ -1750,7 +2306,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('dialog
 /* ==================================================================
    INDULÁS
    ================================================================== */
-renderRules(); renderMail(); setRole('ugyfel'); route();
+renderRules(); setUser(USERS[0]); route();
 
 })();
 </script>
