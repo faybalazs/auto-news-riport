@@ -17,6 +17,7 @@ final class FakeClaude implements HttpClient
     public array $requests = [];
     public ?string $stopReason = null;
     public bool $dropLast = false;
+    public ?string $svg = null;
 
     public function request(string $method, string $url, array $headers = [], ?string $body = null): HttpResponse
     {
@@ -35,6 +36,8 @@ final class FakeClaude implements HttpClient
                 array_pop($out);
             }
             $text = json_encode(['items' => $out], JSON_UNESCAPED_UNICODE);
+        } elseif (isset($props['svg'])) {
+            $text = json_encode(['svg' => $this->svg ?? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200"><defs><linearGradient id="g"><stop offset="0" stop-color="#2D388A"/><stop offset="1" stop-color="#00AEEF"/></linearGradient></defs><rect width="1200" height="1200" fill="#0F1640"/><circle cx="900" cy="300" r="260" fill="url(#g)" onclick="alert(1)"/><script>alert(1)</script><image href="https://evil.test/x.png"/><text x="96" y="300" font-family="Arial" font-size="84" fill="#fff"><tspan x="96" dy="0">Mért</tspan><tspan x="96" dy="100">várakozás</tspan></text><text x="96" y="1100" fill="#fff">xperion.hu</text></svg>'], JSON_UNESCAPED_UNICODE);
         } elseif (isset($props['opening'])) {
             $c = $b['messages'][0]['content'];
             $text = json_encode(['topic' => str_contains($c, '"kind": "otlet"') ? 'Ötletposzt' : 'Havi válogatás', 'opening' => 'Mit mér egy bankfiók, amikor a várakozást méri?', 'alt_opening_1' => 'Alt 1', 'alt_opening_2' => 'Alt 2',

@@ -4,15 +4,8 @@ $sub = 'A „LinkedIn poszt” jelölésű cikkekből és a posztötletekből k�
 require __DIR__ . '/_head.php';
 $open = $data['openMonths'] ?? [];
 ?>
-<?php if ($access->can('ideas') && $open): ?>
-<section class="card widget" aria-labelledby="h-gen">
-  <div class="widget-head"><div><h2 id="h-gen">Poszt a hónap LinkedIn-cikkeiből</h2><p class="meta">Egy havi poszt az összes, még poszt nélküli „LinkedIn poszt” cikkből. Egy cikkből külön poszt a Havi cikkek oldalon kérhető.</p></div></div>
-  <div class="collect-bar">
-    <div class="field"><label for="genMonth">Hónap</label><select class="select" id="genMonth"><?php foreach ($open as $m): ?><option value="<?= $e($m['month']) ?>"><?= $e($m['label']) ?> · <?= (int) $m['n'] ?> cikk</option><?php endforeach; ?></select></div>
-    <button class="btn btn-primary" type="button" id="genMonthly"><?= $ic('sparkle') ?>Poszt készítése</button>
-  </div>
-  <p class="help">Fél–egy perc (Claude Opus, kb. 15–25 cent). A poszt Tervezet állapotba kerül.</p>
-</section>
+<?php if ($open): $wait = array_sum(array_column($open, 'n')); ?>
+<div class="banner bn-info" role="status"><?= $ic('linkedin', 'icon') ?><div class="b-body"><span><b><?= (int) $wait ?> „LinkedIn poszt” cikk vár posztra</b> (<?= $e(implode(', ', array_map(static fn ($m) => $m['label'] . ': ' . $m['n'], $open))) ?>). A poszt akkor készül, amikor a Havi cikkek oldalon kijelöli őket, és megnyomja a <b>Poszt készítése a kijelöltekből</b> gombot. <a href="index.php?p=cikkek&amp;honap=<?= $e($open[0]['month']) ?>">Havi cikkek</a></span></div></div>
 <?php endif; ?>
 <?php foreach ($data['jobs'] ?? [] as $j): ?>
 <div class="banner <?= $j['attempts'] >= \Xperion\Posts\PostService::MAX_ATTEMPTS ? 'bn-error' : 'bn-info' ?>" role="status"><?= $ic('clock', 'icon') ?><div class="b-body"><span><b>Generálásra vár</b> (<?= $e(['cikkek' => 'havi poszt', 'cikk' => 'cikkből', 'otlet' => 'ötletből', 'ujra' => 'újragenerálás'][$j['kind']] ?? $j['kind']) ?>: <?= $e($j['ref']) ?>, <?= (int) $j['attempts'] ?>. próba): <?= $e($j['error']) ?></span></div></div>

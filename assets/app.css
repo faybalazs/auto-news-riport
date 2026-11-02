@@ -683,6 +683,8 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 #postForm{ display:flex; flex-direction:column; gap:16px; }
 @media (max-width:1279px){ .post-layout{ grid-template-columns:minmax(0,1fr); } }
 @media (max-width:767px){ .grid-2{ grid-template-columns:minmax(0,1fr); } }
+.li-card img{ display:block; width:100%; height:auto; aspect-ratio:1/1; }
+.li-card canvas[hidden], .li-card img[hidden]{ display:none; }
 
 /* ================= 18. TÖRÉSPONTOK (mindig a CSS végén) ================= */
 @media (max-width:1279px){ .layout{ grid-template-columns:minmax(0,1fr); } .w-8, .w-4{ grid-column:span 12; } }

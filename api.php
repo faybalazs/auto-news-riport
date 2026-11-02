@@ -143,6 +143,11 @@ try {
                 throw new \InvalidArgumentException($e->getMessage());
             }
         })(),
+        'posztkep' => (function () use ($app, $access, $str, $in) {
+            session_write_close();
+            @set_time_limit(600);
+            return ['post' => $app->posts()->newImage($access, $str('code'), (string) ($in['request'] ?? ''))];
+        })(),
         'poszt' => ['post' => $app->posts()->update($access, $str('code'), (array) ($in['post'] ?? []))],
         'posztlepes' => ['post' => $app->posts()->transition($access, $str('code'), $str('action'), (string) ($in['comment'] ?? ''))],
         'poszttorles' => (function () use ($app, $access, $str) {

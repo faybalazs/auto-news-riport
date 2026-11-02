@@ -20,7 +20,8 @@ require __DIR__ . '/_head.php';
       <article class="li-card" aria-label="LinkedIn-előnézet">
         <div class="li-head"><span class="li-logo" aria-hidden="true"><?= $e(mb_strtoupper(mb_substr($data['company']['name'], 0, 1))) ?></span><div class="li-meta"><b><?= $e($data['company']['name']) ?></b><?php if ($data['company']['followers'] !== ''): ?><span><?= $e($data['company']['followers']) ?> követő</span><?php endif; ?><span>Most · <?= $ic('globe', 'icon icon-xs') ?></span></div><span class="li-follow">+ Követés</span></div>
         <div class="li-text" id="liText"></div>
-        <canvas id="postCanvas" width="1200" height="1200" role="img" aria-label="A poszt képe"></canvas>
+        <img id="postImg" alt="A poszt képe" width="1200" height="1200" hidden>
+        <canvas id="postCanvas" width="1200" height="1200" role="img" aria-label="A poszt képe (sablon)"></canvas>
         <div class="li-react" aria-hidden="true"><span><?= $ic('thumb') ?>Tetszik</span><span><?= $ic('msg') ?>Hozzászólás</span><span><?= $ic('repeat') ?>Megosztás</span><span><?= $ic('send') ?>Küldés</span></div>
       </article>
       <div class="acts-row">

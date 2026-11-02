@@ -57,7 +57,7 @@ final class PostService
             $this->db->all('SELECT id, month, no, title, url, source_name FROM articles WHERE client_id = ? AND post_code = ? ORDER BY month, no', [$cid, $code]));
         $p['events'] = array_map(static fn ($e) => ['action' => (string) $e['action'], 'details' => (string) $e['details'], 'user' => (string) ($e['name'] ?? 'Rendszer'), 'time_hu' => View::dateHu((string) $e['created_at'])],
             $this->db->all('SELECT e.action, e.details, e.created_at, u.name FROM post_events e LEFT JOIN users u ON u.id = e.user_id WHERE e.client_id = ? AND e.post_code = ? ORDER BY e.id DESC', [$cid, $code]));
-        $p['job'] = $this->db->one("SELECT attempts, last_error FROM post_jobs WHERE client_id = ? AND kind = 'ujra' AND ref = ?", [$cid, $code]);
+        $p['job'] = $this->db->one("SELECT attempts, last_error FROM post_jobs WHERE client_id = ? AND kind = 'ujra' AND ref_hash = ?", [$cid, sha1($code)]);
         return $p;
     }
 
@@ -86,16 +86,39 @@ final class PostService
      */
     public function request(Access $a, string $kind, string $ref): string
     {
-        $a->require('ideas');
         $cid = $a->clientId() ?? throw new \InvalidArgumentException('Nincs kiválasztott ügyfél.');
-        if (!in_array($kind, ['cikkek', 'cikk', 'otlet', 'ujra'], true)) {
-            throw new \InvalidArgumentException('Ismeretlen generálási mód.');
+        $kind = $kind === 'cikk' ? 'cikkek' : $kind;
+        match ($kind) {
+            // a kijelölt cikkekből az indít posztot, aki a cikkekről dönt (ügyfél-adminisztrátor, üzemeltető)
+            'cikkek' => $a->require('decide'),
+            'otlet' => $a->require('ideas'),
+            'ujra' => $a->can('ideas') ? null : $a->require('approve'),
+            default => throw new \InvalidArgumentException('Ismeretlen generálási mód.'),
+        };
+        if ($kind === 'cikkek') {
+            $ref = self::idList($ref);
         }
         $this->validateRequest($cid, $kind, $ref);
-        $this->db->run('INSERT INTO post_jobs (client_id, kind, ref, requested_by, attempts, last_error, created_at) VALUES (?, ?, ?, ?, 0, \'\', ?)
-            ON DUPLICATE KEY UPDATE requested_by = VALUES(requested_by), attempts = 0, last_error = \'\'', [$cid, $kind, $ref, $a->userId(), Database::now()]);
-        $job = $this->db->one('SELECT * FROM post_jobs WHERE client_id = ? AND kind = ? AND ref = ?', [$cid, $kind, $ref]);
-        return $this->runJob($job);
+        return $this->runJob($this->job($cid, $kind, $ref, $a->userId()));
+    }
+
+    /** @return array<string,mixed> a (létrehozott vagy újraindított) kérés */
+    private function job(int $cid, string $kind, string $ref, ?int $userId): array
+    {
+        $this->db->run('INSERT INTO post_jobs (client_id, kind, ref, ref_hash, requested_by, attempts, last_error, created_at) VALUES (?, ?, ?, ?, ?, 0, \'\', ?)
+            ON DUPLICATE KEY UPDATE requested_by = VALUES(requested_by), attempts = 0, last_error = \'\'', [$cid, $kind, $ref, sha1($ref), $userId, Database::now()]);
+        return $this->db->one('SELECT * FROM post_jobs WHERE client_id = ? AND kind = ? AND ref_hash = ?', [$cid, $kind, sha1($ref)]) ?? [];
+    }
+
+    /** „12, 7,12” → „7,12” */
+    private static function idList(string $ref): string
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', preg_split('/[^0-9]+/', $ref) ?: []), static fn ($i) => $i > 0)));
+        sort($ids);
+        if (!$ids) {
+            throw new \InvalidArgumentException('Jelöljön ki legalább egy „LinkedIn poszt” cikket.');
+        }
+        return implode(',', $ids);
     }
 
     /** Az óránkénti futás: a sikertelen generálási kérések pótlása (Aktív ügyfelek, legfeljebb 3 próba). */
@@ -147,10 +170,8 @@ final class PostService
     private function validateRequest(int $cid, string $kind, string $ref): void
     {
         match ($kind) {
-            'cikkek' => (int) $this->db->value("SELECT COUNT(*) FROM articles WHERE client_id = ? AND month = ? AND decision = 'linkedin' AND post_code = ''", [$cid, $ref]) > 0
-                || throw new \InvalidArgumentException('Ebben a hónapban nincs poszt nélküli „LinkedIn poszt” jelölésű cikk.'),
-            'cikk' => $this->db->value("SELECT 1 FROM articles WHERE client_id = ? AND id = ? AND decision = 'linkedin' AND post_code = ''", [$cid, (int) $ref])
-                || throw new \InvalidArgumentException('Ebből a cikkből nem készíthető poszt (nincs „LinkedIn poszt” jelölése, vagy már van posztja).'),
+            'cikkek' => (int) $this->db->value("SELECT COUNT(*) FROM articles WHERE client_id = ? AND FIND_IN_SET(id, ?) AND decision = 'linkedin' AND post_code = ''", [$cid, $ref]) === count(explode(',', $ref))
+                || throw new \InvalidArgumentException('A kijelölt cikkek közül valamelyikből nem készíthető poszt (nincs „LinkedIn poszt” jelölése, vagy már van posztja). Töltse újra az oldalt.'),
             'otlet' => $this->db->value("SELECT 1 FROM post_ideas WHERE client_id = ? AND code = ? AND status <> 'elvetve' AND (post_code = '' OR post_code NOT IN (SELECT code FROM posts WHERE client_id = ?))", [$cid, $ref, $cid])
                 || throw new \InvalidArgumentException('Ebből az ötletből nem készíthető poszt (elvetett, vagy már van posztja).'),
             'ujra' => in_array($this->db->value('SELECT status FROM posts WHERE client_id = ? AND code = ?', [$cid, $ref]), ['tervezet', 'ugyfelnel'], true)
@@ -190,23 +211,57 @@ final class PostService
         $this->db->transaction(function () use ($existing, $cid, $kind, $fields, $articleIds, $ideaId, $month, $now, $userId, &$code): void {
             if ($existing !== null) {
                 $code = (string) $existing['code'];
-                $set = $fields + ['status' => 'tervezet', 'status_at' => $now];
+                $set = $fields + ['status' => 'ugyfelnel', 'status_at' => $now, 'change_request' => null];
                 $this->db->run('UPDATE posts SET ' . implode(', ', array_map(static fn ($k) => "$k = ?", array_keys($set))) . ' WHERE id = ?', [...array_values($set), $existing['id']]);
-                $this->event($cid, $code, $userId, 'Újragenerálva', $existing['change_request'] ? 'a módosítási kérés szerint' : '');
+                $this->event($cid, $code, $userId, 'Újragenerálva, jóváhagyásra elküldve', $existing['change_request'] ? 'a módosítási kérés szerint: ' . $existing['change_request'] : '');
                 return;
             }
             $code = $this->nextCode($cid, $month);
-            $this->db->insert('posts', $fields + ['client_id' => $cid, 'code' => $code, 'month' => $month, 'status' => 'tervezet', 'source_kind' => $kind, 'idea_id' => $ideaId, 'status_at' => $now, 'created_at' => $now]);
+            $this->db->insert('posts', $fields + ['client_id' => $cid, 'code' => $code, 'month' => $month, 'status' => 'ugyfelnel', 'source_kind' => $kind === 'cikk' ? 'cikkek' : $kind, 'idea_id' => $ideaId, 'status_at' => $now, 'created_at' => $now]);
             if ($articleIds) {
                 $this->db->run('UPDATE articles SET post_code = ?, updated_at = ? WHERE client_id = ? AND id IN (' . implode(',', array_fill(0, count($articleIds), '?')) . ')', [$code, $now, $cid, ...$articleIds]);
             }
             if ($ideaId !== null) {
                 $this->db->run("UPDATE post_ideas SET status = 'elkeszult', post_code = ?, updated_at = ? WHERE id = ?", [$code, $now, $ideaId]);
             }
-            $this->event($cid, $code, $userId, 'Generálva', ['cikkek' => 'a hónap LinkedIn-cikkeiből', 'cikk' => 'egy cikkből', 'otlet' => 'posztötletből'][$kind] ?? '');
+            $this->event($cid, $code, $userId, 'Generálva, jóváhagyásra elküldve', $kind === 'otlet' ? 'posztötletből' : (count($articleIds) > 1 ? count($articleIds) . ' kijelölt cikkből' : 'egy cikkből'));
         });
         $this->audit->add($cid, $userId, $existing ? 'Poszt újragenerálva' : 'Poszt generálva', $code . ' · ' . $out['topic']);
+        // Egyedi kép: ha nem sikerül, a poszt a sablonképpel marad, és az „Új kép” paranccsal később kérhető.
+        try {
+            $this->designImage($cid, $code, $existing && $existing['change_request'] ? (string) $existing['change_request'] : '', $model);
+        } catch (\Throwable $e) {
+            $this->event($cid, $code, null, 'A kép nem készült el', $e->getMessage());
+        }
+        $this->notify($cid, $code, (string) $out['topic'], 'kuldes', '', $userId ?? 0);
         return $code;
+    }
+
+    /** Új egyedi kép kérése (megjegyzéssel is). */
+    public function newImage(Access $a, string $code, string $request): array
+    {
+        if (!$a->can('ideas')) {
+            $a->require('approve');
+        }
+        $cid = $a->clientId() ?? throw new \InvalidArgumentException('Nincs kiválasztott ügyfél.');
+        $st = $this->db->value('SELECT status FROM posts WHERE client_id = ? AND code = ?', [$cid, $code]) ?? throw new \InvalidArgumentException('Nincs ilyen poszt.');
+        if ($st === 'megjelent') {
+            throw new \InvalidArgumentException('A megjelent poszt képe nem cserélhető.');
+        }
+        $this->designImage($cid, $code, trim($request), (string) ($this->db->value("SELECT value FROM client_settings WHERE client_id = ? AND name = 'modell_linkedin'", [$cid]) ?: PostWriter::DEFAULT_MODEL), $a->userId());
+        return $this->get($a, $code) ?? [];
+    }
+
+    private function designImage(int $cid, string $code, string $request, string $model, ?int $userId = null): void
+    {
+        $p = $this->db->one('SELECT topic, opening, highlights, image_data FROM posts WHERE client_id = ? AND code = ?', [$cid, $code]) ?? throw new \InvalidArgumentException('Nincs ilyen poszt.');
+        $c = $this->db->one('SELECT name, website FROM clients WHERE id = ?', [$cid]);
+        $rules = implode("\n", array_map(static fn ($r) => '- ' . $r['name'] . ': ' . $r['value'], $this->db->all("SELECT name, value FROM post_rules WHERE client_id = ? AND (name LIKE '%kép%' OR name LIKE '%szín%' OR name LIKE '%vizuál%' OR name LIKE '%arculat%' OR name LIKE '%formátum%') ORDER BY sort", [$cid])));
+        $post = ['topic' => $p['topic'], 'opening' => $p['opening'], 'highlights' => $p['highlights'], 'image' => json_decode((string) $p['image_data'], true) ?: []];
+        $site = preg_replace('~^https?://|/$~', '', (string) ($c['website'] ?? '')) ?: 'xperion.hu';
+        $svg = (new ImageDesigner($this->claude))->design((string) $c['name'], $site, $rules, $post, $request, $model);
+        $this->db->run('UPDATE posts SET image_svg = ?, updated_at = ? WHERE client_id = ? AND code = ?', [$svg, Database::now(), $cid, $code]);
+        $this->event($cid, $code, $userId, 'Egyedi kép elkészült', $request);
     }
 
     /** @param array<string,mixed> $post */
@@ -227,10 +282,8 @@ final class PostService
     {
         $cols = 'id, month, source_name, published_on, title, description, reason, url';
         $rows = match ($kind) {
-            'cikkek' => preg_match('/^LI-/', $ref) ? $this->db->all("SELECT $cols FROM articles WHERE client_id = ? AND post_code = ? ORDER BY no", [$cid, $ref])
-                : $this->db->all("SELECT $cols FROM articles WHERE client_id = ? AND month = ? AND decision = 'linkedin' AND post_code = '' ORDER BY no", [$cid, $ref]),
-            'cikk' => preg_match('/^LI-/', $ref) ? $this->db->all("SELECT $cols FROM articles WHERE client_id = ? AND post_code = ?", [$cid, $ref])
-                : $this->db->all("SELECT $cols FROM articles WHERE client_id = ? AND id = ?", [$cid, (int) $ref]),
+            'cikkek', 'cikk' => preg_match('/^LI-/', $ref) ? $this->db->all("SELECT $cols FROM articles WHERE client_id = ? AND post_code = ? ORDER BY month, no", [$cid, $ref])
+                : $this->db->all("SELECT $cols FROM articles WHERE client_id = ? AND FIND_IN_SET(id, ?) ORDER BY month, no", [$cid, $ref]),
             default => [],
         };
         if ($kind === 'otlet') {
@@ -247,7 +300,7 @@ final class PostService
         $month = (string) $rows[0]['month'];
         $label = View::monthHu(new \DateTimeImmutable(sprintf('20%s-%s-01', substr($month, 0, 2), substr($month, 2, 2))));
         $src = ['kind' => $kind, 'hónap' => $label,
-            'feladat' => $kind === 'cikkek' && count($rows) > 1 ? 'Egy havi poszt az összes cikkből, közös gondolatra építve (a szabályok szerinti visszatérő havi formátum, ha van ilyen).' : 'Egy poszt ebből a cikkből.',
+            'feladat' => count($rows) > 1 ? 'Egy közös poszt a kijelölt cikkekből, közös gondolatra építve (ha a szabályokban van visszatérő havi formátum, és a cikkek ahhoz illenek, azt használd).' : 'Egy poszt ebből a cikkből.',
             'articles' => array_map(static fn ($r) => ['source' => $r['source_name'], 'date' => $r['published_on'], 'title' => $r['title'], 'description' => $r['description'], 'why_relevant' => $r['reason'], 'url' => $r['url']], $rows)];
         return [$src, array_map(static fn ($r) => (int) $r['id'], $rows), null, $month];
     }
@@ -335,6 +388,15 @@ final class PostService
         }
         $this->event($cid, $code, $a->userId(), $label, $comment);
         $this->audit->add($cid, $a->userId(), 'Poszt: ' . mb_strtolower($label), $code . ($comment !== '' ? ' · ' . $comment : ''));
+        if ($action === 'modositas') {
+            // A Claude a kérés szerint azonnal újraírja, és visszakerül jóváhagyásra; ha nem sikerül, az óránkénti futás pótolja.
+            try {
+                $this->runJob($this->job($cid, 'ujra', $code, $a->userId()));
+            } catch (\Throwable $e) {
+                $this->notify($cid, $code, (string) $p['topic'], 'modositas', $comment . "\n\nAz automatikus újraírás nem sikerült: " . $e->getMessage(), $a->userId());
+            }
+            return $this->get($a, $code) ?? [];
+        }
         $this->notify($cid, $code, (string) $p['topic'], $action, $comment, $a->userId());
         return $this->get($a, $code) ?? [];
     }
@@ -351,7 +413,7 @@ final class PostService
                 $this->db->run("UPDATE post_ideas SET status = 'uj', post_code = '' WHERE id = ?", [$p['idea_id']]);
             }
             $this->db->run('DELETE FROM post_events WHERE client_id = ? AND post_code = ?', [$cid, $code]);
-            $this->db->run("DELETE FROM post_jobs WHERE client_id = ? AND kind = 'ujra' AND ref = ?", [$cid, $code]);
+            $this->db->run("DELETE FROM post_jobs WHERE client_id = ? AND kind = 'ujra' AND ref_hash = ?", [$cid, sha1($code)]);
             $this->db->run('DELETE FROM posts WHERE id = ?', [$p['id']]);
         });
         $this->audit->add($cid, $a->userId(), 'Poszt törölve', $code . ' · ' . $p['topic']);
@@ -360,7 +422,7 @@ final class PostService
     private function notify(int $cid, string $code, string $topic, string $action, string $comment, int $actor): void
     {
         $who = match ($action) {
-            'kuldes' => ['roles' => ['ugyfeladmin'], 'ops' => false, 'subject' => "Jóváhagyásra vár: {$code}", 'text' => "Új LinkedIn-poszt vár a jóváhagyására: {$code} – {$topic}.\nNézze át, és hagyja jóvá, vagy kérjen módosítást."],
+            'kuldes' => ['roles' => ['ugyfeladmin'], 'ops' => true, 'subject' => "Jóváhagyásra vár: {$code}", 'text' => "Új LinkedIn-poszt vár a jóváhagyására: {$code} – {$topic}.\nNézze át, és hagyja jóvá, vagy kérjen módosítást."],
             'jovahagyas' => ['roles' => ['tartalom'], 'ops' => true, 'subject' => "Közzétehető: {$code}", 'text' => "A(z) {$code} posztot jóváhagyták ({$topic}).\nMásolja ki a szöveget és a képet, időzítse a LinkedInen, majd jelölje megjelentnek."],
             'modositas' => ['roles' => [], 'ops' => true, 'subject' => "Módosítási kérés: {$code}", 'text' => "Módosítást kértek a(z) {$code} posztra ({$topic}):\n\n{$comment}"],
             default => null,
@@ -418,6 +480,7 @@ final class PostService
             }
             $p['image'] = (is_array($img) ? $img : []) + ['title' => '', 'subtitle' => '', 'measured' => '', 'real' => ''];
             $p['full_text'] = PostWriter::fullText($p);
+            $p['image_svg'] = (string) ($r['image_svg'] ?? '');
             $p['idea_topic'] = (string) ($r['idea_topic'] ?? '');
         }
         return $p;

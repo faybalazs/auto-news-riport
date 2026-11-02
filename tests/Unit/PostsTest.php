@@ -88,9 +88,10 @@ final class PostsTest extends DbTestCase
         $this->rules->save($this->member('Olvasó', 'o@x.hu', 'olvaso'), null, 'X', 'Y');
     }
 
-    public function testIdeaToPostAndApprovalFlow(): void
+    public function testIdeaToPostGoesStraightToClientWithImageAndAutoRevision(): void
     {
         $this->rules->save($this->op(), null, 'Hangnem', 'Tárgyilagos');
+        $this->rules->save($this->op(), null, 'Kép', '1200×1200, sötétkék háttér');
         $emi = $this->member('Emi', 'emi@x.hu', 'tartalom');
         $attila = $this->member('Attila', 'attila@x.hu', 'ugyfeladmin');
         $idea = $this->ideas->save($emi, '', ['topic' => 'Új referencia', 'message' => 'Bankfiók átadás', 'type' => 'esettanulmány', 'link' => 'https://xperion.hu/ref']);
@@ -99,41 +100,43 @@ final class PostsTest extends DbTestCase
 
         $code = $this->posts->request($emi, 'otlet', $idea['code']);
         self::assertMatchesRegularExpression('/^LI-\d{4}-01$/', $code);
-        $req = end($this->claude->requests)['body'];
-        self::assertSame('claude-opus-5-5', $req['model']);
-        self::assertStringContainsString('- Hangnem: Tárgyilagos', $req['system'][0]['text'], 'a friss szabályok a rendszerpromptban');
-        self::assertStringContainsString('Bankfiók átadás', $req['messages'][0]['content']);
+        $text = $this->claude->requests[0]['body'];
+        self::assertSame('claude-opus-5-5', $text['model']);
+        self::assertStringContainsString('- Hangnem: Tárgyilagos', $text['system'][0]['text'], 'a friss szabályok a rendszerpromptban');
+        self::assertStringContainsString('Bankfiók átadás', $text['messages'][0]['content']);
+        self::assertStringContainsString('- Kép: 1200×1200', $this->claude->requests[1]['body']['system'][0]['text'], 'a képtervező a szabályok képsorait kapja');
+
         $p = $this->posts->get($emi, $code);
-        self::assertSame('tervezet', $p['status']);
+        self::assertSame('ugyfelnel', $p['status'], 'magától jóváhagyásra megy');
         self::assertSame('Kontextus a szövegben.', $p['context'], 'a link nem maradhat a poszt szövegében');
         self::assertSame("Mit mér egy bankfiók, amikor a várakozást méri?\n\nKontextus a szövegben.\n\n– egy\n– kettő\n\nSzemszög.\n\nZárás?\n\n#ügyfélélmény #retail", $p['full_text']);
-        self::assertSame('Mért várakozás', $p['image']['title']);
-        self::assertSame(['elkeszult', $code], [$this->ideas->get($emi, $idea['code'])['status'], $this->ideas->get($emi, $idea['code'])['post_code']]);
-        self::assertSame('Generálva', $p['events'][0]['action']);
-
-        try {
-            $this->posts->transition($emi, $code, 'kuldes');
-            self::fail('csak az üzemeltető küldi az ügyfélnek');
-        } catch (AccessDenied) {
+        self::assertStringContainsString('<tspan', $p['image_svg']);
+        foreach (['<script', 'onclick', 'evil.test', '<image'] as $bad) {
+            self::assertStringNotContainsString($bad, $p['image_svg'], 'tisztított kép');
         }
-        $this->posts->transition($this->op(), $code, 'kuldes');
-        self::assertSame(['attila@x.hu'], end($this->mailer->sent)->to, 'az ügyfél-adminisztrátor kap értesítést');
+        self::assertSame(['Egyedi kép elkészült', 'Generálva, jóváhagyásra elküldve'], array_column($p['events'], 'action'));
+        self::assertSame(['attila@x.hu', 'b@pelda.hu'], end($this->mailer->sent)->to, 'Attila és az üzemeltető kap értesítést');
         self::assertStringContainsString('https://app.test/index.php?p=poszt&kod=' . $code, end($this->mailer->sent)->text);
+        self::assertSame(['elkeszult', $code], [$this->ideas->get($emi, $idea['code'])['status'], $this->ideas->get($emi, $idea['code'])['post_code']]);
+
         try {
             $this->posts->transition($attila, $code, 'modositas', '');
             self::fail('módosításhoz megjegyzés kell');
         } catch (\InvalidArgumentException) {
         }
+        $calls = count($this->claude->requests);
         $p = $this->posts->transition($attila, $code, 'modositas', 'Rövidebb nyitó sort kérünk.');
-        self::assertSame(['tervezet', 'Rövidebb nyitó sort kérünk.'], [$p['status'], $p['change_request']]);
-
-        $this->posts->request($this->op(), 'ujra', $code);
-        self::assertStringContainsString('Rövidebb nyitó sort kérünk.', end($this->claude->requests)['body']['messages'][0]['content'], 'az újragenerálás megkapja a kérést');
+        self::assertSame(['ugyfelnel', ''], [$p['status'], $p['change_request']], 'automatikusan újraírva, és újra jóváhagyásra vár');
+        self::assertStringContainsString('Rövidebb nyitó sort kérünk.', $this->claude->requests[$calls]['body']['messages'][0]['content'], 'az újraírás megkapja a kérést');
+        self::assertStringContainsString('Rövidebb nyitó sort kérünk.', $this->claude->requests[$calls + 1]['body']['messages'][0]['content'], 'a kép is');
         self::assertSame($code, $this->posts->all($this->op())[0]['code'], 'ugyanaz a kód marad');
+        self::assertContains('Módosítást kért', array_column($p['events'], 'action'));
 
-        $this->posts->transition($this->op(), $code, 'kuldes');
+        $p = $this->posts->newImage($attila, $code, 'Világosabb háttér');
+        self::assertSame('Egyedi kép elkészült', $p['events'][0]['action']);
+
         $p = $this->posts->transition($attila, $code, 'jovahagyas');
-        self::assertSame(['jovahagyva', ''], [$p['status'], $p['change_request']]);
+        self::assertSame('jovahagyva', $p['status']);
         self::assertSame(['emi@x.hu', 'b@pelda.hu'], end($this->mailer->sent)->to, 'a közzétevő és az üzemeltető kap értesítést');
         try {
             $this->posts->update($attila, $code, ['opening' => 'X']);
@@ -143,41 +146,59 @@ final class PostsTest extends DbTestCase
         $p = $this->posts->transition($emi, $code, 'megjelent');
         self::assertSame('megjelent', $p['status']);
         self::assertSame('utemezve', $this->ideas->get($emi, $idea['code'])['status']);
-        self::assertSame(['Megjelent a LinkedInen', 'Jóváhagyva'], array_slice(array_column($p['events'], 'action'), 0, 2));
     }
 
-    public function testMonthlyPostSingleArticlePostAndDelete(): void
+    public function testPostFromSelectedArticlesOnlyOnTrigger(): void
     {
         $this->rules->save($this->op(), null, 'Hangnem', 'Tárgyilagos');
         $a1 = $this->art('2610', 'Bank cuts wait');
         $a2 = $this->art('2610', 'Retail traffic');
         $a3 = $this->art('2610', 'Kiosk study');
-        $this->art('2610', 'Mehet only', 'mehet');
-
-        $single = $this->posts->request($this->op(), 'cikk', (string) $a3);
-        self::assertSame('LI-2610-01', $single);
-        self::assertSame([['month' => '2610', 'label' => '2026. október', 'n' => 2]], $this->posts->openMonths($this->op()));
-
-        $monthly = $this->posts->request($this->op(), 'cikkek', '2610');
-        self::assertSame('LI-2610-02', $monthly);
-        $content = end($this->claude->requests)['body']['messages'][0]['content'];
-        self::assertStringContainsString('Bank cuts wait', $content);
-        self::assertStringContainsString('Retail traffic', $content);
-        self::assertStringNotContainsString('Kiosk study', $content, 'a külön posztos cikk nem kerül a havi posztba');
-        self::assertStringNotContainsString('Mehet only', $content);
-        self::assertSame([$a1, $a2], array_column($this->posts->get($this->op(), $monthly)['articles'], 'id'));
-        self::assertSame([], $this->posts->openMonths($this->op()));
+        $m = $this->art('2610', 'Mehet only', 'mehet');
+        $attila = $this->member('Attila', 'attila@x.hu', 'ugyfeladmin');
+        $emi = $this->member('Emi', 'emi@x.hu', 'tartalom');
 
         try {
-            $this->posts->request($this->op(), 'cikkek', '2610');
-            self::fail('nincs több poszt nélküli cikk');
+            $this->posts->request($emi, 'cikkek', (string) $a1);
+            self::fail('cikkekből az indít, aki dönt');
+        } catch (AccessDenied) {
+        }
+        try {
+            $this->posts->request($attila, 'cikkek', "$a1,$m");
+            self::fail('nem LinkedIn-cikk nem kerülhet bele');
         } catch (\InvalidArgumentException) {
         }
+        self::assertSame([], $this->claude->requests, 'kijelölés közben semmi nem generálódik');
 
-        $this->posts->delete($this->op(), $monthly);
-        self::assertNull($this->posts->get($this->op(), $monthly));
-        self::assertSame('', (string) $this->db->value('SELECT post_code FROM articles WHERE id = ?', [$a1]), 'a cikkek újra küldhetők');
-        self::assertSame(0, (int) $this->db->value('SELECT COUNT(*) FROM post_events WHERE post_code = ?', [$monthly]));
+        $code = $this->posts->request($attila, 'cikkek', " $a2, $a1 ");
+        self::assertSame('LI-2610-01', $code);
+        $content = $this->claude->requests[0]['body']['messages'][0]['content'];
+        self::assertStringContainsString('Bank cuts wait', $content);
+        self::assertStringContainsString('Retail traffic', $content);
+        self::assertStringContainsString('közös poszt a kijelölt cikkekből', $content);
+        self::assertStringNotContainsString('Kiosk study', $content, 'a később kijelölendő cikk nem kerül bele');
+        self::assertSame([$a1, $a2], array_column($this->posts->get($this->op(), $code)['articles'], 'id'));
+        self::assertSame([['month' => '2610', 'label' => '2026. október', 'n' => 1]], $this->posts->openMonths($this->op()));
+
+        $single = $this->posts->request($this->op(), 'cikk', (string) $a3);
+        self::assertSame('LI-2610-02', $single);
+        self::assertStringContainsString('Egy poszt ebből a cikkből', end($this->claude->requests)['body']['messages'][0]['content'] . $this->claude->requests[2]['body']['messages'][0]['content']);
+
+        $this->posts->delete($this->op(), $code);
+        self::assertNull($this->posts->get($this->op(), $code));
+        self::assertSame('', (string) $this->db->value('SELECT post_code FROM articles WHERE id = ?', [$a1]), 'a cikkek újra kijelölhetők');
+        self::assertSame(0, (int) $this->db->value('SELECT COUNT(*) FROM post_events WHERE post_code = ?', [$code]));
+    }
+
+    public function testInvalidSvgKeepsPostWithTemplateImage(): void
+    {
+        $this->rules->save($this->op(), null, 'Hangnem', 'Tárgyilagos');
+        $a = $this->art('2610', 'Bank');
+        $this->claude->svg = 'nem svg';
+        $code = $this->posts->request($this->op(), 'cikk', (string) $a);
+        $p = $this->posts->get($this->op(), $code);
+        self::assertSame(['ugyfelnel', ''], [$p['status'], $p['image_svg']]);
+        self::assertSame('A kép nem készült el', $p['events'][0]['action']);
     }
 
     public function testFailedRequestIsKeptAndRetriedByHourlyRun(): void
@@ -192,7 +213,7 @@ final class PostsTest extends DbTestCase
         } catch (\RuntimeException $e) {
             self::assertStringContainsString('az óránkénti futás újrapróbálja', $e->getMessage());
         }
-        self::assertSame([['kind' => 'cikk', 'ref' => (string) $a, 'attempts' => 1, 'error' => 'A válasz túl hosszú lett, és megszakadt (max_tokens).']], $this->posts->pendingJobs($this->op()));
+        self::assertSame([['kind' => 'cikkek', 'ref' => (string) $a, 'attempts' => 1, 'error' => 'A válasz túl hosszú lett, és megszakadt (max_tokens).']], $this->posts->pendingJobs($this->op()));
         $this->claude->stopReason = null;
         $ctx = new \Xperion\Task\TaskContext(false, new \DateTimeImmutable(), static fn () => throw new \LogicException());
         $this->posts->runPending($ctx);

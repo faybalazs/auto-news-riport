@@ -32,12 +32,14 @@ $rep = $data['report'] ?? null;
   <button type="button" data-v="new" aria-pressed="false">Új források</button>
 </div>
 <div class="card table-card">
+  <div class="banner bn-info" id="liHint" role="status" hidden><?= $ic('linkedin', 'icon') ?><div class="b-body"><span><b><span id="liWait">0</span> LinkedIn-cikk vár posztra.</b> Jelöljön ki egyet vagy többet (bármikor kiegészítheti a jelöléseket), majd: <b>Poszt készítése a kijelöltekből</b>. Egy cikkből egy poszt, több cikkből egy közös poszt készül, és magától jóváhagyásra kerül.</span></div></div>
   <div class="bulkbar" id="bulk" hidden>
     <b id="bulkCount">0 kiválasztva</b>
     <button type="button" class="btn btn-secondary sm" data-bulk="mehet"><?= $ic('upload') ?>Mehet</button>
     <button type="button" class="btn btn-secondary sm" data-bulk="linkedin"><?= $ic('linkedin') ?>LinkedIn poszt</button>
     <button type="button" class="btn btn-secondary sm" data-bulk="nemkell"><?= $ic('x') ?>Nem kell</button>
     <button type="button" class="btn btn-ghost sm" data-bulk="">Döntés törlése</button>
+    <button type="button" class="btn btn-primary sm" id="bulkPost" hidden><?= $ic('sparkle') ?>Poszt készítése a kijelöltekből</button>
     <button type="button" class="btn btn-ghost sm" id="bulkClear">Kijelölés megszüntetése</button>
   </div>
   <div class="toolbar" id="artToolbar" role="search" aria-label="Cikkek szűrése">

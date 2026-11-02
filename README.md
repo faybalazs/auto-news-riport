@@ -62,11 +62,11 @@ A „Mehet” cikk a következő óránkénti futással kikerül magyarul és an
 
 ### 9. LinkedIn-posztok
 1. **Posztszabályok:** a Sheetből átvett szabályok itt szerkeszthetők (új, szerkesztés, törlés, sorrend). Minden generálás a friss állapotot használja.
-2. **Poszt a cikkekből:** a Havi cikkekben „LinkedIn poszt” jelölésű cikkekből a **LinkedIn-posztok → Poszt készítése** gomb egy havi posztot ír. Ha egy cikkből külön poszt kell, a Havi cikkek oldalon a cikk mellett: **Külön poszt ebből**.
+2. **Poszt a cikkekből:** Attila a Havi cikkek oldalon „LinkedIn poszt” döntést ad (akár több lépésben). Ha kész, a **LinkedIn poszt** nézetben kijelöli a cikkeket, és megnyomja a **Poszt készítése a kijelöltekből** gombot: egy cikkből egy poszt, több cikkből egy közös poszt készül. Addig semmi nem generálódik.
 3. **Poszt ötletből:** **Posztötletek → Új ötlet**, mentés, majd **Küldés posztgenerálásra**.
-4. A generálás fél–egy perc (Claude Opus 5.5, posztonként kb. 15–25 cent). A poszt **Tervezet** állapotba kerül; ha a generálás nem sikerül, az óránkénti futás újrapróbálja.
-5. **A poszt oldala:** előnézet (zárt és kibontott nézet), **Szöveg másolása**, **Kép letöltése (PNG)**, forráslink az első kommenthez; a Szerkesztés fülön mezőnként javítható, a nyitó sor egy kattintással cserélhető.
-6. **Jóváhagyás:** az üzemeltető **Küldés jóváhagyásra** → Attila e-mailt kap, **Jóváhagyom** vagy **Módosítást kérek** (megjegyzéssel; ilyenkor az **Újragenerálás** figyelembe veszi) → jóváhagyás után Emi e-mailt kap, kimásolja, időzíti a LinkedInen, majd **Megjelent a LinkedInen**.
+4. A generálás 1–2 perc (Claude Opus 5.5: szöveg és egyedi kép, posztonként kb. 20–35 cent). A kész poszt **magától jóváhagyásra kerül** (Ügyfélnél), Attila és az üzemeltető e-mailt kap. Ha a generálás nem sikerül, az óránkénti futás újrapróbálja.
+5. **A poszt oldala:** előnézet (zárt és kibontott nézet) a Claude által tervezett egyedi képpel, **Szöveg másolása**, **Kép letöltése (PNG)**, forráslink az első kommenthez; a Szerkesztés fülön mezőnként javítható, a nyitó sor egy kattintással cserélhető; **⋯ → Új kép készítése** (kéréssel is).
+6. **Jóváhagyás:** Attila **Jóváhagyom** vagy **Módosítást kérek** (megjegyzéssel: a Claude azonnal újraírja, és újra jóváhagyásra kerül) → jóváhagyás után Emi e-mailt kap, kimásolja, időzíti a LinkedInen, majd **Megjelent a LinkedInen**.
 7. Az előnézet fejlécéhez (nem kötelező) a Sheet „Beállítások” lapján: `linkedin_nev`, `linkedin_kovetok`. Más modell: `modell_linkedin` (pl. `claude-sonnet-5-5`).
 
 ### 10. Időzítés (cron)
