@@ -82,6 +82,7 @@ try {
             }
             ignore_user_abort(true);
             @set_time_limit(600);
+            $app->runner()->userId = $access->userId();
             return $app->runner()->run($str('task'), !empty($in['dry']), 'admin')->toArray() + ['time_hu' => date('Y. m. d. H:i')];
         })(),
         'atvetel' => (function () use ($app, $access, $in) {
@@ -200,6 +201,10 @@ try {
             return ['email' => $gen, 'row' => $em->get($access, $str('month'))];
         })(),
         'emailmentes' => ['email' => $app->emails()->update($access, $str('month'), $str('subject'), (string) ($in['body'] ?? ''))],
+        'futasallapot' => (function () use ($app, $access) {
+            $access->require('ops');
+            return $app->runState();
+        })(),
         'smtpproba' => (function () use ($app, $access) {
             $access->require('ops');
             session_write_close();

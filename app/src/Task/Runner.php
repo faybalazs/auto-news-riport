@@ -22,6 +22,8 @@ final class Runner
     private $clock;
     /** @var (callable(RunResult, string):void)|null hibás futás után (értesítés az üzemeltetőnek) */
     public $onFailure = null;
+    /** A kézi indító felhasználó (a felület állítja be; cronnál null). */
+    public ?int $userId = null;
 
     /** @param list<Task> $tasks */
     public function __construct(
@@ -56,10 +58,11 @@ final class Runner
         $now = ($this->clock)();
         $ctx = new TaskContext($dry, $now, $this->sheetsFactory);
 
-        $lock = Lock::acquire($this->lockFile);
+        $lock = Lock::acquire($this->lockFile, ['task' => $id, 'label' => $task->label(), 'dry' => $dry, 'trigger' => $trigger, 'user' => $this->userId]);
         if ($lock === null) {
-            $ctx->error('Egy másik futás folyamatban van, ez a futás kimarad. Próbáld újra pár perc múlva.');
+            $ctx->error(Lock::busyMessage($this->lockFile));
         } else {
+            $ctx->onLine = [$lock, 'progress'];
             try {
                 $task->run($ctx);
             } catch (\Throwable $e) {
@@ -72,6 +75,7 @@ final class Runner
         $result = new RunResult($id, $task->label(), $dry, !$ctx->hasErrors(), $ctx->lines(), (int) ((hrtime(true) - $start) / 1_000_000));
         $entry = new LogEntry($now, $id, $task->label(), $dry, $trigger, $result->ok, $result->summary(), $result->durationMs);
         $this->log->append($entry);
+        $this->log->saveResult($result->toArray(), $this->userId);
 
         if (!$result->ok && $this->onFailure !== null) {
             try {

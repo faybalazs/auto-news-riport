@@ -217,6 +217,10 @@ if ($perm !== null && !$access->can($perm)) {
     }
 }
 
+if ($page === 'vezerlo' && $template === 'pages/vezerlo') {
+    $data['run'] = $app->runState();
+}
+
 $view->render($template, [
     'title' => $title,
     'page' => $page,

@@ -541,6 +541,41 @@ if (APP.page === 'vezerlo'){
     finally { running = false; busy(btn, false); $$('[data-run]').forEach(b => b.disabled = false); }
   }));
   $('#resultClose').addEventListener('click', () => { $('#resultCard').hidden = true; $('#h-page').focus(); });
+  // Futások állapota: mi fut most (mióta, ki, melyik lépésnél), legutóbbi eredmények; frissül magától
+  const RUN_BTNS = '[data-run], #colRun, #monDry, #monLive, #upDry, #upLive';
+  let RS = APP.data.run || { running:null, results:[] }, wasRunning = !!RS.running, rsTimer = null, tick = null;
+  function showResult(r){
+    $('#h-result').textContent = 'Eredmény: ' + r.label;
+    $('#resultMeta').innerHTML = (r.ok ? `<span class="badge b-success">${ic('check','icon')}OK</span>` : `<span class="badge b-danger">${ic('x-circle','icon')}Hiba</span>`) + `<span class="badge ${r.dry ? 'b-info' : 'b-neutral'}">${ic(r.dry ? 'flask' : 'play','icon')}${r.dry ? 'szárazon' : 'élesben'}</span><span class="meta">${esc(r.finished_hu || '')} · ${esc(r.duration_hu || '')} · ${esc(r.by || '')}</span>`;
+    $('#resultLines').innerHTML = (r.lines || []).map(l => { const L = LEVEL[l.level] || LEVEL.info; return `<li class="l-${esc(l.level)}">${ic(L[0])}<span><span class="sr-only">${L[1]}: </span>${esc(l.text)}</span></li>`; }).join('');
+    $('#resultCard').hidden = false; $('#resultCard').focus();
+  }
+  function renderRS(){
+    const r = RS.running;
+    $('#rsBadge').innerHTML = r ? `<span class="badge b-info">${ic('clock','icon')}fut</span>` : `<span class="badge b-success">${ic('check','icon')}nincs futás</span>`;
+    $('#rsNow').hidden = !r;
+    if (r){
+      const el = (r.elapsed || 0) + (tick ? Math.round((Date.now() - tick) / 1000) : 0);
+      const dur = el < 60 ? `${el} mp` : `${Math.floor(el / 60)} perc ${el % 60} mp`;
+      $('#rsNow').innerHTML = `<span class="spinner" aria-hidden="true"></span><div><b>Fut: ${esc(r.label || r.task || 'futás')}${r.dry ? ' (szárazon)' : ''}</b><span class="meta">${esc(r.started_hu ? r.started_hu + '-kor indult, ' : '')}${dur} óta · indította: ${esc(r.by || '–')}</span>${r.step ? `<span class="rs-step">Most: ${esc(r.step)}</span>` : ''}<span class="meta">Nyugodtan navigálhat máshová: a futás a szerveren folytatódik, az eredményt itt találja.</span></div>`;
+    }
+    $$(RUN_BTNS).forEach(b => { if (b.dataset.base === undefined) b.dataset.base = b.disabled ? '1' : '0'; if (!b.hasAttribute('aria-busy')){ b.disabled = !!r || b.dataset.base === '1'; b.title = r ? 'Már fut egy feladat; várja meg a végét.' : ''; } });
+    const res = RS.results || [];
+    $('#rsList').innerHTML = res.length ? res.map((x, i) => `<li><span class="badge ${x.ok ? 'b-success' : 'b-danger'}">${ic(x.ok ? 'check' : 'x-circle','icon')}${x.ok ? 'OK' : 'Hiba'}</span><div><b>${esc(x.label)}</b>${x.dry ? ' <span class="meta">(szárazon)</span>' : ''}<span class="meta">${esc(x.finished_hu)} · ${esc(x.duration_hu)} · ${esc(x.by)}</span></div><button class="btn btn-ghost sm" type="button" data-rs="${i}">Eredmény${ic('chev-right')}</button></li>`).join('') : '<li class="meta">Még nincs mentett futáseredmény.</li>';
+  }
+  async function pollRS(){
+    try {
+      RS = await api('futasallapot'); tick = Date.now();
+      if (wasRunning && !RS.running && RS.results && RS.results[0]){ const r = RS.results[0]; toast(`Lefutott: ${r.label} – ${r.ok ? 'rendben' : 'hibával'}.`, { type:r.ok ? 'success' : 'error', action:() => showResult(r), actionLabel:'Eredmény' }); }
+      wasRunning = !!RS.running; renderRS();
+    } catch(e){}
+    clearTimeout(rsTimer); rsTimer = setTimeout(pollRS, RS.running ? 3000 : 20000);
+  }
+  $('#rsList').addEventListener('click', e => { const b = e.target.closest('[data-rs]'); if (b) showResult(RS.results[+b.dataset.rs]); });
+  setInterval(() => { if (RS.running) renderRS(); }, 1000);
+  tick = Date.now(); renderRS(); rsTimer = setTimeout(pollRS, RS.running ? 3000 : 20000);
+  // saját indításnál azonnal frissüljön
+  document.addEventListener('click', e => { if (e.target.closest(RUN_BTNS)) setTimeout(pollRS, 1200); }, true);
   // Cikkgyűjtés (szárazon)
   const colRows = [];
   const colTable = DataTable({ id:'gyujtes', caption:'Talált új cikkek', rows:colRows, labelKey:'title', selectable:false, table:$('#colItems'), pager:$('#colPager'), sort:{ key:'date', dir:'asc' }, pageSize:25,

@@ -11,6 +11,14 @@ $cronKey = $app->config->string('cron_key');
 $base = \Xperion\Web\Http::baseUrl() . 'cron.php?k=' . rawurlencode($cronKey !== '' ? $cronKey : '<cron_key>');
 $pending = $app->migrator()->pending();
 ?>
+<section class="card widget" aria-labelledby="h-run" id="runState">
+  <div class="widget-head">
+    <div><h2 id="h-run">Futások állapota</h2><p class="meta" id="rsMeta">Mi fut most, és a legutóbbi eredmények (akkor is, ha közben máshová navigált)</p></div>
+    <span id="rsBadge"></span>
+  </div>
+  <div class="rs-now" id="rsNow" hidden role="status" aria-live="polite"></div>
+  <ul class="rs-list" id="rsList"></ul>
+</section>
 <?php
 $months = [];
 for ($i = 1; $i <= 6; $i++) {
@@ -101,16 +109,15 @@ for ($i = 1; $i <= 6; $i++) {
   <div class="stack">
     <div class="task-grid" role="list" aria-label="Feladatok">
       <?php foreach ($app->runner()->tasks() as $t): $last = $log->last($t->id()); ?>
-      <section class="card task" role="listitem" aria-labelledby="t-<?= $e($t->id()) ?>" data-task="<?= $e($t->id()) ?>" data-label="<?= $e($t->label()) ?>">
-        <h2 id="t-<?= $e($t->id()) ?>"><?= $e($t->label()) ?></h2>
-        <p><?= $e($desc[$t->id()] ?? '') ?></p>
-        <div class="last" data-last><?php if ($last): ?><span>Legutóbb: <?= $e($last->timeHu()) ?> · <?= $last->dry ? 'száraz' : 'éles' ?></span><?= $last->ok ? '<span class="badge b-success">' . $ic('check', 'icon') . 'OK</span>' : '<span class="badge b-danger">' . $ic('x-circle', 'icon') . 'Hiba</span>' ?><?php else: ?><span>Még nem futott</span><?php endif; ?></div>
+      <section class="card widget task" role="listitem" aria-labelledby="t-<?= $e($t->id()) ?>" data-task="<?= $e($t->id()) ?>" data-label="<?= $e($t->label()) ?>">
+        <div class="widget-head"><div><h2 id="t-<?= $e($t->id()) ?>"><?= $e($t->label()) ?></h2><p class="meta"><?= $e($desc[$t->id()] ?? '') ?></p></div></div>
+        <div class="last" data-last><?php if ($last): ?><span>Legutóbb: <?= $e($last->timeHu()) ?> · <?= $last->dry ? 'száraz' : 'éles' ?> · <?= $e(\Xperion\Lock::duration((int) round($last->durationMs / 1000))) ?></span><?= $last->ok ? '<span class="badge b-success">' . $ic('check', 'icon') . 'OK</span>' : '<span class="badge b-danger">' . $ic('x-circle', 'icon') . 'Hiba</span>' ?><?php else: ?><span>Még nem futott</span><?php endif; ?></div>
         <div class="acts"><button class="btn btn-secondary sm" type="button" data-run="<?= $e($t->id()) ?>" data-dry="1"><?= $ic('flask') ?>Szárazfuttatás</button></div>
       </section>
       <?php endforeach; ?>
     </div>
     <section class="card widget" id="resultCard" aria-labelledby="h-result" hidden tabindex="-1">
-      <div class="widget-head"><div><h2 id="h-result">Eredmény</h2><div class="result-meta" id="resultMeta"></div></div><button class="btn btn-ghost sm" type="button" id="resultClose"><?= $ic('x') ?>Bezárás</button></div>
+      <div class="widget-head"><div><h2 id="h-result">Eredmény</h2><p class="meta result-meta" id="resultMeta"></p></div><button class="btn btn-ghost sm" type="button" id="resultClose"><?= $ic('x') ?>Bezárás</button></div>
       <ol class="run-lines" id="resultLines"></ol>
     </section>
   </div>

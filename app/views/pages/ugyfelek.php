@@ -10,7 +10,7 @@ $cur = $access->client();
   <div class="pager" id="clientPager"></div>
 </div>
 <?php if ($cur): $ms = $cur ? $app->emails()->settings((int) $cur['id']) : ['to' => '', 'cc' => '', 'style' => '']; ?>
-<section class="card client-detail" aria-labelledby="h-cd">
+<section class="card widget client-detail" aria-labelledby="h-cd">
   <div class="widget-head"><div><h2 id="h-cd"><?= $e($cur['name']) ?></h2><p class="meta">A kiválasztott ügyfél részletei · másik ügyfélhez: a sor ⋯ menüje → Váltás erre az ügyfélre</p></div></div>
   <div class="tabs" role="tablist" aria-label="Ügyfél részletei" id="cdTabs">
     <button class="tab" role="tab" id="tab-lepesek" aria-selected="true" aria-controls="p-lepesek" tabindex="0"><?= $ic('check') ?>Beállítási lépések<?php if (!empty($data['onb'])): ?> <span class="count"><?= count(array_filter($data['onb'], static fn ($x) => $x['done'])) ?>/<?= count($data['onb']) ?></span><?php endif; ?></button>

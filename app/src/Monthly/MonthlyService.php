@@ -49,9 +49,10 @@ final class MonthlyService
         $data = [];
         if ($client === null) {
             $ctx->error('Nincs kiválasztott ügyfél.');
-        } elseif (($lock = Lock::acquire($this->lockFile)) === null) {
-            $ctx->error('Egy másik futás folyamatban van. Próbálja újra pár perc múlva.');
+        } elseif (($lock = Lock::acquire($this->lockFile, ['task' => 'havi', 'label' => $label, 'dry' => $dry, 'user' => $a->userId(), 'client' => (int) $client['id']])) === null) {
+            $ctx->error(Lock::busyMessage($this->lockFile));
         } else {
+            $ctx->onLine = [$lock, 'progress'];
             try {
                 $data = $this->run((int) $client['id'], $month, $ctx);
             } catch (\Throwable $e) {
@@ -62,6 +63,7 @@ final class MonthlyService
         }
         $result = new RunResult('havi', $label, $dry, !$ctx->hasErrors(), $ctx->lines(), (int) ((hrtime(true) - $start) / 1_000_000), $data);
         $this->log->append(new LogEntry($now, 'havi', $label, $dry, 'admin', $result->ok, $result->summary(), $result->durationMs));
+        $this->log->saveResult($result->toArray(), $a->userId(), $client === null ? null : (int) $client['id']);
         if (!$dry && $client !== null) {
             $this->audit->add((int) $client['id'], $a->userId(), $result->ok ? 'Havi futás' : 'Havi futás sikertelen', $month . ' · ' . $result->summary());
         }

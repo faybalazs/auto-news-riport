@@ -50,9 +50,10 @@ final class CollectService
         $data = ['sources' => [], 'items' => []];
         if ($client === null) {
             $ctx->error('Nincs kiválasztott ügyfél.');
-        } elseif (($lock = Lock::acquire($this->lockFile)) === null) {
-            $ctx->error('Egy másik futás folyamatban van. Próbálja újra pár perc múlva.');
+        } elseif (($lock = Lock::acquire($this->lockFile, ['task' => 'gyujtes', 'label' => $label, 'dry' => true, 'user' => $a->userId(), 'client' => (int) $client['id']])) === null) {
+            $ctx->error(Lock::busyMessage($this->lockFile));
         } else {
+            $ctx->onLine = [$lock, 'progress'];
             try {
                 $data = $this->collectForClient((int) $client['id'], $month, $ctx);
             } catch (\Throwable $e) {
@@ -63,6 +64,7 @@ final class CollectService
         }
         $result = new RunResult('gyujtes', $label, true, !$ctx->hasErrors(), $ctx->lines(), (int) ((hrtime(true) - $start) / 1_000_000), $data);
         $this->log->append(new LogEntry(new \DateTimeImmutable('now'), 'gyujtes', $label, true, 'admin', $result->ok, $result->summary(), $result->durationMs));
+        $this->log->saveResult($result->toArray(), $a->userId(), $client === null ? null : (int) $client['id']);
         return $result;
     }
 

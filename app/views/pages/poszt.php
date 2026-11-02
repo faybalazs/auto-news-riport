@@ -32,7 +32,8 @@ require __DIR__ . '/_head.php';
       </div>
     </section>
     <section id="p-szerk" role="tabpanel" aria-labelledby="tab-szerk" hidden>
-      <form class="card widget" id="postForm" novalidate>
+      <form class="card widget" id="postForm" novalidate aria-labelledby="h-pe">
+        <div class="widget-head"><div><h2 id="h-pe">A poszt szerkesztése</h2><p class="meta">Mezőnként; a kép szövegének javítása azonnal újrarajzolja a képet</p></div></div>
         <p class="help">A poszt részei. A teljes szöveg ezekből áll össze (nyitó sor, kontextus, kiemelések, szemszög, zárás, hashtagek); a forráslink a szabályok szerint nem kerül bele.</p>
         <div class="grid-2">
           <div class="field full"><label for="pe-topic">Témakör</label><input class="input" id="pe-topic" maxlength="255"></div>

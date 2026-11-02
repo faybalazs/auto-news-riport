@@ -57,6 +57,32 @@ final class LocalLog
         return count($lines) - count($keep);
     }
 
+    /**
+     * A futás teljes eredményének mentése (a felület akkor is megmutatja, ha közben elnavigáltak).
+     *
+     * @param array<string,mixed> $result RunResult::toArray()
+     */
+    public function saveResult(array $result, ?int $userId = null, ?int $clientId = null): void
+    {
+        $file = dirname($this->file) . '/eredmeny-' . preg_replace('/[^a-z0-9_-]/', '', (string) ($result['task'] ?? 'x')) . '.json';
+        unset($result['data']['items']); // a hosszú listák nem kellenek az összefoglalóhoz
+        @file_put_contents($file, (string) json_encode($result + ['finished_at' => time(), 'user' => $userId, 'client' => $clientId], JSON_UNESCAPED_UNICODE), LOCK_EX);
+    }
+
+    /** @return list<array<string,mixed>> a feladatok legutóbbi mentett eredményei, a legfrissebb elöl */
+    public function results(): array
+    {
+        $out = [];
+        foreach (glob(dirname($this->file) . '/eredmeny-*.json') ?: [] as $f) {
+            $r = json_decode((string) file_get_contents($f), true);
+            if (is_array($r)) {
+                $out[] = $r;
+            }
+        }
+        usort($out, static fn ($a, $b) => ($b['finished_at'] ?? 0) <=> ($a['finished_at'] ?? 0));
+        return $out;
+    }
+
     /** Az adott feladat legutóbbi futása. */
     public function last(string $task): ?LogEntry
     {

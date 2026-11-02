@@ -71,11 +71,10 @@ require __DIR__ . '/_head.php';
 <section aria-labelledby="h-todo" class="todo-sec">
   <h2 id="h-todo" class="sec-title">Teendők <span class="meta">· <?= count($todos) ?> tétel</span></h2>
   <div class="todo-grid">
-    <?php foreach ($todos as [$tone, $icon, $title, $n, $text, $href, $cta]): ?>
-    <section class="card todo-w tw-<?= $tone ?>" aria-label="<?= $e($title) ?>">
-      <div class="tw-head"><span class="tw-ic"><?= $ic($icon, 'icon') ?></span><div><h3><?= $e($title) ?></h3><?php if ($n !== null): ?><div class="tw-n"><?= (int) $n ?></div><?php endif; ?></div></div>
-      <p><?= $text ?></p>
-      <a class="btn btn-secondary sm" href="<?= $e($href) ?>"><?= $e($cta) ?><?= $ic('chev-right') ?></a>
+    <?php foreach ($todos as $ti => [$tone, $icon, $title, $n, $text, $href, $cta]): ?>
+    <section class="card widget todo-w tw-<?= $tone ?>" aria-labelledby="tw-<?= $ti ?>">
+      <div class="widget-head"><div><h2 id="tw-<?= $ti ?>"><?= $e($title) ?></h2><p class="meta"><?= $text ?></p></div></div>
+      <div class="tw-body"><span class="tw-ic"><?= $ic($icon, 'icon') ?></span><?php if ($n !== null): ?><span class="tw-n"><?= (int) $n ?></span><?php endif; ?><a class="btn btn-ghost sm" href="<?= $e($href) ?>"><?= $e($cta) ?><?= $ic('chev-right') ?></a></div>
     </section>
     <?php endforeach; ?>
   </div>

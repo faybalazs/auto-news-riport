@@ -318,6 +318,35 @@ final class App
         @file_put_contents($state, json_encode($sent), LOCK_EX);
     }
 
+    /**
+     * A futás állapota a felületnek: mi fut most (mióta, ki indította, melyik lépésnél), és a legutóbbi eredmények.
+     *
+     * @return array{running:?array<string,mixed>, results:list<array<string,mixed>>}
+     */
+    public function runState(): array
+    {
+        $names = [];
+        $name = function (?int $id) use (&$names): string {
+            if ($id === null) {
+                return 'időzítés (cron)';
+            }
+            return $names[$id] ??= (string) ($this->db()->value('SELECT name FROM users WHERE id = ?', [$id]) ?: 'ismeretlen');
+        };
+        $run = \Xperion\Lock::current($this->storageDir . '/futas.lock');
+        if ($run !== null) {
+            $run['by'] = ($run['trigger'] ?? '') === 'cron' ? 'időzítés (cron)' : $name(isset($run['user']) ? (int) $run['user'] : null);
+            $run['elapsed_hu'] = \Xperion\Lock::duration((int) ($run['elapsed'] ?? 0));
+            $run['started_hu'] = isset($run['started_at']) ? (new \DateTimeImmutable('@' . (int) $run['started_at']))->setTimezone(new \DateTimeZone('Europe/Budapest'))->format('H:i') : '';
+        }
+        $results = array_map(function ($r) use ($name) {
+            $r['by'] = $name(isset($r['user']) ? (int) $r['user'] : null);
+            $r['finished_hu'] = isset($r['finished_at']) ? (new \DateTimeImmutable('@' . (int) $r['finished_at']))->setTimezone(new \DateTimeZone('Europe/Budapest'))->format('Y. m. d. H:i') : '';
+            $r['duration_hu'] = \Xperion\Lock::duration((int) round(((int) ($r['duration_ms'] ?? 0)) / 1000));
+            return $r;
+        }, array_slice($this->log()->results(), 0, 8));
+        return ['running' => $run, 'results' => $results];
+    }
+
     public function sources(): \Xperion\Collect\SourceService
     {
         return new \Xperion\Collect\SourceService($this->db(), $this->audit(), new \Xperion\Collect\Collector(new CurlHttpClient(1, 20, null, 'Mozilla/5.0 (compatible; XperionSajtofigyelo/1.0; +https://xperion.hu)')));

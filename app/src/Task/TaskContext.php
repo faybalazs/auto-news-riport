@@ -13,6 +13,8 @@ final class TaskContext
 {
     /** @var list<array{level:string, text:string}> */
     private array $lines = [];
+    /** @var (callable(string):void)|null minden új sor (pl. a zárolófájlba, hogy a felület lássa a lépést) */
+    public $onLine = null;
 
     /** @var callable():SheetsClient */
     private $sheetsFactory;
@@ -34,21 +36,25 @@ final class TaskContext
     public function info(string $text): void
     {
         $this->lines[] = ['level' => 'info', 'text' => $text];
+        $this->emit($text);
     }
 
     public function done(string $text): void
     {
         $this->lines[] = ['level' => 'ok', 'text' => $text];
+        $this->emit($text);
     }
 
     public function warn(string $text): void
     {
         $this->lines[] = ['level' => 'warn', 'text' => $text];
+        $this->emit($text);
     }
 
     public function error(string $text): void
     {
         $this->lines[] = ['level' => 'error', 'text' => $text];
+        $this->emit($text);
     }
 
     /** Írási művelet: szárazon csak leírja, élesben végrehajtja. */
@@ -56,10 +62,21 @@ final class TaskContext
     {
         if ($this->dry) {
             $this->lines[] = ['level' => 'dry', 'text' => 'Élesben ezt tenné: ' . $description];
+        $this->emit('Élesben ezt tenné: ' . $description);
             return;
         }
         $action();
         $this->done($description);
+    }
+
+    private function emit(string $text): void
+    {
+        if ($this->onLine !== null) {
+            try {
+                ($this->onLine)($text);
+            } catch (\Throwable) {
+            }
+        }
     }
 
     /** @return list<array{level:string, text:string}> */
