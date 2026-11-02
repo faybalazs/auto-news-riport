@@ -447,13 +447,13 @@ if (APP.page === 'ugyfelek'){
     } catch(err){ $('#clientErr').textContent = err.message; $('#clientErr').hidden = false; }
     finally { busy(b, false); }
   });
-  function renderOnb(){
-    const c = rows.find(r => +r.id === APP.me.clientId);
-    if (!c){ $('#onbList').innerHTML = '<li><span>Hozzon létre egy ügyfelet, vagy váltson egyre.</span></li>'; return; }
-    const steps = [['Alapadatok', 'név, weboldal', true], ['Felhasználók meghívása', 'ügyfél-adminisztrátor, tartalomkezelő', c.users > 0], ['Források és kulcsszavak', c.sources ? `${c.sources} forrás, ${c.keywords} kulcsszó` : 'adatátvétel a Google Sheetből, vagy kézzel', c.sources > 0], ['Weboldal-kapcsolat', 'feltöltés két nyelven, a 8. lépésben', false], ['Első szárazfuttatás', 'a 4. lépés után', false]];
-    $('#onbList').innerHTML = steps.map(([t, s, d], i) => `<li class="${d ? 'done' : ''}"><span class="ck" aria-hidden="true">${d ? ic('check') : i + 1}</span><div><b>${t}</b><small>${s}</small></div><span class="sr-only">${d ? 'kész' : 'hátravan'}</span></li>`).join('');
-  }
-  renderOnb();
+  // A beállítási lépéseket a szerver rajzolja (valódi állapottal); változás után újratöltéskor frissül.
+  function renderOnb(){}
+  $('#csSave')?.addEventListener('click', async () => {
+    const b = $('#csSave'); busy(b, true);
+    try { const settings = Object.fromEntries(['linkedin_nev','linkedin_kovetok','modell_ertekeles','modell_poszt','modell_linkedin','modell_feltoltes'].map(k => [k, $('#cs-' + k).value])); await api('ugyfelbeallitas', { settings }); toast('Az ügyfélbeállítások mentve.'); }
+    catch(e){ toast(e.message, { type:'error' }); } finally { busy(b, false); }
+  });
   // Adatátvétel a Google Sheetből (az aktuális ügyfélé)
   const LEVEL = { ok:['check','Kész'], info:['chev-right','Információ'], warn:['alert','Figyelmeztetés'], error:['x-circle','Hiba'], dry:['info','Szárazfuttatás'] };
   function renderImp(){
@@ -977,22 +977,93 @@ if (APP.page === 'poszt' && $('#liText')){
    12/E. NAPLÓ
    ================================================================== */
 if (APP.page === 'naplo'){
-  const audit = (APP.data.audit || []).map((r, i) => ({ ...r, id:'a' + i, i }));
+  const audit = (APP.data.audit || []).map((r, i) => ({ ...r, id:'a' + i, i, day:String(r.time_hu || '').slice(0, 13).replace(/\. /g, '-').replace(/\.$/, '') }));
   const runs = (APP.data.runs || []).map((r, i) => ({ ...r, id:'r' + i, i, mode:r.dry ? 'dry' : 'live', res:r.ok ? 'ok' : 'err', trig:{ admin:'Felület', cron:'Cron', cli:'Parancssor' }[r.trigger] || r.trigger }));
+  const isoDay = r => { const m = String(r.created_at || '').match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}):/); if (!m) return ''; const d = new Date(m[1] + 'T' + m[2] + ':00:00Z'); return isNaN(d) ? m[1] : d.toLocaleDateString('sv-SE', { timeZone:'Europe/Budapest' }); };
+  audit.forEach(r => r.iso = isoDay(r));
+  const opts = (sel, vals) => { if (sel) sel.insertAdjacentHTML('beforeend', [...new Set(vals.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'hu')).map(v => `<option>${esc(v)}</option>`).join('')); };
+  opts($('#aClient'), audit.map(r => r.client)); opts($('#aUser'), audit.map(r => r.who));
+  const CAT = { 'Döntések':'b-info', 'Posztok':'b-ai', 'Havi e-mail':'b-warning', 'Feltöltés':'b-success', 'Források':'b-neutral', 'Futások':'b-neutral', 'Felhasználók':'b-neutral', 'Belépés':'b-neutral', 'Beállítások':'b-neutral' };
   const at = DataTable({ id:'audit', caption:'Felhasználói műveletek', rows:audit, labelKey:'action', selectable:false, table:$('#auditTable'), pager:$('#auditPager'), sort:{ key:'created_at', dir:'desc' }, pageSize:25,
-    columns:[ { key:'created_at', label:'Időpont', render:r => dtHu(r.created_at), sortValue:r => -r.i, firstDir:'desc' }, { key:'who', label:'Ki' }, { key:'action', label:'Művelet' }, { key:'client', label:'Ügyfél', render:r => esc(r.client || '–') }, { key:'details', label:'Részletek', sortable:false } ],
-    emptyHtml:() => 'Még nincs művelet.' });
-  const rt = DataTable({ id:'futasok', caption:'Futások', rows:runs, labelKey:'label', selectable:false, table:$('#runTable'), pager:$('#runPager'), sort:{ key:'time', dir:'desc' }, pageSize:25,
-    columns:[ { key:'time', label:'Időpont', render:r => esc(r.time_hu), sortValue:r => -r.i, firstDir:'desc' }, { key:'label', label:'Feladat' },
-      { key:'mode', label:'Mód', type:'status', map:{ dry:{ label:'Száraz', cls:'b-info', icon:'flask' }, live:{ label:'Éles', cls:'b-neutral', icon:'play' } } }, { key:'trig', label:'Indító' },
-      { key:'res', label:'Eredmény', type:'status', map:{ ok:{ label:'OK', cls:'b-success', icon:'check' }, err:{ label:'Hiba', cls:'b-danger', icon:'x-circle' } } }, { key:'details', label:'Részletek', sortable:false } ],
-    emptyHtml:() => 'Még nem volt futás.' });
-  at.render(); rt.render();
-  $('#aQ').addEventListener('input', e => { const q = norm(e.target.value.trim()); at.setPred(r => !q || norm(`${r.who} ${r.action} ${r.details} ${r.client || ''}`).includes(q)); });
-  $('#rQ').addEventListener('input', e => { const q = norm(e.target.value.trim()); rt.setPred(r => !q || norm(`${r.label} ${r.details} ${r.trig}`).includes(q)); });
+    columns:[ { key:'created_at', label:'Időpont', render:r => esc(r.time_hu || dtHu(r.created_at)), sortValue:r => -r.i, firstDir:'desc' }, { key:'who', label:'Ki' },
+      { key:'action', label:'Művelet', render:r => `<div class="cell-title"><span class="badge ${CAT[r.category] || 'b-neutral'}">${esc(r.category || '')}</span>${esc(r.action)}</div>` },
+      ...(APP.data.all ? [{ key:'client', label:'Ügyfél', render:r => esc(r.client || '–') }] : []), { key:'details', label:'Részletek', sortable:false } ],
+    emptyHtml:() => audit.length ? 'Nincs a szűrésnek megfelelő művelet.' : 'Még nincs művelet.' });
+  let aRows = audit;
+  const aPred = () => {
+    const q = norm($('#aQ').value.trim()), c = $('#aClient')?.value || '', u = $('#aUser').value, k = $('#aCat').value, f = $('#aFrom').value, t = $('#aTo').value;
+    const p = r => (!q || norm(`${r.who} ${r.action} ${r.details} ${r.client || ''}`).includes(q)) && (!c || r.client === c) && (!u || r.who === u) && (!k || r.category === k) && (!f || r.iso >= f) && (!t || r.iso <= t);
+    aRows = audit.filter(p); at.setPred(p);
+  };
+  ['#aQ','#aClient','#aUser','#aCat','#aFrom','#aTo'].forEach(id => $(id)?.addEventListener(id === '#aQ' ? 'input' : 'change', aPred));
+  $('#aCsv').addEventListener('click', () => {
+    const cell = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const head = ['Időpont', 'Ki', 'Művelettípus', 'Művelet', ...(APP.data.all ? ['Ügyfél'] : []), 'Részletek'];
+    const lines = [head.map(cell).join(';'), ...aRows.map(r => [r.time_hu || r.created_at, r.who, r.category, r.action, ...(APP.data.all ? [r.client || ''] : []), r.details].map(cell).join(';'))];
+    const blob = new Blob(['﻿' + lines.join('\r\n')], { type:'text/csv;charset=utf-8' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `naplo-${new Date().toISOString().slice(0, 10)}.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    toast(`${aRows.length} sor letöltve.`);
+  });
+  at.render();
+  if ($('#runTable')){
+    const rt = DataTable({ id:'futasok', caption:'Futások', rows:runs, labelKey:'label', selectable:false, table:$('#runTable'), pager:$('#runPager'), sort:{ key:'time', dir:'desc' }, pageSize:25,
+      columns:[ { key:'time', label:'Időpont', render:r => esc(r.time_hu), sortValue:r => -r.i, firstDir:'desc' }, { key:'label', label:'Feladat' },
+        { key:'mode', label:'Mód', type:'status', map:{ dry:{ label:'Száraz', cls:'b-info', icon:'flask' }, live:{ label:'Éles', cls:'b-neutral', icon:'play' } } }, { key:'trig', label:'Indító' },
+        { key:'res', label:'Eredmény', type:'status', map:{ ok:{ label:'OK', cls:'b-success', icon:'check' }, err:{ label:'Hiba', cls:'b-danger', icon:'x-circle' } } }, { key:'details', label:'Részletek', sortable:false, render:r => `<div class="${r.ok ? '' : 'run-err'}">${esc(r.details)}</div>` } ],
+      emptyHtml:() => 'Nincs a szűrésnek megfelelő futás.' });
+    const errs = runs.filter(r => !r.ok).length; if (errs){ $('#runErrCount').textContent = errs + ' hiba'; $('#runErrCount').hidden = false; }
+    const rPred = () => { const q = norm($('#rQ').value.trim()), e = $('#rErr').checked; rt.setPred(r => (!q || norm(`${r.label} ${r.details} ${r.trig}`).includes(q)) && (!e || !r.ok)); };
+    $('#rQ').addEventListener('input', rPred); $('#rErr').addEventListener('change', rPred); rt.render();
+    const tabs = $$('[role=tab]');
+    const sel = t => tabs.forEach(x => { const on = x === t; x.setAttribute('aria-selected', on); x.tabIndex = on ? 0 : -1; $('#' + x.getAttribute('aria-controls')).hidden = !on; });
+    tabs.forEach(t => { t.addEventListener('click', () => sel(t)); t.addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft'){ const o = tabs.find(x => x !== t); sel(o); o.focus(); } }); });
+  }
+}
+
+/* ==================================================================
+   12/N. FORRÁSOK ÉS KULCSSZAVAK
+   ================================================================== */
+if (APP.page === 'forrasok' && $('#srcTable')){
+  let D = { sources:APP.data.sources || [], keywords:APP.data.keywords || [] }, editS = null, editK = null;
+  const render = () => {
+    $('#srcCount').textContent = D.sources.length; $('#kwCount').textContent = D.keywords.length;
+    const q = norm($('#srcQ').value.trim()), list = D.sources.filter(r => !q || norm(`${r.name} ${r.url} ${r.topics} ${r.type}`).includes(q));
+    $('#srcTable').innerHTML = list.length ? `<table><caption class="sr-only">Források</caption><thead><tr><th scope="col">Forrás</th><th scope="col">Típus és témák</th><th scope="col">Állapot</th><th scope="col" class="num">Cikkek</th><th scope="col"><span class="sr-only">Műveletek</span></th></tr></thead><tbody>${list.map(r => `<tr><td><div class="cell-title"><b>${esc(r.name)}</b><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.url)}</a></div></td><td><div class="cell-title"><span>${esc(r.type || '–')}</span><span>${esc(r.topics)}</span></div></td><td>${r.active ? `<span class="badge b-success">${ic('check','icon')}aktív</span>` : `<span class="badge b-neutral">${ic('minus','icon')}szünetel</span>`}${r.is_new ? ` <span class="badge b-ai">${ic('plus','icon')}új forrás</span>` : ''}</td><td class="num">${r.articles}${r.last_month ? `<div class="meta">utoljára: ${esc(r.last_month)}</div>` : ''}</td><td class="rule-acts"><button class="icon-btn" type="button" data-stog="${r.id}" aria-label="${esc(r.name)}: ${r.active ? 'szüneteltetés' : 'aktiválás'}">${ic(r.active ? 'eye-off' : 'eye')}</button><button class="icon-btn" type="button" data-sedit="${r.id}" aria-label="${esc(r.name)} szerkesztése">${ic('edit')}</button><button class="icon-btn" type="button" data-sdel="${r.id}" aria-label="${esc(r.name)} törlése">${ic('trash')}</button></td></tr>`).join('')}</tbody></table>`
+      : `<div class="empty-state"><b>${D.sources.length ? 'Nincs találat' : 'Még nincs forrás'}</b><span>${D.sources.length ? 'Módosítsa a keresést.' : 'Az „Új forrás” gombbal vegye fel az elsőt (hírlista vagy RSS címe), vagy vegye át a Google Sheetből.'}</span></div>`;
+    const kq = norm($('#kwQ').value.trim()), kl = D.keywords.filter(r => !kq || norm(`${r.keyword} ${r.topic}`).includes(kq));
+    $('#kwTable').innerHTML = kl.length ? `<table><caption class="sr-only">Kulcsszavak</caption><thead><tr><th scope="col">Kulcsszó</th><th scope="col">Téma</th><th scope="col">Nyelv</th><th scope="col">Fajta</th><th scope="col"><span class="sr-only">Műveletek</span></th></tr></thead><tbody>${kl.map(r => `<tr><td><b>${esc(r.keyword)}</b></td><td>${esc(r.topic || '–')}</td><td>${esc({ hu:'magyar', en:'angol' }[r.language] || 'mindegy')}</td><td>${r.is_exclude ? `<span class="badge b-danger">${ic('x','icon')}kizáró</span>` : `<span class="badge b-info">${ic('check','icon')}figyelt</span>`}</td><td class="rule-acts"><button class="icon-btn" type="button" data-kedit="${r.id}" aria-label="${esc(r.keyword)} szerkesztése">${ic('edit')}</button><button class="icon-btn" type="button" data-kdel="${r.id}" aria-label="${esc(r.keyword)} törlése">${ic('trash')}</button></td></tr>`).join('')}</tbody></table>`
+      : `<div class="empty-state"><b>${D.keywords.length ? 'Nincs találat' : 'Még nincs kulcsszó'}</b><span>A kulcsszavak a Claude-értékelést segítik; a kizáró kulcsszóval jelölt témájú cikk kimarad.</span></div>`;
+  };
+  const openS = r => { editS = r; $('#srcDlgTitle').textContent = r ? 'Forrás szerkesztése' : 'Új forrás'; $('#s-url').value = r?.url || ''; $('#s-name').value = r?.name || ''; $('#s-type').value = r?.type || ''; $('#s-topics').value = r?.topics || ''; $('#s-active').checked = r ? r.active : true; $('#s-new').checked = r ? r.is_new : !!D.sources.length; $('#s-note').value = r?.note || ''; $('#srcErr').hidden = true; $('#srcTestOut').textContent = ''; $('#srcDlg').showModal(); $('#s-url').focus(); };
+  const openK = r => { editK = r; $('#kwDlgTitle').textContent = r ? 'Kulcsszó szerkesztése' : 'Új kulcsszó'; $('#k-word').value = r?.keyword || ''; $('#k-topic').value = r?.topic || ''; $('#k-lang').value = r?.language || ''; $('#k-exclude').checked = !!r?.is_exclude; $('#kwErr').hidden = true; $('#kwDlg').showModal(); $('#k-word').focus(); };
+  const srcBody = r => ({ url:$('#s-url').value, name:$('#s-name').value, type:$('#s-type').value, topics:$('#s-topics').value, active:$('#s-active').checked, is_new:$('#s-new').checked, note:$('#s-note').value, ...r });
+  $('#srcAdd').addEventListener('click', () => openS(null)); $('#kwAdd').addEventListener('click', () => openK(null));
+  $('#srcCancel').addEventListener('click', () => $('#srcDlg').close()); $('#kwCancel').addEventListener('click', () => $('#kwDlg').close());
+  $('#srcForm').addEventListener('submit', async e => { e.preventDefault(); const b = $('#srcSubmit'); busy(b, true);
+    try { D = (await api('forras', { id:editS?.id ?? null, source:srcBody() })).data; $('#srcDlg').close(); render(); toast('A forrás mentve. A következő havi gyűjtés már figyeli.'); }
+    catch(err){ $('#srcErr').textContent = err.message; $('#srcErr').hidden = false; } finally { busy(b, false); } });
+  $('#srcTest').addEventListener('click', async () => { const b = $('#srcTest'); busy(b, true); $('#srcTestOut').textContent = 'Próbagyűjtés…';
+    try { const t = (await api('forrasproba', { url:$('#s-url').value, type:$('#s-type').value })).test;
+      $('#srcTestOut').innerHTML = t.error && !t.count ? `<span class="error">${esc(t.error)}</span>` : `<b>${esc(t.method)}:</b> ${t.count} cikk.${t.items.length ? '<br>' + t.items.map(i => `${esc(i.date || '–')} · ${esc(i.title)}`).join('<br>') : ''}`; }
+    catch(err){ $('#srcTestOut').innerHTML = `<span class="error">${esc(err.message)}</span>`; } finally { busy(b, false); } });
+  $('#kwForm').addEventListener('submit', async e => { e.preventDefault(); const b = $('#kwSubmit'); busy(b, true);
+    try { D = (await api('kulcsszo', { id:editK?.id ?? null, keyword:{ keyword:$('#k-word').value, topic:$('#k-topic').value, language:$('#k-lang').value, is_exclude:$('#k-exclude').checked } })).data; $('#kwDlg').close(); render(); toast('A kulcsszó mentve.'); }
+    catch(err){ $('#kwErr').textContent = err.message; $('#kwErr').hidden = false; } finally { busy(b, false); } });
+  document.addEventListener('click', async e => {
+    const se = e.target.closest('[data-sedit]'), sd = e.target.closest('[data-sdel]'), st = e.target.closest('[data-stog]'), ke = e.target.closest('[data-kedit]'), kd = e.target.closest('[data-kdel]');
+    try {
+      if (se) openS(D.sources.find(r => r.id === +se.dataset.sedit));
+      if (ke) openK(D.keywords.find(r => r.id === +ke.dataset.kedit));
+      if (st){ const r = D.sources.find(x => x.id === +st.dataset.stog); D = (await api('forras', { id:r.id, source:{ ...r, active:!r.active } })).data; render(); toast(r.active ? `${r.name}: szünetel.` : `${r.name}: újra aktív.`); }
+      if (sd){ const r = D.sources.find(x => x.id === +sd.dataset.sdel); if (!await confirmBox({ title:`Törli a(z) ${r.name} forrást?`, body:'A havi gyűjtés nem figyeli többé. A korábbi cikkei megmaradnak. Ha csak átmenetileg nem kell, szüneteltesse.', confirm:'Forrás törlése' })) return; D = (await api('forrastorles', { id:r.id })).data; render(); toast('A forrás törölve.'); }
+      if (kd){ const r = D.keywords.find(x => x.id === +kd.dataset.kdel); if (!await confirmBox({ title:`Törli a(z) „${r.keyword}” kulcsszót?`, confirm:'Kulcsszó törlése' })) return; D = (await api('kulcsszotorles', { id:r.id })).data; render(); toast('A kulcsszó törölve.'); }
+    } catch(err){ toast(err.message, { type:'error' }); }
+  });
+  $('#srcQ').addEventListener('input', render); $('#kwQ').addEventListener('input', render);
   const tabs = $$('[role=tab]');
   const sel = t => tabs.forEach(x => { const on = x === t; x.setAttribute('aria-selected', on); x.tabIndex = on ? 0 : -1; $('#' + x.getAttribute('aria-controls')).hidden = !on; });
   tabs.forEach(t => { t.addEventListener('click', () => sel(t)); t.addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft'){ const o = tabs.find(x => x !== t); sel(o); o.focus(); } }); });
+  render();
 }
 
 /* ==================================================================

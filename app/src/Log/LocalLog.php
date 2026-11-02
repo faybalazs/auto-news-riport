@@ -39,6 +39,24 @@ final class LocalLog
         return $out;
     }
 
+    /** A megadott napnál régebbi futások törlése (megőrzés: 90 nap). */
+    public function prune(int $days = 90): int
+    {
+        if (!is_file($this->file)) {
+            return 0;
+        }
+        $limit = (new \DateTimeImmutable('-' . $days . ' days'))->getTimestamp();
+        $lines = file($this->file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
+        $keep = array_values(array_filter($lines, static function ($l) use ($limit) {
+            $a = json_decode($l, true);
+            return !is_array($a) || strtotime((string) ($a['time'] ?? '')) === false || strtotime((string) $a['time']) >= $limit;
+        }));
+        if (count($keep) !== count($lines)) {
+            file_put_contents($this->file, $keep ? implode("\n", $keep) . "\n" : '', LOCK_EX);
+        }
+        return count($lines) - count($keep);
+    }
+
     /** Az adott feladat legutóbbi futása. */
     public function last(string $task): ?LogEntry
     {

@@ -20,6 +20,7 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 | Havi e-mail: generálás (havi futáskor és kézzel), értesítés csak az üzemeltetőnek, szerkesztés, teszt e-mail, jóváhagyás után azonnali egyszeri küldés SMTP-vel; címzettek és stílus ügyfelenként | megvalósított; ellenőrzött PHPUnit-tal (SMTP-protokoll forgatókönyvvel, helyettesített Claude és küldő) és böngészőből helyi teszt-SMTP-szerverrel (a kézbesített levél fejléce, szövege és HTML-je ellenőrizve); valódi SMTP-vel és Claude-dal nem ellenőrzött | roadmap 7 |
 | Élő feltöltés (Xperion OAuth Bridge 0.6.0, deploy_pair): Mehet cikkek HU/EN ajánlópárként, Claude-fordítással, óránként és kézzel; kapcsolatpróba; hibakezelés a bővítmény táblája szerint | megvalósított; ellenőrzött PHPUnit-tal (a bővítmény válaszformáit utánzó helyettesítő: idempotencia, duplikátum, képhiba, 3 próba, 401 leállás) és böngészőből helyi hamis végponttal (valódi HTTP, Basic belépés); a valódi xperion.hu-n és Claude-dal nem ellenőrzött | roadmap 8 |
 | LinkedIn-posztok: Posztszabályok és Posztötletek szerkesztése; generálás indításra (a Havi cikkeken kijelölt cikkekből, vagy ötletből; Claude Opus 5.5) pótlással; a kész poszt magától jóváhagyásra megy; egyedi, Claude által tervezett kép (SVG → PNG); módosítási kérésre automatikus újraírás; előnézet, szerkesztés, előzmények | megvalósított; ellenőrzött PHPUnit-tal (kijelölés, jogosultság, automatikus jóváhagyásra küldés, újraírás, SVG-tisztítás, hibás kép esetén sablon) és böngészőből mintaadatokkal (kijelölés, egyedi kép, PNG-letöltés); valódi Claude-dal nem ellenőrzött | roadmap 9 |
+| Források és kulcsszavak oldal; Napló szűrőkkel, CSV-vel, ügyfél-adminisztrátori nézettel; hibaértesítés e-mailben; megőrzés; Ügyfelek: beállítási lépések és ügyfélbeállítások | megvalósított; ellenőrzött PHPUnit-tal (jogosultság, ügyfélhatár, kategóriák, megőrzés, hibahorog) és böngészőből (üzemeltető asztali, ügyfél-adminisztrátor mobil nézetben); élesben nem ellenőrzött | roadmap 10 |
 | Áttekintés adatokkal | tervezett (most üres állapot és beállítási teendők) | roadmap 6 |
 | Havi e-mail, feltöltés, posztok | tervezett | roadmap 7–9 |
 
@@ -47,6 +48,6 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 - Frissített ütemterv: [roadmap.md](roadmap.md).
 
 ## Következő lépések
-1. Felhasználó: feltöltés (0.9.1); Posztszabályok átnézése (különösen a „Kép” sor); Attilával: LinkedIn-cikkek kijelölése → Poszt készítése a kijelöltekből, a szöveg és az egyedi kép ellenőrzése, módosítási kérés kipróbálása.
-2. Élő feltöltés éles próbája (bővítmény 0.6.0, WordPress-felhasználó), ha még nem történt meg.
-3. 10. lépés: Napló és Ügyfelek oldal véglegesítése (felhasználói műveletek naplója, új ügyfél beállítási lépései).
+1. Felhasználó: feltöltés (0.10.0); Ügyfelek → Beállítási lépések végigjárása az Xperionnál; Források átnézése; Napló kipróbálása (Attilával is).
+2. Éles próbák a még nem ellenőrzött részekre: havi futás valódi forrásokon és Claude-dal, havi e-mail valódi SMTP-vel, élő feltöltés az xperion.hu-ra, posztgenerálás és képtervezés.
+3. A pull request átnézése és összevonása (merge) a fő ágba, ha az éles próbák rendben vannak; utána a 3. ütem (e-mailes válaszok feldolgozása) tervezése, ha kell.

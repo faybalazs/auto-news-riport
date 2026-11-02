@@ -6,8 +6,8 @@ PHP 8.1+ (a szerveren 8.2), MySQL/MariaDB, éles függőség nélkül (PDO, cURL
 
 | Fájl | Mire | Védelem |
 |---|---|---|
-| `index.php` | Oldalak: `?p=attekintes`, `cikkek`, `posztok`, `poszt&kod=`, `otletek`, `otlet[&kod=]`, `szabalyok`, `felhasznalok`, `ugyfelek`, `vezerlo`, `naplo`, `profil`; belépés nélkül: `belepes`, `meghivo&t=`, `jelszo&t=`, első indításkor beállítóoldal | munkamenet (e-mail + jelszó); jogosultság oldalanként; CSRF minden POST-on |
-| `api.php` | JSON-műveletek: `?m=felhasznalok`, `meghivas`, `felhasznalo`, `letiltas`, `torles`, `link`, `ugyfel`, `jelszocsere`, `futtatas`, `atvetel`, `gyujtes`, `havifutas`, `dontes`, `googlekulcs` (szolgáltatásfiók-kulcs feltöltése, üzemeltető), `sheetlink` (az aktuális ügyfél táblalinkje, üzemeltető), `email`, `emailgen`, `emailmentes`, `emailteszt`, `emailkuldes`, `emailbeallitas` (havi e-mail, üzemeltető), `wpellenorzes`, `feltoltes`, `feltoltesujra` (élő feltöltés, üzemeltető), `szabaly`, `szabalytorles`, `szabalysorrend`, `otlet`, `otlettorles`, `posztkeres`, `posztkep`, `poszt`, `posztlepes`, `poszttorles` (posztok, szerepkör szerint) | munkamenet + `X-CSRF-Token`; minden művelet a szerveren ellenőrzi a jogosultságot és az ügyfélhatárt |
+| `index.php` | Oldalak: `?p=attekintes`, `cikkek`, `posztok`, `poszt&kod=`, `otletek`, `otlet[&kod=]`, `szabalyok`, `forrasok`, `felhasznalok`, `ugyfelek`, `vezerlo`, `naplo`, `profil`; belépés nélkül: `belepes`, `meghivo&t=`, `jelszo&t=`, első indításkor beállítóoldal | munkamenet (e-mail + jelszó); jogosultság oldalanként; CSRF minden POST-on |
+| `api.php` | JSON-műveletek: `?m=felhasznalok`, `meghivas`, `felhasznalo`, `letiltas`, `torles`, `link`, `ugyfel`, `jelszocsere`, `futtatas`, `atvetel`, `gyujtes`, `havifutas`, `dontes`, `googlekulcs` (szolgáltatásfiók-kulcs feltöltése, üzemeltető), `sheetlink` (az aktuális ügyfél táblalinkje, üzemeltető), `email`, `emailgen`, `emailmentes`, `emailteszt`, `emailkuldes`, `emailbeallitas` (havi e-mail, üzemeltető), `wpellenorzes`, `feltoltes`, `feltoltesujra` (élő feltöltés, üzemeltető), `szabaly`, `szabalytorles`, `szabalysorrend`, `otlet`, `otlettorles`, `forras`, `forrastorles`, `forrasproba`, `kulcsszo`, `kulcsszotorles`, `ugyfelbeallitas`, `posztkeres`, `posztkep`, `poszt`, `posztlepes`, `poszttorles` (posztok, szerepkör szerint) | munkamenet + `X-CSRF-Token`; minden művelet a szerveren ellenőrzi a jogosultságot és az ügyfélhatárt |
 | `cron.php` | Időzített futás: `?feladat=havi\|orankenti&k=<cron_key>[&dry=1]`, vagy `php cron.php havi [--dry]` | cron-kulcs; hibánál HTTP 500 |
 
 Minden webes kérés elején a `Migrator` lefuttatja a még hiányzó adatbázis-migrációkat (`app/migrations/*.sql`, MySQL `GET_LOCK`-kal).
@@ -25,9 +25,10 @@ Minden webes kérés elején a `Migrator` lefuttatja a még hiányzó adatbázis
 | `Auth\ClientAdmin` | Ügyfelek létrehozása, módosítása (üzemeltető) | `AuditLog` |
 | `Auth\TokenService` | Egyszer használható meghívó (7 nap) és jelszólink (24 óra); csak SHA-256 lenyomat tárolva | `UserAdmin` |
 | `Auth\Authenticator` | Belépés, hibás próbálkozások korlátozása (IP-nként 5 / 15 perc) | `index.php` |
-| `Auth\AuditLog` | Ki, mit, mikor; ügyfelenként szűrve | Napló oldal |
+| `Auth\AuditLog` | Ki, mit, mikor; ügyfelenként szűrve; kategóriák a szűréshez; megőrzés 2 év | Napló oldal (üzemeltető: minden; ügyfél-adminisztrátor: a saját ügyfele) |
+| `Collect\SourceService` | Források és kulcsszavak szerkesztése ügyfelenként, próbagyűjtés egy forrásból (mentés nélkül) | `forrasok` oldal |
 | `Web\Session`, `Web\Http`, `Web\View` | Munkamenet, CSRF, biztonsági fejlécek (CSP), sablonmegjelenítés | belépési pontok |
-| `Task\*`, `Log\LocalLog` | Futások (havi, óránkénti), zárolás, helyi futásnapló | `cron.php`, Vezérlőpult |
+| `Task\*`, `Log\LocalLog` | Futások (havi, óránkénti), zárolás, helyi futásnapló (megőrzés 90 nap); hibás időzített futásnál `Runner::onFailure` → `App::notifyFailure` (e-mail az üzemeltetőknek, feladatonként óránként ≤ 1) | `cron.php`, Vezérlőpult |
 | `Import\SheetParser`, `Import\Url` | A Sheet lapjainak értelmezése (régi és 2609+ havi formátum, posztok, ötletek, kulcs–érték lapok), linkek egységesítése | `SheetImporter` |
 | `Import\SheetImporter`, `Import\ImportService` | Adatátvétel az aktuális ügyfél saját Sheetjéből: szárazon számol, élesben tranzakcióban upsert; zárolás, futás- és műveleti napló | `api.php?m=atvetel`, Ügyfelek oldal |
 | `Collect\Collector` | Egy forrás cikkei: RSS/Atom → a listaoldal által hirdetett hírcsatorna → HubSpot `/rss.xml` → listaoldal-elemzés; dátum nélküli cikknél a cikkoldal (legfeljebb 10) | `CollectService` |

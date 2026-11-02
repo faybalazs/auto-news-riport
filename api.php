@@ -122,6 +122,16 @@ try {
             $app->clients()->update($access, (int) $c['id'], (string) $c['name'], (string) $c['website'], (string) $c['status'], $str('sheet'));
             return ['ok' => true, 'clients' => $app->clients()->all($access)];
         })(),
+        'forras' => ['data' => $app->sources()->saveSource($access, $int('id'), (array) ($in['source'] ?? []))],
+        'forrastorles' => ['data' => $app->sources()->deleteSource($access, (int) $int('id'))],
+        'forrasproba' => (function () use ($app, $access, $str) {
+            session_write_close();
+            @set_time_limit(120);
+            return ['test' => $app->sources()->test($access, $str('url'), $str('type'))];
+        })(),
+        'kulcsszo' => ['data' => $app->sources()->saveKeyword($access, $int('id'), (array) ($in['keyword'] ?? []))],
+        'kulcsszotorles' => ['data' => $app->sources()->deleteKeyword($access, (int) $int('id'))],
+        'ugyfelbeallitas' => ['settings' => $app->clients()->saveSettings($access, (array) ($in['settings'] ?? []))],
         'szabaly' => ['rules' => $app->rules()->save($access, $int('id'), $str('name'), (string) ($in['value'] ?? ''))],
         'szabalytorles' => ['rules' => $app->rules()->delete($access, (int) $int('id'))],
         'szabalysorrend' => ['rules' => $app->rules()->reorder($access, array_map('intval', (array) ($in['ids'] ?? [])))],

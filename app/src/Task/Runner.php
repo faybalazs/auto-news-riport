@@ -20,6 +20,8 @@ final class Runner
     private $sheetsFactory;
     /** @var callable():\DateTimeImmutable */
     private $clock;
+    /** @var (callable(RunResult, string):void)|null hibás futás után (értesítés az üzemeltetőnek) */
+    public $onFailure = null;
 
     /** @param list<Task> $tasks */
     public function __construct(
@@ -71,7 +73,13 @@ final class Runner
         $entry = new LogEntry($now, $id, $task->label(), $dry, $trigger, $result->ok, $result->summary(), $result->durationMs);
         $this->log->append($entry);
 
-        // SABLON: hiba esetén e-mail-értesítés az üzemeltetőnek (4. lépés, SMTP).
+        if (!$result->ok && $this->onFailure !== null) {
+            try {
+                ($this->onFailure)($result, $trigger);
+            } catch (\Throwable) {
+                // az értesítés hibája nem írja felül a futás eredményét
+            }
+        }
         return $result;
     }
 }

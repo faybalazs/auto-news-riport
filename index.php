@@ -108,6 +108,7 @@ if ($access === null) {
             $r = $auth->attempt((string) ($_POST['email'] ?? ''), (string) ($_POST['jelszo'] ?? ''), Http::clientIp());
             if ($r['user'] !== null) {
                 Session::login((int) $r['user']['id']);
+                $app->audit()->add(null, (int) $r['user']['id'], 'Belépés');
                 Http::redirect('index.php');
             }
             $error = $r['error'];
@@ -143,7 +144,8 @@ $pages = [
     'felhasznalok' => ['Felhasználók', 'users'],
     'ugyfelek' => ['Ügyfelek', 'ops'],
     'vezerlo' => ['Vezérlőpult', 'ops'],
-    'naplo' => ['Napló', 'ops'],
+    'naplo' => ['Napló', 'log'],
+    'forrasok' => ['Források és kulcsszavak', 'sources'],
     'profil' => ['Profil', null],
 ];
 if (!isset($pages[$page])) {
@@ -160,8 +162,14 @@ if ($perm !== null && !$access->can($perm)) {
         $data = ['users' => $app->users()->visibleUsers($access)];
     } elseif ($page === 'ugyfelek') {
         $data = ['clients' => $app->clients()->all($access), 'serviceEmail' => $app->serviceAccountEmail(), 'googleReady' => $app->config->serviceAccountJson() !== '', 'googleSource' => $app->config->serviceAccountSource()];
+        if (($cl = $access->client()) !== null) {
+            $data['onb'] = $app->clients()->onboarding((int) $cl['id'], $app->config->wordpressSite((string) $cl['website']));
+            $data['settings'] = $app->clients()->settings((int) $cl['id']);
+        }
     } elseif ($page === 'naplo') {
-        $data = ['runs' => array_map(static fn ($e) => $e->toArray() + ['time_hu' => $e->timeHu()], $app->log()->recent(300)), 'audit' => $app->audit()->recent(null)];
+        $ops = $access->can('ops');
+        $data = ['runs' => $ops ? array_map(static fn ($e) => $e->toArray() + ['time_hu' => $e->timeHu()], $app->log()->recent(1000)) : [],
+            'audit' => $ops ? $app->audit()->recent(null, 2000) : ($access->clientId() !== null ? $app->audit()->recent($access->clientId(), 2000) : []), 'all' => $ops];
     } elseif ($page === 'cikkek') {
         $months = $app->articles()->months($access);
         $month = preg_match('/^\d{4}$/', (string) ($_GET['honap'] ?? '')) ? (string) $_GET['honap'] : ($months[0]['month'] ?? '');
@@ -171,6 +179,8 @@ if ($perm !== null && !$access->can($perm)) {
         $mm = $em->months($access);
         $data = ['mail' => ['months' => array_map(static fn ($m) => ['month' => $m, 'label' => \Xperion\Monthly\EmailService::monthLabel($m)], $mm), 'email' => $mm ? $em->get($access, $mm[0]) : null,
             'settings' => $em->settings((int) $access->clientId()), 'ready' => $em->mailerReady(), 'problem' => $em->mailerProblem(), 'claude' => $app->config->has('claude_api_key')]];
+    } elseif ($page === 'forrasok') {
+        $data = $app->sources()->all($access);
     } elseif ($page === 'posztok') {
         $data = ['posts' => $app->posts()->all($access), 'openMonths' => $app->posts()->openMonths($access), 'jobs' => $app->posts()->pendingJobs($access)];
     } elseif ($page === 'poszt') {

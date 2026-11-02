@@ -250,7 +250,10 @@ final class App
 
     public function runner(): Runner
     {
-        return $this->runner ??= new Runner(
+        if ($this->runner !== null) {
+            return $this->runner;
+        }
+        $this->runner = new Runner(
             [new MonthlyTask(function (\Xperion\Task\TaskContext $ctx, string $month): void {
                 $clients = $this->db()->all("SELECT id, name, status FROM clients WHERE status <> 'szunetel' ORDER BY name");
                 foreach ($clients as $c) {
@@ -268,10 +271,55 @@ final class App
             }), new HourlyTask(function (\Xperion\Task\TaskContext $ctx): void {
                 $this->uploads()->runAll($ctx);
                 $this->posts()->runPending($ctx);
+                if (!$ctx->dry) {
+                    // megőrzés: műveleti napló 2 év, futásnapló 90 nap
+                    $n = $this->audit()->prune() + $this->log()->prune();
+                    if ($n > 0) {
+                        $ctx->info("Napló: {$n} régi bejegyzés törölve (megőrzés).");
+                    }
+                }
             })],
             fn (): SheetsClient => $this->sheets(),
             $this->log(),
             $this->storageDir . '/futas.lock',
         );
+        $this->runner->onFailure = fn (\Xperion\Task\RunResult $r, string $trigger) => $this->notifyFailure($r, $trigger);
+        return $this->runner;
+    }
+
+    /**
+     * Hibás időzített futás → e-mail az üzemeltetőknek (product.md 8.: minden hiba a Naplóba és e-mailben).
+     * Ugyanarról a feladatról óránként legfeljebb egy levél; kézi futásnál nincs levél (a hiba a felületen látszik).
+     */
+    public function notifyFailure(\Xperion\Task\RunResult $r, string $trigger): void
+    {
+        if ($trigger === 'admin' || !$this->dbConfigured()) {
+            return;
+        }
+        $mailer = $this->mailer();
+        if (!$mailer->configured()) {
+            return;
+        }
+        $state = $this->storageDir . '/hiba-ertesites.json';
+        $sent = is_file($state) ? (json_decode((string) file_get_contents($state), true) ?: []) : [];
+        $key = $r->task . ($r->dry ? ':dry' : '');
+        if (($sent[$key] ?? 0) > time() - 3600) {
+            return;
+        }
+        $ops = array_column($this->db()->all("SELECT email FROM users WHERE is_operator = 1 AND status = 'aktiv'"), 'email');
+        if (!$ops) {
+            return;
+        }
+        $errors = array_values(array_map(static fn ($l) => '- ' . $l['text'], array_filter($r->lines, static fn ($l) => $l['level'] === 'error')));
+        $text = "Hibával zárult egy időzített futás: {$r->label}" . ($r->dry ? ' (szárazon)' : '') . ".\n\n" . implode("\n", array_slice($errors, 0, 20))
+            . "\n\nRészletek: " . ($this->baseUrl() !== '' ? $this->baseUrl() . 'index.php?p=naplo' : 'Napló oldal') . "\n(Ugyanerről a feladatról legfeljebb óránként egy értesítés megy.)";
+        $mailer->send(new \Xperion\Mail\Message(array_map('strval', $ops), 'Hibás futás: ' . $r->label, $text));
+        $sent[$key] = time();
+        @file_put_contents($state, json_encode($sent), LOCK_EX);
+    }
+
+    public function sources(): \Xperion\Collect\SourceService
+    {
+        return new \Xperion\Collect\SourceService($this->db(), $this->audit(), new \Xperion\Collect\Collector(new CurlHttpClient(1, 20, null, 'Mozilla/5.0 (compatible; XperionSajtofigyelo/1.0; +https://xperion.hu)')));
     }
 }

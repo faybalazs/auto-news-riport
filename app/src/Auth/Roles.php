@@ -36,12 +36,14 @@ final class Roles
         'publish' => 'Poszt megjelentnek jelölése',
         'deletePost' => 'Poszt törlése',
         'users' => 'Felhasználók meghívása (saját ügyfél)',
+        'sources' => 'Figyelt források és kulcsszavak szerkesztése',
+        'log' => 'Műveleti napló (saját ügyfél)',
         'ops' => 'Futások, havi e-mail, ügyfelek, napló',
     ];
 
     public const GRANTS = [
-        self::OPERATOR => ['decide', 'approve', 'ideas', 'rules', 'publish', 'deletePost', 'users', 'ops'],
-        self::CLIENT_ADMIN => ['decide', 'approve', 'ideas', 'rules', 'deletePost', 'users'],
+        self::OPERATOR => ['decide', 'approve', 'ideas', 'rules', 'publish', 'deletePost', 'users', 'sources', 'log', 'ops'],
+        self::CLIENT_ADMIN => ['decide', 'approve', 'ideas', 'rules', 'deletePost', 'users', 'sources', 'log'],
         self::CONTENT => ['ideas', 'rules', 'publish'],
         self::READER => [],
     ];

@@ -18,6 +18,28 @@ final class AuditLog
     }
 
     /** @return list<array<string,mixed>> */
+    /** A művelet kategóriája a Napló szűrőjéhez. */
+    public static function category(string $action): string
+    {
+        return match (true) {
+            str_starts_with($action, 'Döntés') => 'Döntések',
+            str_starts_with($action, 'Poszt') => 'Posztok',
+            str_starts_with($action, 'Havi e-mail') => 'Havi e-mail',
+            str_starts_with($action, 'Feltöltés') => 'Feltöltés',
+            str_starts_with($action, 'Forrás'), str_starts_with($action, 'Kulcsszó') => 'Források',
+            str_starts_with($action, 'Havi futás'), str_starts_with($action, 'Adatátvétel') => 'Futások',
+            str_starts_with($action, 'Belépés') => 'Belépés',
+            str_starts_with($action, 'Felhasználó'), str_contains($action, 'jelszó'), str_contains($action, 'Meghív') => 'Felhasználók',
+            default => 'Beállítások',
+        };
+    }
+
+    /** A 2 évnél régebbi bejegyzések törlése (megőrzés). */
+    public function prune(int $days = 730): int
+    {
+        return $this->db->run('DELETE FROM audit_log WHERE created_at < ?', [gmdate('Y-m-d H:i:s', time() - $days * 86400)])->rowCount();
+    }
+
     public function recent(?int $clientId, int $limit = 300): array
     {
         $sql = 'SELECT a.created_at, a.action, a.details, a.client_id, COALESCE(u.name, "Rendszer") AS who, c.name AS client
@@ -27,6 +49,7 @@ final class AuditLog
             $sql .= ' WHERE a.client_id = ?'; // más ügyfélre vagy globális műveletre vonatkozó sor nem szivároghat át
             $params[] = $clientId;
         }
-        return $this->db->all($sql . ' ORDER BY a.id DESC LIMIT ' . max(1, min(1000, $limit)), $params);
+        return array_map(static fn ($r) => $r + ['category' => self::category((string) $r['action']), 'time_hu' => \Xperion\Web\View::dateHu((string) $r['created_at'])],
+            $this->db->all($sql . ' ORDER BY a.id DESC LIMIT ' . max(1, min(2000, $limit)), $params));
     }
 }

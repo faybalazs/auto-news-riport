@@ -90,4 +90,67 @@ final class ClientAdmin
         $site = preg_replace('#^https?://#i', '', $site) ?? '';
         return rtrim($site, '/');
     }
+
+    public const SETTINGS = ['linkedin_nev', 'linkedin_kovetok', 'modell_ertekeles', 'modell_poszt', 'modell_linkedin', 'modell_feltoltes'];
+    public const MODELS = ['claude-haiku-5-5', 'claude-sonnet-5-5', 'claude-opus-5-5'];
+
+    /** @return array<string,string> az ügyfél felületről szerkeszthető beállításai */
+    public function settings(int $clientId): array
+    {
+        $out = array_fill_keys(self::SETTINGS, '');
+        foreach ($this->db->all('SELECT name, value FROM client_settings WHERE client_id = ? AND name IN (' . implode(',', array_fill(0, count(self::SETTINGS), '?')) . ')', [$clientId, ...self::SETTINGS]) as $r) {
+            $out[(string) $r['name']] = trim((string) $r['value']);
+        }
+        return $out;
+    }
+
+    /** @param array<string,mixed> $in @return array<string,string> */
+    public function saveSettings(Access $a, array $in): array
+    {
+        $a->require('ops');
+        $cid = $a->clientId() ?? throw new \InvalidArgumentException('Nincs kiválasztott ügyfél.');
+        $now = Database::now();
+        foreach (self::SETTINGS as $k) {
+            if (!array_key_exists($k, $in)) {
+                continue;
+            }
+            $v = mb_substr(trim((string) $in[$k]), 0, 190);
+            if (str_starts_with($k, 'modell_') && $v !== '' && !in_array($v, self::MODELS, true)) {
+                throw new \InvalidArgumentException('Ismeretlen modell: ' . $v);
+            }
+            $this->db->run('INSERT INTO client_settings (client_id, name, value, updated_at) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value), updated_at = VALUES(updated_at)', [$cid, $k, $v, $now]);
+        }
+        $this->audit->add($cid, $a->userId(), 'Ügyfélbeállítások módosítva', implode(', ', array_intersect(self::SETTINGS, array_keys($in))));
+        return $this->settings($cid);
+    }
+
+    /**
+     * Az új ügyfél beállítási lépései valódi állapottal.
+     *
+     * @return list<array{title:string, sub:string, done:bool, href:string, cta:string}>
+     */
+    public function onboarding(int $cid, ?array $wordpressSite): array
+    {
+        $c = $this->db->one('SELECT name, website, status FROM clients WHERE id = ?', [$cid]);
+        if ($c === null) {
+            return [];
+        }
+        $n = fn (string $sql) => (int) $this->db->value($sql, [$cid]);
+        $users = $n('SELECT COUNT(*) FROM memberships WHERE client_id = ?');
+        $sources = $n('SELECT COUNT(*) FROM sources WHERE client_id = ? AND active = 1');
+        $keywords = $n('SELECT COUNT(*) FROM keywords WHERE client_id = ?');
+        $rules = $n('SELECT COUNT(*) FROM post_rules WHERE client_id = ?');
+        $mailTo = (string) $this->db->value("SELECT value FROM client_settings WHERE client_id = ? AND name = 'ugyfel_email'", [$cid]);
+        $reports = $n('SELECT COUNT(*) FROM month_reports WHERE client_id = ?');
+        return [
+            ['title' => 'Alapadatok', 'sub' => $c['website'] !== '' ? $c['name'] . ' · ' . $c['website'] : 'a weboldal hiányzik (a feltöltéshez és a képekhez kell)', 'done' => $c['website'] !== '', 'href' => 'index.php?p=ugyfelek', 'cta' => 'Szerkesztés a sor ⋯ menüjében'],
+            ['title' => 'Felhasználók meghívása', 'sub' => $users ? $users . ' felhasználó' : 'ügyfél-adminisztrátor, tartalomkezelő', 'done' => $users > 0, 'href' => 'index.php?p=felhasznalok', 'cta' => 'Felhasználók'],
+            ['title' => 'Források és kulcsszavak', 'sub' => $sources ? "{$sources} aktív forrás, {$keywords} kulcsszó" : 'adatátvétel a Google Sheetből, vagy felvétel kézzel', 'done' => $sources > 0, 'href' => 'index.php?p=forrasok', 'cta' => 'Források'],
+            ['title' => 'Posztszabályok', 'sub' => $rules ? "{$rules} szabály" : 'a LinkedIn-posztokhoz kell', 'done' => $rules > 0, 'href' => 'index.php?p=szabalyok', 'cta' => 'Posztszabályok'],
+            ['title' => 'Havi e-mail címzettje', 'sub' => $mailTo !== '' ? $mailTo : 'a havi levélhez kell', 'done' => $mailTo !== '', 'href' => 'index.php?p=ugyfelek#mailSettings', 'cta' => 'Beállítás'],
+            ['title' => 'Weboldal-kapcsolat (WordPress)', 'sub' => $wordpressSite ? $wordpressSite['base_url'] . ' · a Vezérlőpulton ellenőrizhető' : 'config.php „wordpress” rész az ügyfél weboldala szerint', 'done' => $wordpressSite !== null, 'href' => 'index.php?p=vezerlo', 'cta' => 'Vezérlőpult'],
+            ['title' => 'Aktív állapot', 'sub' => $c['status'] === 'aktiv' ? 'a havi és az óránkénti futás fut' : 'amíg nem Aktív, a cron kihagyja', 'done' => $c['status'] === 'aktiv', 'href' => 'index.php?p=ugyfelek', 'cta' => 'Szerkesztés a sor ⋯ menüjében'],
+            ['title' => 'Első havi futás', 'sub' => $reports ? $reports . ' havi lista készült' : 'Vezérlőpult → Havi futás szárazon, majd élesben', 'done' => $reports > 0, 'href' => 'index.php?p=vezerlo', 'cta' => 'Vezérlőpult'],
+        ];
+    }
 }

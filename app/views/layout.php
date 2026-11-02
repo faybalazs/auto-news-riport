@@ -46,10 +46,11 @@ $ini = implode('', array_map(static fn ($w) => mb_substr($w, 0, 1), array_slice(
     <?= $nav('otletek', 'bulb', 'Posztötletek', 'ideas') ?>
     <?= $nav('szabalyok', 'bookmark', 'Posztszabályok', 'rules') ?>
     <?php if ($access->can('users')): ?><div class="nav-group-title">Adminisztráció</div><?php endif; ?>
+    <?= $nav('forrasok', 'globe', 'Források', 'sources') ?>
     <?= $nav('felhasznalok', 'users', 'Felhasználók', 'users') ?>
     <?= $nav('ugyfelek', 'folder', 'Ügyfelek', 'ops') ?>
     <?= $nav('vezerlo', 'settings', 'Vezérlőpult', 'ops') ?>
-    <?= $nav('naplo', 'clock', 'Napló', 'ops') ?>
+    <?= $nav('naplo', 'clock', 'Napló', 'log') ?>
     <div class="sidebar-foot">
       <button class="nav-item collapse-btn" type="button" id="collapseBtn" aria-expanded="true" title="Menü összecsukása"><svg class="icon" aria-hidden="true" id="collapseIcon"><use href="#i-chev-left"/></svg><span class="nav-label" id="collapseLabel">Összecsukás</span></button>
     </div>

@@ -2,7 +2,7 @@
 
 Havi sajtófigyelés, élő cikkfeltöltés és LinkedIn-posztgenerálás az Xperion (xperion.hu) számára, saját felülettel és MySQL-adatbázissal, több ügyfélre felkészítve.
 
-- **Állapot:** 9. lépés kész (LinkedIn-posztok: szabályok, ötletek, generálás, jóváhagyás). Részletek: [docs/project-state.md](docs/project-state.md)
+- **Állapot:** 10. lépés kész (Napló, Források, ügyfélbeállítások) – a tervezett 1–10. lépés megvalósítva. Részletek: [docs/project-state.md](docs/project-state.md)
 - **Technológia:** PHP 8.1+ (a szerveren 8.2), MySQL, függőség nélküli éles kód; Claude API, SMTP, a meglévő feltöltő program; a Google Sheetből egyszeri adatátvétel
 - **Követelmények:** [docs/product.md](docs/product.md) · **Felépítés:** [docs/architecture.md](docs/architecture.md)
 - **AI-ügynököknek:** [AGENTS.md](AGENTS.md)
@@ -69,7 +69,12 @@ A „Mehet” cikk a következő óránkénti futással kikerül magyarul és an
 6. **Jóváhagyás:** Attila **Jóváhagyom** vagy **Módosítást kérek** (megjegyzéssel: a Claude azonnal újraírja, és újra jóváhagyásra kerül) → jóváhagyás után Emi e-mailt kap, kimásolja, időzíti a LinkedInen, majd **Megjelent a LinkedInen**.
 7. Az előnézet fejlécéhez (nem kötelező) a Sheet „Beállítások” lapján: `linkedin_nev`, `linkedin_kovetok`. Más modell: `modell_linkedin` (pl. `claude-sonnet-5-5`).
 
-### 10. Időzítés (cron)
+### 10. Források, ügyfélbeállítások, Napló
+- **Források:** a figyelt oldalak (hírlista vagy RSS) és a kulcsszavak itt is szerkeszthetők; új forrásnál a **Próbagyűjtés** megmutatja, mit talál. Egy új ügyfél így Google Sheet nélkül is elindulhat.
+- **Ügyfelek → Beállítási lépések:** egy új ügyfél teendői sorban, a hiányzóknál linkkel. **Ügyfélbeállítások:** a LinkedIn-előnézet neve és követőszáma, és az egyes feladatok Claude-modellje.
+- **Napló:** szűrés ügyfélre, felhasználóra, művelettípusra és időszakra; **Letöltés (CSV)** Excelhez. Attila a saját ügyfele műveleteit látja. Ha egy időzített futás hibával zárul, e-mailt kapsz.
+
+### 11. Időzítés (cron)
 A tárhely vezérlőpultjában két időzített feladat kell; a pontos címeket a **Vezérlőpult → Időzítés (cron)** kártyán másolhatod:
 - **Havi futás:** minden hónap 1-jén 06:00-kor (Europe/Budapest).
 - **Óránkénti futás:** minden órában.

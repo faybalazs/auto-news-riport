@@ -50,8 +50,27 @@ $cur = $access->client();
     </section>
     <section class="card widget" aria-labelledby="h-onb">
       <div class="widget-head"><div><h2 id="h-onb">Beállítási lépések</h2><p class="meta"><?= $e($cur['name'] ?? 'Nincs kiválasztott ügyfél') ?></p></div></div>
-      <ol class="checklist" id="onbList"></ol>
+      <?php if (!empty($data['onb'])): $done = count(array_filter($data['onb'], static fn ($s) => $s['done'])); ?>
+      <p class="meta"><?= $done ?> / <?= count($data['onb']) ?> kész</p>
+      <ol class="checklist" id="onbList">
+        <?php foreach ($data['onb'] as $i => $s): ?>
+        <li class="<?= $s['done'] ? 'done' : '' ?>"><span class="ck" aria-hidden="true"><?= $s['done'] ? $ic('check') : $i + 1 ?></span><div><b><?= $e($s['title']) ?></b><small><?= $e($s['sub']) ?></small><?php if (!$s['done']): ?><a class="onb-link" href="<?= $e($s['href']) ?>"><?= $e($s['cta']) ?><?= $ic('chev-right') ?></a><?php endif; ?></div><span class="sr-only"><?= $s['done'] ? 'kész' : 'hátravan' ?></span></li>
+        <?php endforeach; ?>
+      </ol>
+      <?php else: ?><p class="help">Hozzon létre egy ügyfelet, vagy váltson egyre.</p><?php endif; ?>
     </section>
+    <?php if (isset($data['settings'])): $st = $data['settings']; $models = ['' => 'alapértelmezett'] + array_combine(\Xperion\Auth\ClientAdmin::MODELS, ['Haiku 5.5 (olcsó, gyors)', 'Sonnet 5.5 (kiegyensúlyozott)', 'Opus 5.5 (legjobb minőség)']); ?>
+    <section class="card widget" aria-labelledby="h-cs" id="clientSettings">
+      <div class="widget-head"><div><h2 id="h-cs">Ügyfélbeállítások</h2><p class="meta">Ügyfél: <b><?= $e($cur['name'] ?? '') ?></b></p></div></div>
+      <div class="field"><label for="cs-linkedin_nev">LinkedIn-oldal neve <span class="opt">(az előnézethez)</span></label><input class="input" id="cs-linkedin_nev" value="<?= $e($st['linkedin_nev']) ?>" placeholder="<?= $e($cur['name'] ?? '') ?>"></div>
+      <div class="field"><label for="cs-linkedin_kovetok">Követők száma <span class="opt">(az előnézethez)</span></label><input class="input" id="cs-linkedin_kovetok" value="<?= $e($st['linkedin_kovetok']) ?>" placeholder="pl. 1 240"></div>
+      <?php foreach (['modell_ertekeles' => 'Cikkértékelés modellje (alap: Haiku)', 'modell_poszt' => 'Összefoglaló és havi e-mail modellje (alap: Sonnet)', 'modell_linkedin' => 'LinkedIn-poszt és kép modellje (alap: Opus)', 'modell_feltoltes' => 'Weboldal-fordítás modellje (alap: Sonnet)'] as $k => $l): ?>
+      <div class="field"><label for="cs-<?= $k ?>"><?= $e($l) ?></label><select class="select" id="cs-<?= $k ?>"><?php foreach ($models as $mv => $ml): ?><option value="<?= $e($mv) ?>"<?= $st[$k] === $mv ? ' selected' : '' ?>><?= $e($ml) ?></option><?php endforeach; ?></select></div>
+      <?php endforeach; ?>
+      <p class="help">A feltöltés webhelye az ügyfél weboldala (a sor ⋯ menüjében szerkeszthető); a belépés a config.php „wordpress” részében van.</p>
+      <div class="acts-row"><button class="btn btn-secondary sm" type="button" id="csSave"><?= $ic('check') ?>Mentés</button></div>
+    </section>
+    <?php endif; ?>
   </aside>
 </div>
 

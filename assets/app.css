@@ -685,6 +685,14 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 @media (max-width:767px){ .grid-2{ grid-template-columns:minmax(0,1fr); } }
 .li-card img{ display:block; width:100%; height:auto; aspect-ratio:1/1; }
 .li-card canvas[hidden], .li-card img[hidden]{ display:none; }
+.onb-link{ display:inline-flex; align-items:center; gap:2px; font-size:var(--fs-xs); font-weight:600; margin-top:4px; }
+.onb-link .icon{ width:14px; height:14px; }
+.log-filters .select{ min-width:140px; }
+.date-f{ display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-xs); color:var(--text-2); }
+.date-f .input{ width:auto; }
+.run-err{ color:var(--danger-text); }
+.choice{ display:inline-flex; align-items:center; gap:8px; font-size:var(--fs-sm); }
+.rule-acts .icon-btn{ display:inline-flex; vertical-align:middle; }
 
 /* ================= 18. TÖRÉSPONTOK (mindig a CSS végén) ================= */
 @media (max-width:1279px){ .layout{ grid-template-columns:minmax(0,1fr); } .w-8, .w-4{ grid-column:span 12; } }
