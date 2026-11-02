@@ -1,0 +1,9 @@
+# titkok
+config.php
+.env
+*.key
+*service-account*.json
+# futási adatok
+/storage/
+/logs/
+*.log

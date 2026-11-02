@@ -1,0 +1,12 @@
+# Döntések
+
+A dátum a rögzítés napja; a döntések a felhasználóval folytatott claude.ai-beszélgetésben születtek.
+
+| Dátum | Döntés | Indok | Forrás | Állapot |
+|---|---|---|---|---|
+| 2026-11-02 | PHP-alkalmazás a sunserver.hu-n, cronnal (nem Google Apps Script) | a felülethez úgyis kell szerver; illeszkedik a tervezett AI webszerkesztő platformhoz | felhasználói döntés | aktív |
+| 2026-11-02 | A Google Sheet a vezérlőpult és az adatforrás; az ügyfél a megosztott táblában dönt | a döntések automatikusan kiolvashatók | felhasználói döntés | aktív |
+| 2026-11-02 | A „Mehet” cikkek azonnal élesben kerülnek fel | felhasználói döntés | felhasználói döntés | aktív |
+| 2026-11-02 | A havi e-mail csak külön jóváhagyás után megy ki, közvetlenül, piszkozat nélkül | az ügyfél felé az üzemeltető ellenőrzése marad | felhasználói döntés | aktív |
+| 2026-11-02 | A LinkedIn-közzététel kézi (Emi, a LinkedIn saját ütemezőjével) | automatikus közzétételhez LinkedIn API-jóváhagyás kell | javaslat, elfogadva | aktív |
+| 2026-11-02 | A posztszabályok egyetlen forrása a Sheet „LinkedIn szabályok” lapja | az ügyfél is szerkesztheti, kódolás nélkül | korábbi döntés | aktív |
