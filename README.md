@@ -21,7 +21,7 @@ Másold le a `config.example.php`-t `config.php` néven, és töltsd ki:
 - `admin_key`: beállítókulcs, legalább 16 karakteres véletlen szöveg. Csak az első belépéshez kell.
 - `cron_key`: másik, legalább 16 karakteres véletlen szöveg.
 - `db`: a MySQL-adatbázis adatai az 1. pontból.
-- A Google-szolgáltatásfiók (`google_service_account_file` vagy `_json`) az adatátvételhez kell; ha már be van állítva, maradhat. A régi `spreadsheet_id` sor törölhető: a táblát ügyfelenként adod meg.
+- A Google-szolgáltatásfiók sorai (`google_service_account_file`, `_json`) üresen maradhatnak: a kulcsot az 5. pontban a felületen töltöd fel. Ha mégis itt adod meg, a `google_service_account_file` értéke a JSON-fájl neve, amelyet a `config.php` mellé töltöttél fel, pl. `'google-kulcs.json'`. A régi `spreadsheet_id` sor törölhető.
 
 ### 4. Első indítás
 1. Nyisd meg böngészőben: `https://<domain>/xperion/`. A program létrehozza az adatbázistáblákat, és az **Első beállítás** oldal jelenik meg.
@@ -30,11 +30,12 @@ Másold le a `config.example.php`-t `config.php` néven, és töltsd ki:
 4. **Felhasználók → Meghívás**: Attila (ügyfél-adminisztrátor), Emi (tartalomkezelő). A program meghívó linket ad; ezt küldd el nekik e-mailben vagy üzenetben. A link 7 napig érvényes, és egyszer használható.
 
 ### 5. Korábbi adatok átvétele a Google Sheetből (ügyfelenként)
-1. **Ügyfelek →** az ügyfél sorában **⋯ → Szerkesztés**: a „Google Sheet” mezőbe másold be a tábla linkjét a böngésző címsorából, és ments.
-2. A felső sávban (vagy a sor **⋯ → Váltás erre az ügyfélre** menüjével) válaszd ki az ügyfelet.
-3. Az **Adatátvétel a Google Sheetből** kártyán látod a szolgáltatásfiók e-mail-címét. A Google Sheetben **Megosztás**: add hozzá ezt a címet (olvasóként elég).
-4. **Szárazfuttatás:** lapról lapra megmutatja, mit találna (forrás, kulcsszó, havi lapok cikkei, posztok, szabályok, beállítások), de nem ír semmit.
-5. Ha rendben van: **Adatok átvétele**. Többször is futtatható: a meglévőt frissíti, nem duplikál. A posztszabályokat csak akkor tölti be, ha az ügyfélnél még nincs szabály.
+1. A felső sávban (vagy a sor **⋯ → Váltás erre az ügyfélre** menüjével) válaszd ki az ügyfelet, majd **Ügyfelek →** görgess az **Adatátvétel a Google Sheetből** kártyához.
+2. **1. Google-kulcs:** **Kulcs feltöltése** gomb, és válaszd ki a Google Cloudból letöltött JSON-fájlt (egyszer kell, minden ügyfélre érvényes).
+3. **2. A tábla linkje:** másold be a tábla linkjét a böngésző címsorából, majd **Link mentése**.
+4. **3. Megosztás:** a megjelenő e-mail-címet **Másolás**, majd a Google Sheetben **Megosztás**: add hozzá (olvasóként elég). A Google Cloud projektben a **Google Sheets API** legyen engedélyezve.
+5. **Szárazfuttatás:** lapról lapra megmutatja, mit találna (forrás, kulcsszó, havi lapok cikkei, posztok, szabályok, beállítások), de nem ír semmit.
+6. Ha rendben van: **Adatok átvétele**. Többször is futtatható: a meglévőt frissíti, nem duplikál. A posztszabályokat csak akkor tölti be, ha az ügyfélnél még nincs szabály.
 
 ### 6. Claude API-kulcs és havi futás
 1. A Claude Console-ban (console.anthropic.com → API Keys) hozz létre egy kulcsot, és írd be a `config.php` `claude_api_key` sorába.

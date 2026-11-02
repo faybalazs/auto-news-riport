@@ -141,6 +141,33 @@ final class App
         return new \Xperion\Monthly\ArticleService($this->db(), $this->audit());
     }
 
+    /**
+     * A felületről feltöltött Google-kulcs ellenőrzése és mentése (csak üzemeltető).
+     *
+     * @return string a szolgáltatásfiók e-mail-címe
+     */
+    public function saveServiceAccountKey(\Xperion\Auth\Access $a, string $json): string
+    {
+        $a->require('ops');
+        $data = json_decode(trim($json), true);
+        if (!is_array($data) || ($data['type'] ?? '') !== 'service_account' || empty($data['client_email']) || empty($data['private_key'])) {
+            throw new \InvalidArgumentException('Ez nem Google-szolgáltatásfiók kulcsfájl. A Google Cloud Console-ban a szolgáltatásfióknál a Kulcsok fülön letöltött JSON-fájlt válassza.');
+        }
+        if (openssl_pkey_get_private((string) $data['private_key']) === false) {
+            throw new \InvalidArgumentException('A kulcsfájl privát kulcsa nem olvasható. Töltse le újra a JSON-kulcsot.');
+        }
+        $file = $this->storageDir . '/google-service-account.json';
+        if (@file_put_contents($file, json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), LOCK_EX) === false) {
+            throw new \RuntimeException('A kulcs nem menthető a storage mappába (írási jog?).');
+        }
+        @chmod($file, 0600);
+        @unlink($this->storageDir . '/google-token.json');
+        $this->auth = null;
+        $this->sheets = null;
+        $this->audit()->add(null, $a->userId(), 'Google-kulcs feltöltve', (string) $data['client_email']);
+        return (string) $data['client_email'];
+    }
+
     public function authenticator(): Authenticator
     {
         return new Authenticator($this->db());

@@ -109,6 +109,19 @@ try {
             $n = $app->articles()->decide($access, array_values(array_filter((array) ($in['changes'] ?? []), 'is_array')));
             return ['ok' => true, 'changed' => $n];
         })(),
+        'googlekulcs' => (function () use ($app, $access, $in) {
+            $email = $app->saveServiceAccountKey($access, (string) ($in['json'] ?? ''));
+            return ['ok' => true, 'email' => $email];
+        })(),
+        'sheetlink' => (function () use ($app, $access, $str) {
+            $access->require('ops');
+            $c = $access->client();
+            if ($c === null) {
+                throw new \InvalidArgumentException('Nincs kiválasztott ügyfél.');
+            }
+            $app->clients()->update($access, (int) $c['id'], (string) $c['name'], (string) $c['website'], (string) $c['status'], $str('sheet'));
+            return ['ok' => true, 'clients' => $app->clients()->all($access)];
+        })(),
         default => throw new \InvalidArgumentException('Ismeretlen művelet.'),
     };
     Http::json($out);

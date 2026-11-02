@@ -64,18 +64,58 @@ final class Config
         return $this->string($key) !== '';
     }
 
-    /** A szolgáltatásfiók JSON-ja (fájlból vagy közvetlenül), vagy üres szöveg. */
+    /** A felületről feltöltött kulcs helye (a storage mappában); ha létezik, elsőbbséget élvez a config.php beállításával szemben. */
+    private string $uploadedKeyFile = '';
+
+    public function setUploadedKeyFile(string $path): void
+    {
+        $this->uploadedKeyFile = $path;
+    }
+
+    /**
+     * A szolgáltatásfiók JSON-ja, vagy üres szöveg. Sorrend: a felületről feltöltött kulcs →
+     * config.php JSON-szöveg → config.php fájlútvonal (relatív útvonal a config.php mappájához képest).
+     */
     public function serviceAccountJson(): string
     {
+        if ($this->uploadedKeyFile !== '' && is_readable($this->uploadedKeyFile)) {
+            return (string) file_get_contents($this->uploadedKeyFile);
+        }
         $inline = $this->string('google_service_account_json');
         if ($inline !== '') {
             return $inline;
         }
-        $file = $this->string('google_service_account_file');
-        if ($file !== '' && is_readable($file)) {
-            return (string) file_get_contents($file);
+        if (($f = $this->configKeyFile()) !== null) {
+            return (string) file_get_contents($f);
         }
         return '';
+    }
+
+    /** Honnan jön a Google-kulcs (a felületen megjelenítendő szöveg). */
+    public function serviceAccountSource(): string
+    {
+        return match (true) {
+            $this->uploadedKeyFile !== '' && is_readable($this->uploadedKeyFile) => 'feltöltve a felületen',
+            $this->string('google_service_account_json') !== '' => 'config.php (JSON-szöveg)',
+            $this->configKeyFile() !== null => 'config.php (fájl)',
+            $this->string('google_service_account_file') !== '' => 'a config.php-ban megadott fájl nem található',
+            default => 'nincs',
+        };
+    }
+
+    /** A config.php-ban megadott kulcsfájl valódi helye (relatív útvonal a config.php mappájához képest), vagy null. */
+    private function configKeyFile(): ?string
+    {
+        $file = $this->string('google_service_account_file');
+        if ($file === '') {
+            return null;
+        }
+        foreach ([$file, $this->source !== '' ? dirname($this->source) . '/' . ltrim($file, '/') : ''] as $f) {
+            if ($f !== '' && is_file($f) && is_readable($f)) {
+                return $f;
+            }
+        }
+        return null;
     }
 
     /**

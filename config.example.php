@@ -20,9 +20,9 @@ return [
     // Kulcs a cron-hívásokhoz: cron.php?feladat=havi&k=<cron_key>
     'cron_key' => '',
 
-    // Google szolgáltatásfiók az adatátvételhez. A táblát ügyfelenként az Ügyfelek oldalon adod meg,
-    // és megosztod ennek a fióknak az e-mail-címével. VAGY a letöltött JSON-fájl elérési útja,
-    // VAGY a JSON teljes tartalma idézőjelek között (az egyik elég).
+    // Google szolgáltatásfiók az adatátvételhez. Legegyszerűbb: üresen hagyni, és az Ügyfelek oldal
+    // „Adatátvétel” kártyáján feltölteni a letöltött JSON-fájlt (az elsőbbséget élvez).
+    // Itt megadva: a fájl neve a config.php mellett (pl. 'google-kulcs.json'), VAGY a JSON teljes tartalma.
     'google_service_account_file' => '',
     'google_service_account_json' => '',
 

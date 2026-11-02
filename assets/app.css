@@ -627,6 +627,10 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 .rec-cell .cell-why{ min-width:160px; max-width:240px; }
 #artTable table{ min-width:860px; }
 #artTable .cell-title{ max-width:340px; }
+.imp-steps{ list-style:none; counter-reset:st; margin:0; padding:0; display:flex; flex-direction:column; gap:14px; }
+.imp-steps li{ counter-increment:st; display:flex; flex-direction:column; gap:6px; padding-left:34px; position:relative; }
+.imp-steps li::before{ content:counter(st); position:absolute; left:0; top:0; width:24px; height:24px; border-radius:50%; background:var(--accent-subtle); color:var(--accent-text); display:grid; place-items:center; font-size:12px; font-weight:600; }
+.imp-steps .copy-box{ margin-top:0; }
 
 /* ================= 18. TÖRÉSPONTOK (mindig a CSS végén) ================= */
 @media (max-width:1279px){ .layout{ grid-template-columns:minmax(0,1fr); } .w-8, .w-4{ grid-column:span 12; } }

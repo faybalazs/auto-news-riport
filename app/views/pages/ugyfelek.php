@@ -12,17 +12,33 @@ $cur = $access->client();
   </div>
   <aside class="stack">
     <section class="card widget" aria-labelledby="h-imp" id="impCard">
-      <div class="widget-head"><div><h2 id="h-imp">Adatátvétel a Google Sheetből</h2><p class="meta" id="impMeta"><?= $e($cur['name'] ?? 'Nincs kiválasztott ügyfél') ?></p></div></div>
-      <?php if (!empty($data['serviceEmail'])): ?>
-      <p class="help">A táblát meg kell osztani ezzel a címmel (olvasóként elég):</p>
-      <div class="copy-box"><code id="svcEmail"><?= $e($data['serviceEmail']) ?></code><button class="btn btn-ghost sm" type="button" data-copy="<?= $e($data['serviceEmail']) ?>"><?= $ic('copy') ?>Másolás</button></div>
-      <?php endif; ?>
-      <dl class="kv" id="impKv"></dl>
+      <div class="widget-head"><div><h2 id="h-imp">Adatátvétel a Google Sheetből</h2><p class="meta" id="impMeta">Ügyfél: <b><?= $e($cur['name'] ?? 'nincs kiválasztva') ?></b></p></div></div>
+      <ol class="imp-steps">
+        <li>
+          <b>Google-kulcs</b>
+          <span class="help" id="keyState"><?= $e($data['serviceEmail'] ?? '') !== '' ? 'Beállítva: ' . $e($data['googleSource'] ?? '') : 'Nincs beállítva (' . $e($data['googleSource'] ?? 'nincs') . ')' ?></span>
+          <div class="acts-row">
+            <label class="btn btn-secondary sm" for="keyFile"><?= $ic('upload') ?><?= !empty($data['serviceEmail']) ? 'Kulcs cseréje' : 'Kulcsfájl (JSON) feltöltése' ?></label>
+            <input type="file" id="keyFile" accept=".json,application/json" class="sr-only">
+          </div>
+        </li>
+        <li>
+          <b>A tábla linkje</b>
+          <div class="field"><label class="sr-only" for="sheetInput">Google Sheet linkje</label><input class="input" id="sheetInput" placeholder="https://docs.google.com/spreadsheets/d/…" autocomplete="off" value="<?= !empty($cur) && ($id = (string) ($app->db()->value('SELECT spreadsheet_id FROM clients WHERE id = ?', [$cur['id']]) ?? '')) !== '' ? $e('https://docs.google.com/spreadsheets/d/' . $id . '/edit') : '' ?>"></div>
+          <div class="acts-row"><button class="btn btn-secondary sm" type="button" id="sheetSave"<?= $cur ? '' : ' disabled' ?>><?= $ic('check') ?>Link mentése</button><a class="btn btn-ghost sm" id="sheetOpen" target="_blank" rel="noopener" href="#" hidden><?= $ic('file') ?>Megnyitás</a></div>
+        </li>
+        <li>
+          <b>Megosztás</b>
+          <span class="help">A Google Sheetben: Megosztás → add hozzá ezt a címet (olvasóként elég).</span>
+          <div class="copy-box" id="svcBox"<?= empty($data['serviceEmail']) ? ' hidden' : '' ?>><code id="svcEmail"><?= $e($data['serviceEmail'] ?? '') ?></code><button class="btn btn-ghost sm" type="button" id="svcCopy" data-copy="<?= $e($data['serviceEmail'] ?? '') ?>"><?= $ic('copy') ?>Másolás</button></div>
+        </li>
+      </ol>
       <div class="acts-row">
-        <button class="btn btn-secondary sm" type="button" id="impDry"><?= $ic('flask') ?>Szárazfuttatás</button>
-        <button class="btn btn-primary sm" type="button" id="impLive"><?= $ic('download') ?>Adatok átvétele</button>
+        <button class="btn btn-secondary" type="button" id="impDry"><?= $ic('flask') ?>Szárazfuttatás</button>
+        <button class="btn btn-primary" type="button" id="impLive"><?= $ic('download') ?>Adatok átvétele</button>
       </div>
       <ol class="run-lines" id="impLines" hidden></ol>
+      <dl class="kv" id="impKv"></dl>
     </section>
     <section class="card widget" aria-labelledby="h-onb">
       <div class="widget-head"><div><h2 id="h-onb">Beállítási lépések</h2><p class="meta"><?= $e($cur['name'] ?? 'Nincs kiválasztott ügyfél') ?></p></div></div>

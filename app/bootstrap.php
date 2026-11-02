@@ -16,7 +16,7 @@ if (PHP_VERSION_ID < 80100) {
 }
 
 define('XPERION_ROOT', dirname(__DIR__));
-define('XPERION_VERSION', '0.5.1');
+define('XPERION_VERSION', '0.5.2');
 
 require __DIR__ . '/autoload.php';
 
@@ -37,5 +37,7 @@ if (is_dir($storage) && !is_file($storage . '/.htaccess')) {
     @file_put_contents($storage . '/.htaccess', "Require all denied\nDeny from all\n");
     @file_put_contents($storage . '/index.html', '');
 }
+
+$config->setUploadedKeyFile($storage . '/google-service-account.json');
 
 return new App($config, $storage);

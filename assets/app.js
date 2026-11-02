@@ -458,12 +458,31 @@ if (APP.page === 'ugyfelek'){
   const LEVEL = { ok:['check','Kész'], info:['chev-right','Információ'], warn:['alert','Figyelmeztetés'], error:['x-circle','Hiba'], dry:['info','Szárazfuttatás'] };
   function renderImp(){
     const c = rows.find(r => +r.id === APP.me.clientId);
-    const ok = t => `<span class="badge b-success">${ic('check','icon')}${t}</span>`, bad = t => `<span class="badge b-warning">${ic('alert','icon')}${t}</span>`;
-    const g = APP.data.googleReady ? (APP.data.serviceEmail ? ok('beállítva') : bad('a JSON nem olvasható')) : bad('nincs beállítva (config.php)');
-    const sheet = !c ? '–' : c.spreadsheet_id ? `<a href="https://docs.google.com/spreadsheets/d/${esc(c.spreadsheet_id)}/edit" target="_blank" rel="noopener">${ic('check')}megadva, megnyitás</a>` : `<button type="button" class="btn btn-secondary sm" id="impSetSheet">${ic('edit')}Link megadása</button>`;
-    $('#impKv').innerHTML = [['Kiválasztott ügyfél', c ? esc(c.name) : bad('nincs')], ['Google-fiók', g], ['Google Sheet', sheet]].concat(c ? [['Források', c.sources], ['Kulcsszavak', c.keywords], ['Cikkek', HU.num.format(c.articles)], ['Posztok', c.posts], ['Posztszabályok', c.rules]] : []).map(([a, b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join('');
-    $('#impSetSheet')?.addEventListener('click', () => { openDlg(c); setTimeout(() => $('#c-sheet').focus(), 50); });
+    $('#impKv').innerHTML = c ? [['Források', c.sources], ['Kulcsszavak', c.keywords], ['Cikkek', HU.num.format(c.articles)], ['Posztok', c.posts], ['Posztszabályok', c.rules]].map(([a, b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join('') : '';
+    const open = $('#sheetOpen'); if (open){ open.hidden = !(c && c.spreadsheet_id); if (c && c.spreadsheet_id) open.href = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(c.spreadsheet_id)}/edit`; }
   }
+  $('#sheetSave')?.addEventListener('click', async () => {
+    const b = $('#sheetSave'), v = $('#sheetInput').value.trim(); $('#sheetInput').removeAttribute('aria-invalid'); busy(b, true);
+    try { const d = await api('sheetlink', { sheet:v }); setRows(d.clients); table.render(); renderImp(); $('#impLines').hidden = true; toast(v ? 'A tábla linkje mentve.' : 'A link törölve.'); }
+    catch(e){ $('#sheetInput').setAttribute('aria-invalid','true'); impError(e.message); }
+    finally { busy(b, false); }
+  });
+  $('#keyFile')?.addEventListener('change', e => {
+    const f = e.target.files[0]; if (!f) return;
+    if (f.size > 20000){ impError('Ez a fájl túl nagy egy Google-kulcshoz. A szolgáltatásfiók JSON-kulcsát válassza.'); e.target.value = ''; return; }
+    const rd = new FileReader();
+    rd.onload = async () => {
+      try {
+        const d = await api('googlekulcs', { json:String(rd.result) });
+        $('#keyState').textContent = 'Beállítva: feltöltve a felületen';
+        $('#svcEmail').textContent = d.email; $('#svcCopy').dataset.copy = d.email; $('#svcBox').hidden = false; $('#impLines').hidden = true;
+        toast('A Google-kulcs mentve. Most ossza meg a táblát a megjelenő címmel.');
+      } catch(err){ impError(err.message); }
+      finally { e.target.value = ''; }
+    };
+    rd.onerror = () => impError('A fájl nem olvasható.');
+    rd.readAsText(f);
+  });
   function impError(msg){
     $('#impLines').innerHTML = `<li class="l-error">${ic('x-circle')}<span><span class="sr-only">Hiba: </span>${esc(msg)}</span></li>`;
     $('#impLines').hidden = false;
@@ -471,7 +490,7 @@ if (APP.page === 'ugyfelek'){
   async function runImp(dry){
     const c = rows.find(r => +r.id === APP.me.clientId);
     if (!c){ impError('Nincs kiválasztott ügyfél. Válasszon ügyfelet a felső sávban.'); return; }
-    if (!c.spreadsheet_id){ impError('Ennél az ügyfélnél nincs megadva Google Sheet. Kattintson a „Link megadása” gombra, és másolja be a tábla linkjét.'); return; }
+    if (!c.spreadsheet_id){ impError('Ennél az ügyfélnél nincs mentve a tábla linkje. Másolja be a 2. lépés mezőjébe, és nyomja meg a „Link mentése” gombot.'); return; }
     if (!dry){ const ok = await confirmBox({ title:`Átveszi a(z) ${c.name} adatait a Google Sheetből?`, body:'A forrásokat, kulcsszavakat, a havi lapok cikkeit, a posztokat, az ötleteket és a beállításokat beírja az adatbázisba. Többször is futtatható: a meglévőt frissíti, nem duplikál. A szabályokat csak akkor tölti be, ha még nincs szabály.', confirm:'Adatok átvétele', danger:false }); if (!ok) return; }
     const b = dry ? $('#impDry') : $('#impLive'); busy(b, true);
     try {

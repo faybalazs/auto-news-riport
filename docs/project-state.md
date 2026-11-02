@@ -42,6 +42,6 @@ A [product.md](product.md) 11. pontjának 1–4. kérdése (a PHP-verzió már m
 - Frissített ütemterv: [roadmap.md](roadmap.md).
 
 ## Következő lépések
-1. Felhasználó: feltöltés (0.5.0), Claude API-kulcs a `config.php`-ba, az Xperion ügyfél Aktívra állítása; Vezérlőpult → Havi futás szárazon (2026. október), majd élesben; Havi cikkek → döntések.
+1. Felhasználó: feltöltés (0.5.2); Ügyfelek → Adatátvétel kártya: kulcs feltöltése, link mentése, megosztás, szárazfuttatás, majd átvétel. Ha hiba van, a kártyán megjelenő hibaszöveg kell. Utána Claude API-kulcs a `config.php`-ba, az Xperion ügyfél Aktívra állítása; Vezérlőpult → Havi futás szárazon (2026. október), majd élesben; Havi cikkek → döntések.
 2. Az első valódi futás alapján a javaslatok és az összefoglaló hangolása (a rendszerprompt az ügyfél szabályaiból és döntéseiből épül).
 3. 6. lépés: Áttekintés valódi adatokkal (időszakválasztó, teendő-widgetek, összefoglaló, KPI-k, megoszlás, források).

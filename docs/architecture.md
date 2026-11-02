@@ -7,7 +7,7 @@ PHP 8.1+ (a szerveren 8.2), MySQL/MariaDB, éles függőség nélkül (PDO, cURL
 | Fájl | Mire | Védelem |
 |---|---|---|
 | `index.php` | Oldalak: `?p=attekintes`, `felhasznalok`, `ugyfelek`, `vezerlo`, `naplo`, `profil` (és a későbbi lépések helyőrzői); belépés nélkül: `belepes`, `meghivo&t=`, `jelszo&t=`, első indításkor beállítóoldal | munkamenet (e-mail + jelszó); jogosultság oldalanként; CSRF minden POST-on |
-| `api.php` | JSON-műveletek: `?m=felhasznalok`, `meghivas`, `felhasznalo`, `letiltas`, `torles`, `link`, `ugyfel`, `jelszocsere`, `futtatas`, `atvetel`, `gyujtes`, `havifutas`, `dontes` | munkamenet + `X-CSRF-Token`; minden művelet a szerveren ellenőrzi a jogosultságot és az ügyfélhatárt |
+| `api.php` | JSON-műveletek: `?m=felhasznalok`, `meghivas`, `felhasznalo`, `letiltas`, `torles`, `link`, `ugyfel`, `jelszocsere`, `futtatas`, `atvetel`, `gyujtes`, `havifutas`, `dontes`, `googlekulcs` (szolgáltatásfiók-kulcs feltöltése, üzemeltető), `sheetlink` (az aktuális ügyfél táblalinkje, üzemeltető) | munkamenet + `X-CSRF-Token`; minden művelet a szerveren ellenőrzi a jogosultságot és az ügyfélhatárt |
 | `cron.php` | Időzített futás: `?feladat=havi\|orankenti&k=<cron_key>[&dry=1]`, vagy `php cron.php havi [--dry]` | cron-kulcs; hibánál HTTP 500 |
 
 Minden webes kérés elején a `Migrator` lefuttatja a még hiányzó adatbázis-migrációkat (`app/migrations/*.sql`, MySQL `GET_LOCK`-kal).
@@ -53,5 +53,5 @@ Minden webes kérés elején a `Migrator` lefuttatja a még hiányzó adatbázis
 
 ## Tárhely és védelem
 
-- `storage/` (futáskor jön létre, saját `.htaccess`-szel): futásnapló, zár, Google-token.
+- `storage/` (futáskor jön létre, saját `.htaccess`-szel): futásnapló, zár, Google-token, a felületen feltöltött szolgáltatásfiók-kulcs (`google-service-account.json`, 0600; elsőbbséget élvez a `config.php` beállításával szemben).
 - `.htaccess`: a `config*.php`, `*.json`, `*.md` stb. kívülről nem elérhető; az `app/`, `docs/`, `tests/` mappa tiltott.
