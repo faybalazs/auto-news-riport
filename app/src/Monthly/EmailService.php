@@ -41,6 +41,15 @@ final class EmailService
         return $this->mailer->configured();
     }
 
+    /** Ha nincs beállítva, miért nem (a felületre). */
+    public function mailerProblem(): string
+    {
+        if ($this->mailer->configured()) {
+            return '';
+        }
+        return $this->mailer instanceof \Xperion\Mail\SmtpMailer ? implode('; ', $this->mailer->problemList()) : 'nincs beállítva';
+    }
+
     /** @return array{to:string, cc:string, style:string} */
     public function settings(int $clientId): array
     {
@@ -222,7 +231,7 @@ final class EmailService
             throw new \InvalidArgumentException('Nincs megadva az ügyfél e-mail-címe. Ügyfelek → Havi e-mail beállításai.');
         }
         if (!$this->mailer->configured()) {
-            throw new MailException('Az e-mail-küldés nincs beállítva (config.php: smtp). A levél nem ment el.');
+            throw new MailException('Az e-mail-küldés nincs beállítva: ' . $this->mailerProblem() . '. A levél nem ment el.');
         }
         $message = new Message($to, $row['subject'], $row['body'], TextToHtml::convert($row['body']), $cc);
         // Zárolás állapotváltással: csak egy kérés küldheti el (a 15 percnél régebbi, félbemaradt küldés újrapróbálható).
@@ -255,7 +264,7 @@ final class EmailService
     private function notifyOperators(int $cid, string $clientName, string $month, string $subject, string $body): array
     {
         if (!$this->mailer->configured()) {
-            return [0, 'Értesítés nem ment: az e-mail-küldés nincs beállítva (config.php: smtp).'];
+            return [0, 'Értesítés nem ment: az e-mail-küldés nincs beállítva (' . $this->mailerProblem() . ').'];
         }
         $ops = array_map(static fn ($r) => (string) $r['email'], $this->db->all("SELECT email FROM users WHERE is_operator = 1 AND status = 'aktiv'"));
         if (!$ops) {

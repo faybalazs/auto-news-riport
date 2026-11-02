@@ -171,7 +171,7 @@ if ($perm !== null && !$access->can($perm)) {
         $em = $app->emails();
         $mm = $em->months($access);
         $data = ['mail' => ['months' => array_map(static fn ($m) => ['month' => $m, 'label' => \Xperion\Monthly\EmailService::monthLabel($m)], $mm), 'email' => $mm ? $em->get($access, $mm[0]) : null,
-            'settings' => $em->settings((int) $access->clientId()), 'ready' => $em->mailerReady(), 'claude' => $app->config->has('claude_api_key')]];
+            'settings' => $em->settings((int) $access->clientId()), 'ready' => $em->mailerReady(), 'problem' => $em->mailerProblem(), 'claude' => $app->config->has('claude_api_key')]];
     } elseif ($page === 'attekintes') {
         $data = $app->overview()->build($access, preg_match('/^\d{4}$/', (string) ($_GET['honap'] ?? '')) ? (string) $_GET['honap'] : '');
     }

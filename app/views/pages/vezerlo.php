@@ -44,7 +44,7 @@ for ($i = 1; $i <= 6; $i++) {
     <span id="mailStatus"></span>
   </div>
   <?php if (empty($mail['ready'])): ?>
-  <div class="banner bn-info" role="status"><?= $ic('info', 'icon') ?><div class="b-body"><span><b>Az e-mail-küldés még nincs beállítva.</b> Generálni és szerkeszteni lehet, küldeni nem. A tárhelyen létrehozott postafiók adatai a config.php <code>smtp</code> részébe kellenek.</span></div></div>
+  <div class="banner bn-info" role="status"><?= $ic('info', 'icon') ?><div class="b-body"><span><b>Az e-mail-küldés nincs beállítva:</b> <?= $e($mail['problem'] ?? '') ?>. Betöltött konfiguráció: <code><?= $e(basename($app->config->source()) ?: 'nincs') ?></code>. Generálni és szerkeszteni lehet; a küldés gombjai megmondják, mi hiányzik.</span></div></div>
   <?php endif; ?>
   <div class="collect-bar">
     <div class="field"><label for="mailMonth">Melyik hónapból?</label><select class="select" id="mailMonth"></select></div>

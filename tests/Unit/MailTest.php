@@ -109,6 +109,31 @@ final class MailTest extends TestCase
         (new SmtpMailer([]))->send(new Message(['a@b.hu'], 'T', 'x'));
     }
 
+    public function testConfigVariantsAreAccepted(): void
+    {
+        // feladó nélkül: a belépési név lesz a feladó
+        self::assertSame([], SmtpMailer::problems(['host' => 'mail.pelda.hu', 'user' => 'sajto@pelda.hu', 'pass' => 'x']));
+        // más kulcsnevek, nagybetűk, szóközök
+        self::assertSame([], SmtpMailer::problems(['Server' => ' mail.pelda.hu ', 'username' => 'sajto@pelda.hu', 'password' => 'x', 'encryption' => 'STARTTLS', 'port' => '587']));
+        $n = SmtpMailer::normalize(['host' => 'h', 'port' => 587, 'from' => 'a@b.hu']);
+        self::assertSame(['tls', 'a@b.hu'], [$n['secure'], $n['from_email']]);
+        self::assertSame('ssl', SmtpMailer::normalize(['host' => 'h', 'port' => 465])['secure']);
+        // pontos hibaüzenetek
+        self::assertSame(['a config.php-ban nincs smtp rész (vagy nem a betöltött config-fájlban van)'], SmtpMailer::problems([]));
+        self::assertSame(['hiányzik a host (a levelezőszerver neve)', 'hiányzik a from_email (a feladó címe)'], SmtpMailer::problems(['host' => '', 'port' => 465, 'secure' => 'ssl', 'user' => '', 'pass' => '', 'from_email' => '']));
+        self::assertSame(['a from_email nem érvényes e-mail-cím', 'hiányzik a pass (a postafiók jelszava)'], SmtpMailer::problems(['host' => 'h', 'user' => 'u', 'from_email' => 'nem-cim']));
+    }
+
+    public function testTopLevelSmtpKeysInConfig(): void
+    {
+        $c = new \Xperion\Config(['smtp_host' => 'mail.pelda.hu', 'smtp_user' => 'sajto@pelda.hu', 'smtp_pass' => 'x']);
+        self::assertSame([], SmtpMailer::problems($c->smtp()));
+        $row = array_values(array_filter($c->checklist(), static fn ($r) => str_starts_with($r['label'], 'SMTP')))[0];
+        self::assertTrue($row['ok']);
+        $row = array_values(array_filter((new \Xperion\Config(['smtp' => ['host' => 'h']]))->checklist(), static fn ($r) => str_starts_with($r['label'], 'SMTP')))[0];
+        self::assertSame('hiányzik a from_email (a feladó címe)', $row['note']);
+    }
+
     public function testMessageValidationAndList(): void
     {
         self::assertSame(['a@b.hu', 'c@d.hu'], Message::parseList(' a@b.hu; c@d.hu , a@b.hu'));

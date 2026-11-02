@@ -658,9 +658,7 @@ if (APP.page === 'vezerlo' && $('#mailCard')){
     $('#mailBody').hidden = editing; $('#mailEditWrap').hidden = !editing;
     ['mailApprove','mailEditBtn','mailTest'].forEach(id => $('#' + id).hidden = editing);
     ['mailSave','mailCancel'].forEach(id => $('#' + id).hidden = !editing);
-    $('#mailApprove').disabled = !M.ready || !st.to;
-    $('#mailApprove').title = !M.ready ? 'Az e-mail-küldés nincs beállítva (config.php: smtp).' : !st.to ? 'Nincs megadva címzett.' : '';
-    $('#mailTest').disabled = !M.ready;
+    // A gombok mindig aktívak: ha valami hiányzik, a szerver pontos üzenete jelenik meg a kártyán.
     if (email.status === 'hiba') showErr('A legutóbbi küldés nem sikerült: ' + email.error);
     if (email.status === 'elkuldve') $('#mailMeta').textContent = `Elküldve: ${email.sent_at_hu} → ${email.sent_to}`;
   }

@@ -32,7 +32,8 @@ return [
     'claude_api_key' => '',
 
     // SMTP a havi e-mailhez és az értesítésekhez: a tárhelyen létrehozott postafiók adatai.
-    // secure: ssl (port 465) vagy tls (port 587). A from_email általában maga a postafiók címe.
+    // secure: ssl (port 465) vagy tls (port 587). A from_email általában maga a postafiók címe;
+    // ha üresen marad, a user (a postafiók címe) lesz a feladó.
     'smtp' => [
         'host' => '',
         'port' => 465,

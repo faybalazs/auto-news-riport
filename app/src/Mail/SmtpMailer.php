@@ -11,14 +11,82 @@ final class SmtpMailer implements Mailer
 {
     private const TIMEOUT = 20;
 
+    /** @var array<string,mixed> */
+    private array $cfg;
+
     /** @param array<string,mixed> $cfg config.php smtp része */
-    public function __construct(private array $cfg, private SmtpConnection $conn = new StreamSmtpConnection())
+    public function __construct(array $cfg, private SmtpConnection $conn = new StreamSmtpConnection())
     {
+        $this->cfg = self::normalize($cfg);
+    }
+
+    /**
+     * A beállítás egységesítése: elterjedt kulcsnevek is jók (server, username, password, encryption, from),
+     * és ha nincs külön feladó, a belépési név (ha e-mail-cím) lesz a feladó.
+     *
+     * @param array<string,mixed> $cfg
+     * @return array<string,mixed>
+     */
+    public static function normalize(array $cfg): array
+    {
+        $out = [];
+        foreach ($cfg as $k => $v) {
+            $out[strtolower(trim((string) $k))] = is_scalar($v) ? trim((string) $v) : $v;
+        }
+        foreach (['host' => ['server', 'smtp_host', 'hostname'], 'user' => ['username', 'smtp_user', 'login'], 'pass' => ['password', 'smtp_pass'], 'secure' => ['encryption', 'smtp_secure'],
+            'port' => ['smtp_port'], 'from_email' => ['from', 'from_address', 'sender', 'email'], 'from_name' => ['name', 'sender_name']] as $key => $aliases) {
+            foreach ($aliases as $al) {
+                if (($out[$key] ?? '') === '' && ($out[$al] ?? '') !== '') {
+                    $out[$key] = $out[$al];
+                }
+            }
+        }
+        if (($out['from_email'] ?? '') === '' && Message::validAddress((string) ($out['user'] ?? ''))) {
+            $out['from_email'] = $out['user'];
+        }
+        $out['secure'] = strtolower((string) ($out['secure'] ?? ''));
+        if ($out['secure'] === '' || !in_array($out['secure'], ['ssl', 'tls', 'none'], true)) {
+            $out['secure'] = in_array($out['secure'], ['starttls'], true) || (int) ($out['port'] ?? 0) === 587 ? 'tls' : ((int) ($out['port'] ?? 0) === 25 ? 'none' : 'ssl');
+        }
+        return $out;
+    }
+
+    /**
+     * Mi hiányzik a küldéshez (a felületen ezt mutatjuk). Üres lista = rendben.
+     *
+     * @param array<string,mixed> $cfg
+     * @return list<string>
+     */
+    public static function problems(array $cfg): array
+    {
+        $c = self::normalize($cfg);
+        $p = [];
+        if (!$cfg) {
+            return ['a config.php-ban nincs smtp rész (vagy nem a betöltött config-fájlban van)'];
+        }
+        if (($c['host'] ?? '') === '') {
+            $p[] = 'hiányzik a host (a levelezőszerver neve)';
+        }
+        if (($c['from_email'] ?? '') === '') {
+            $p[] = 'hiányzik a from_email (a feladó címe)';
+        } elseif (!Message::validAddress((string) $c['from_email'])) {
+            $p[] = 'a from_email nem érvényes e-mail-cím';
+        }
+        if (($c['user'] ?? '') !== '' && ($c['pass'] ?? '') === '') {
+            $p[] = 'hiányzik a pass (a postafiók jelszava)';
+        }
+        return $p;
+    }
+
+    /** @return list<string> */
+    public function problemList(): array
+    {
+        return self::problems($this->cfg);
     }
 
     public function configured(): bool
     {
-        return trim((string) ($this->cfg['host'] ?? '')) !== '' && Message::validAddress(trim((string) ($this->cfg['from_email'] ?? '')));
+        return self::problems($this->cfg) === [];
     }
 
     public function fromEmail(): string
@@ -29,10 +97,10 @@ final class SmtpMailer implements Mailer
     public function send(Message $m): void
     {
         if (!$this->configured()) {
-            throw new MailException('Az e-mail-küldés nincs beállítva (config.php: smtp.host és smtp.from_email).');
+            throw new MailException('Az e-mail-küldés nincs beállítva: ' . implode('; ', self::problems($this->cfg)) . '.');
         }
         $host = trim((string) $this->cfg['host']);
-        $secure = strtolower(trim((string) ($this->cfg['secure'] ?? 'ssl')));
+        $secure = (string) $this->cfg['secure'];
         $port = (int) ($this->cfg['port'] ?? ($secure === 'ssl' ? 465 : 587));
         $user = (string) ($this->cfg['user'] ?? '');
         $from = $this->fromEmail();

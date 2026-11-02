@@ -119,6 +119,24 @@ final class Config
     }
 
     /**
+     * Az SMTP-beállítás: a config.php „smtp” része, kiegészítve a felső szintű smtp_* kulcsokkal
+     * (ha valaki úgy írta be: 'smtp_host' => …).
+     *
+     * @return array<string,mixed>
+     */
+    public function smtp(): array
+    {
+        $s = $this->get('smtp', []);
+        $s = is_array($s) ? $s : [];
+        foreach ($this->values as $k => $v) {
+            if (is_string($k) && str_starts_with(strtolower($k), 'smtp_') && is_scalar($v) && !isset($s[substr($k, 5)])) {
+                $s[substr(strtolower($k), 5)] = $v;
+            }
+        }
+        return $s;
+    }
+
+    /**
      * Beállítások állapota az admin felülethez (értéket nem ad ki).
      *
      * @return list<array{label:string, ok:bool, note:string}>
@@ -134,7 +152,7 @@ final class Config
             ['label' => 'Cron-kulcs', 'ok' => strlen($cronKey) >= 16, 'note' => $cronKey === '' ? 'hiányzik' : (strlen($cronKey) < 16 ? 'túl rövid' : 'beállítva')],
             ['label' => 'Google (adatátvételhez)', 'ok' => $this->serviceAccountJson() !== '', 'note' => $this->serviceAccountJson() !== '' ? 'beállítva' : 'hiányzik'],
             ['label' => 'Claude API-kulcs', 'ok' => $this->has('claude_api_key'), 'note' => $this->has('claude_api_key') ? 'beállítva' : 'a havi futáshoz kell'],
-            ['label' => 'SMTP', 'ok' => $this->has('smtp.host') && $this->has('smtp.from_email'), 'note' => $this->has('smtp.host') ? 'beállítva' : 'a havi e-mailhez kell'],
+            ['label' => 'SMTP (e-mail)', 'ok' => ($sp = \Xperion\Mail\SmtpMailer::problems($this->smtp())) === [], 'note' => $sp === [] ? 'beállítva' : implode('; ', $sp)],
         ];
     }
 }

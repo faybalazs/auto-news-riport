@@ -155,7 +155,7 @@ final class App
 
     public function mailer(): \Xperion\Mail\Mailer
     {
-        return new \Xperion\Mail\SmtpMailer((array) $this->config->get('smtp', []));
+        return new \Xperion\Mail\SmtpMailer($this->config->smtp());
     }
 
     public function emails(): \Xperion\Monthly\EmailService
