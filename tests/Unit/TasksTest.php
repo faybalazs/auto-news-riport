@@ -5,7 +5,6 @@ namespace Xperion\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 use Xperion\Sheets\SheetNames;
-use Xperion\Task\ConnectionCheckTask;
 use Xperion\Task\HourlyTask;
 use Xperion\Task\MonthlyTask;
 use Xperion\Task\TaskContext;
@@ -28,16 +27,6 @@ final class TasksTest extends TestCase
         self::assertSame('2610', SheetNames::monthly(MonthlyTask::targetMonth(new \DateTimeImmutable('2026-11-01 06:00'))));
         self::assertSame('2612', SheetNames::monthly(MonthlyTask::targetMonth(new \DateTimeImmutable('2027-01-31 23:59'))));
         self::assertSame('2602', SheetNames::monthly(MonthlyTask::targetMonth(new \DateTimeImmutable('2026-03-31'))));
-    }
-
-    public function testConnectionCheckReportsMissingSheets(): void
-    {
-        $f = new SheetsFixture([SheetNames::SOURCES, '2608', '2609']);
-        $c = $this->ctx($f, false);
-        (new ConnectionCheckTask('xp@proj.iam'))->run($c);
-        self::assertTrue($c->hasErrors());
-        self::assertStringContainsString('Kulcsszavak', self::texts($c, 'error'));
-        self::assertStringContainsString('2608 – 2609', self::texts($c));
     }
 
     public function testStubsDoNotWrite(): void

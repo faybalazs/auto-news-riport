@@ -605,6 +605,9 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 .copy-box code{ overflow-wrap:anywhere; }
 #linkDlg .copy-box code{ white-space:normal; }
 .tabs .tab .icon{ margin-right:2px; }
+.acts-row{ display:flex; gap:8px; flex-wrap:wrap; }
+#impCard .copy-box{ margin-top:0; }
+#impLines{ border-top:1px solid var(--border); padding-top:8px; }
 
 /* ================= 18. TÖRÉSPONTOK (mindig a CSS végén) ================= */
 @media (max-width:1279px){ .layout{ grid-template-columns:minmax(0,1fr); } .w-8, .w-4{ grid-column:span 12; } }

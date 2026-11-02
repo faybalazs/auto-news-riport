@@ -4,7 +4,6 @@ $sub = 'Futások kézi indítása, a beállítások állapota és az időzítés
 require __DIR__ . '/_head.php';
 $log = $app->log();
 $desc = [
-    'kapcsolat' => 'A Google Sheet elérése a korábbi adatok egyszeri átvételéhez (3. lépés). Csak olvas.',
     'havi' => 'Minden hónap 1-jén 06:00-kor. Most a célhónapot határozza meg; a gyűjtés a 4. lépésben jön.',
     'orankenti' => 'Minden órában. A feltöltés, a posztgenerálás és az e-mail-küldés a későbbi lépésekben jön.',
 ];

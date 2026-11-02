@@ -160,7 +160,7 @@ if ($perm !== null && !$access->can($perm)) {
     if ($page === 'felhasznalok') {
         $data = ['users' => $app->users()->visibleUsers($access)];
     } elseif ($page === 'ugyfelek') {
-        $data = ['clients' => $app->clients()->all($access)];
+        $data = ['clients' => $app->clients()->all($access), 'serviceEmail' => $app->serviceAccountEmail(), 'googleReady' => $app->config->serviceAccountJson() !== ''];
     } elseif ($page === 'naplo') {
         $data = ['runs' => array_map(static fn ($e) => $e->toArray() + ['time_hu' => $e->timeHu()], $app->log()->recent(300)), 'audit' => $app->audit()->recent(null)];
     } elseif ($page === 'attekintes') {

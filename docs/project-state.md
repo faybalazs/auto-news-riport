@@ -13,7 +13,7 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 | Adatbázis (MySQL) automatikus migrációval | megvalósított; ellenőrzött a sandboxban MariaDB 10.11-en (PHPUnit + böngészős végponttól végpontig teszt); élesben nem ellenőrzött | roadmap 2 |
 | Első beállítás, belépés, meghívó és jelszólink, jelszócsere | megvalósított; ellenőrzött a sandboxban (böngészős teszt); élesben nem ellenőrzött | roadmap 2 |
 | Ügyfelek, felhasználók, szerepkörök, ügyfélváltó, napló | megvalósított; az ügyfélelválasztás PHPUnit-tesztekkel és böngészőből (API-hívással) ellenőrizve a sandboxban | roadmap 2 |
-| Adatátvétel a Sheetből | tervezett | roadmap 3 |
+| Adatátvétel ügyfelenkénti Google Sheetből (források, kulcsszavak, havi lapok cikkei, posztok, ötletek, szabályok, beállítások) | megvalósított; ellenőrzött a sandboxban MariaDB-n helyettesített Sheettel (PHPUnit, az ügyfélelválasztással és az ismételhetőséggel együtt); valódi Sheettel nem ellenőrzött | roadmap 3 |
 | Cikkgyűjtés, értékelés, Havi cikkek | tervezett | roadmap 4–5 |
 | Áttekintés adatokkal | tervezett (most üres állapot és beállítási teendők) | roadmap 6 |
 | Havi e-mail, feltöltés, posztok | tervezett | roadmap 7–9 |
@@ -39,6 +39,6 @@ A [product.md](product.md) 11. pontjának 1–4. kérdése (a PHP-verzió már m
 - Frissített ütemterv: [roadmap.md](roadmap.md).
 
 ## Következő lépések
-1. Felhasználó: MySQL-adatbázis létrehozása, `config.php` kiegészítése, feltöltés, első beállítás (README 1–4.), Xperion ügyfél, Attila és Emi meghívása.
-2. 3. lépés: egyszeri adatátvétel a Sheetből (források, kulcsszavak, korábbi linkek, posztok) és a posztszabályok betöltése.
-3. 4. lépés: cikkgyűjtés szárazfuttatással.
+1. Felhasználó: feltöltés (0.3.0), az Xperion ügyfélnél a Sheet linkjének megadása, a tábla megosztása a szolgáltatásfiókkal, Szárazfuttatás, majd Adatok átvétele (README 5.).
+2. Ha a valódi táblában eltérő fejléc vagy formátum van, a szárazfuttatás eredménye alapján javítás.
+3. 4. lépés: cikkgyűjtés szárazfuttatással (a duplikátumszűrés már az átvett linkekre épül).

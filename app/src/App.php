@@ -8,7 +8,6 @@ use Xperion\Google\SheetsClient;
 use Xperion\Http\CurlHttpClient;
 use Xperion\Http\HttpClient;
 use Xperion\Log\LocalLog;
-use Xperion\Task\ConnectionCheckTask;
 use Xperion\Task\HourlyTask;
 use Xperion\Task\MonthlyTask;
 use Xperion\Task\Runner;
@@ -63,6 +62,13 @@ final class App
         return $this->sheets;
     }
 
+    /** Sheets-kliens egy adott táblához (ügyfelenként más-más). */
+    public function sheetsFor(string $spreadsheetId): SheetsClient
+    {
+        $auth = $this->googleAuth();
+        return new SheetsClient($spreadsheetId, $this->http(), static fn (): string => $auth->accessToken());
+    }
+
     public function dbConfigured(): bool
     {
         return $this->config->has('db.name') && $this->config->has('db.user');
@@ -99,6 +105,21 @@ final class App
         return new ClientAdmin($this->db(), $this->audit());
     }
 
+    public function importer(): \Xperion\Import\ImportService
+    {
+        return new \Xperion\Import\ImportService($this->db(), fn (string $id): SheetsClient => $this->sheetsFor($id), $this->log(), $this->audit(), $this->storageDir . '/futas.lock');
+    }
+
+    /** A szolgáltatásfiók e-mail-címe (ezzel kell megosztani a táblákat), vagy üres. */
+    public function serviceAccountEmail(): string
+    {
+        try {
+            return $this->config->serviceAccountJson() !== '' ? $this->googleAuth()->clientEmail() : '';
+        } catch (\Throwable) {
+            return '';
+        }
+    }
+
     public function authenticator(): Authenticator
     {
         return new Authenticator($this->db());
@@ -116,20 +137,11 @@ final class App
 
     public function runner(): Runner
     {
-        if ($this->runner === null) {
-            $email = '';
-            try {
-                $email = $this->config->serviceAccountJson() !== '' ? $this->googleAuth()->clientEmail() : '';
-            } catch (\Throwable) {
-                // a kapcsolat-ellenőrzés jelzi a hibát
-            }
-            $this->runner = new Runner(
-                [new ConnectionCheckTask($email), new MonthlyTask(), new HourlyTask()],
-                fn (): SheetsClient => $this->sheets(),
-                $this->log(),
-                $this->storageDir . '/futas.lock',
-            );
-        }
-        return $this->runner;
+        return $this->runner ??= new Runner(
+            [new MonthlyTask(), new HourlyTask()],
+            fn (): SheetsClient => $this->sheets(),
+            $this->log(),
+            $this->storageDir . '/futas.lock',
+        );
     }
 }

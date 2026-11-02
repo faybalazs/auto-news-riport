@@ -63,7 +63,7 @@ try {
         })(),
         'ugyfel' => (function () use ($app, $access, $str, $int) {
             $id = $int('id');
-            $id === null ? $app->clients()->create($access, $str('name'), $str('website')) : $app->clients()->update($access, $id, $str('name'), $str('website'), $str('status'));
+            $id === null ? $app->clients()->create($access, $str('name'), $str('website'), $str('sheet')) : $app->clients()->update($access, $id, $str('name'), $str('website'), $str('status'), $str('sheet'));
             return ['ok' => true, 'clients' => $app->clients()->all($access)];
         })(),
         'jelszocsere' => (function () use ($users, $access, $in) {
@@ -83,6 +83,13 @@ try {
             ignore_user_abort(true);
             @set_time_limit(600);
             return $app->runner()->run($str('task'), !empty($in['dry']), 'admin')->toArray() + ['time_hu' => date('Y. m. d. H:i')];
+        })(),
+        'atvetel' => (function () use ($app, $access, $in) {
+            $access->require('ops');
+            session_write_close();
+            ignore_user_abort(true);
+            @set_time_limit(600);
+            return $app->importer()->run($access, !empty($in['dry']))->toArray() + ['time_hu' => date('Y. m. d. H:i'), 'clients' => $app->clients()->all($access)];
         })(),
         default => throw new \InvalidArgumentException('Ismeretlen művelet.'),
     };

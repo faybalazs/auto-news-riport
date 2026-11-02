@@ -417,7 +417,7 @@ if (APP.page === 'ugyfelek'){
   const table = DataTable({
     id:'ugyfelek', caption:'Ügyfelek', rows, labelKey:'name', selectable:false, table:$('#clientTable'), pager:$('#clientPager'), sort:{ key:'name', dir:'asc' }, pageSize:25,
     columns:[ { key:'name', label:'Ügyfél', render:r => `<b>${esc(r.name)}</b>${+r.id === APP.me.clientId ? ' <span class="meta">(kiválasztva)</span>' : ''}` }, { key:'status', label:'Állapot', type:'status', map:CST },
-      { key:'users', label:'Felhasználók', type:'num', align:'right' }, { key:'website', label:'Weboldal', render:r => esc(r.website || '–') }, { key:'created_at', label:'Létrehozva', render:r => dtHu(r.created_at), sortValue:r => r.created_at } ],
+      { key:'users', label:'Felhasználók', type:'num', align:'right' }, { key:'website', label:'Weboldal', render:r => esc(r.website || '–') }, { key:'spreadsheet_id', label:'Google Sheet', render:r => r.spreadsheet_id ? `<span class="badge b-success">${ic('check','icon')}megadva</span>` : '<span class="meta">nincs</span>' }, { key:'articles', label:'Cikkek', type:'num', align:'right' }, { key:'created_at', label:'Létrehozva', render:r => dtHu(r.created_at), sortValue:r => r.created_at } ],
     rowMenu:(btn, r) => openRowMenu(btn, r, { edit:openDlg, switch:c => switchTo(c.id) }, [{ k:'switch', l:'Váltás erre az ügyfélre', i:'folder' }, { k:'edit', l:'Szerkesztés', i:'edit' }]),
     emptyHtml:() => 'Még nincs ügyfél. Az „Új ügyfél” gombbal hozza létre az elsőt.'
   });
@@ -426,7 +426,7 @@ if (APP.page === 'ugyfelek'){
   let editing = null;
   function openDlg(c = null){
     editing = c; $('#clientDlgTitle').textContent = c ? 'Ügyfél szerkesztése' : 'Új ügyfél'; $('#clientSubmit').textContent = c ? 'Mentés' : 'Ügyfél létrehozása';
-    $('#c-name').value = c?.name || ''; $('#c-site').value = c?.website || ''; $('#c-status').value = c?.status || 'beallitas'; $('#c-status-f').hidden = !c;
+    $('#c-name').value = c?.name || ''; $('#c-site').value = c?.website || ''; $('#c-sheet').value = c?.spreadsheet_id ? 'https://docs.google.com/spreadsheets/d/' + c.spreadsheet_id + '/edit' : ''; $('#c-status').value = c?.status || 'beallitas'; $('#c-status-f').hidden = !c;
     $('#clientErr').hidden = true; $('#clientDlg').showModal(); $('#c-name').focus();
   }
   $('#clientAdd').addEventListener('click', () => openDlg());
@@ -436,20 +436,45 @@ if (APP.page === 'ugyfelek'){
     if (!name){ $('#c-name').setAttribute('aria-invalid','true'); $('#clientErr').textContent = 'Adja meg az ügyfél nevét.'; $('#clientErr').hidden = false; $('#c-name').focus(); return; }
     const b = $('#clientSubmit'); busy(b, true);
     try {
-      const d = await api('ugyfel', { id:editing ? +editing.id : null, name, website:$('#c-site').value.trim(), status:$('#c-status').value });
+      const d = await api('ugyfel', { id:editing ? +editing.id : null, name, website:$('#c-site').value.trim(), status:$('#c-status').value, sheet:$('#c-sheet').value.trim() });
       $('#clientDlg').close();
       if (!editing && !APP.clients.length){ location.reload(); return; } // első ügyfél: a felső sáv is frissüljön
-      setRows(d.clients); table.render(); renderOnb(); toast(editing ? 'Ügyfél mentve.' : `${name} létrehozva. Következő lépés: felhasználók meghívása.`);
+      setRows(d.clients); table.render(); renderOnb(); renderImp(); toast(editing ? 'Ügyfél mentve.' : `${name} létrehozva. Következő lépés: felhasználók meghívása.`);
     } catch(err){ $('#clientErr').textContent = err.message; $('#clientErr').hidden = false; }
     finally { busy(b, false); }
   });
   function renderOnb(){
     const c = rows.find(r => +r.id === APP.me.clientId);
     if (!c){ $('#onbList').innerHTML = '<li><span>Hozzon létre egy ügyfelet, vagy váltson egyre.</span></li>'; return; }
-    const steps = [['Alapadatok', 'név, weboldal', true], ['Felhasználók meghívása', 'ügyfél-adminisztrátor, tartalomkezelő', c.users > 0], ['Források és kulcsszavak', 'a 3. lépésben (adatátvétel)', false], ['Weboldal-kapcsolat', 'feltöltés két nyelven, a 8. lépésben', false], ['Első szárazfuttatás', 'a 4. lépés után', false]];
+    const steps = [['Alapadatok', 'név, weboldal', true], ['Felhasználók meghívása', 'ügyfél-adminisztrátor, tartalomkezelő', c.users > 0], ['Források és kulcsszavak', c.sources ? `${c.sources} forrás, ${c.keywords} kulcsszó` : 'adatátvétel a Google Sheetből, vagy kézzel', c.sources > 0], ['Weboldal-kapcsolat', 'feltöltés két nyelven, a 8. lépésben', false], ['Első szárazfuttatás', 'a 4. lépés után', false]];
     $('#onbList').innerHTML = steps.map(([t, s, d], i) => `<li class="${d ? 'done' : ''}"><span class="ck" aria-hidden="true">${d ? ic('check') : i + 1}</span><div><b>${t}</b><small>${s}</small></div><span class="sr-only">${d ? 'kész' : 'hátravan'}</span></li>`).join('');
   }
   renderOnb();
+  // Adatátvétel a Google Sheetből (az aktuális ügyfélé)
+  const LEVEL = { ok:['check','Kész'], info:['chev-right','Információ'], warn:['alert','Figyelmeztetés'], error:['x-circle','Hiba'], dry:['info','Szárazfuttatás'] };
+  function renderImp(){
+    const c = rows.find(r => +r.id === APP.me.clientId);
+    $('#impKv').innerHTML = !c ? '' : [['Google Sheet', c.spreadsheet_id ? `<a href="https://docs.google.com/spreadsheets/d/${esc(c.spreadsheet_id)}/edit" target="_blank" rel="noopener">megnyitás</a>` : '<span class="meta">nincs megadva</span>'], ['Források', c.sources], ['Kulcsszavak', c.keywords], ['Cikkek', HU.num.format(c.articles)], ['Posztok', c.posts], ['Posztszabályok', c.rules]].map(([a, b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join('');
+    const off = !c || !c.spreadsheet_id || !$('#svcEmail');
+    $('#impDry').disabled = $('#impLive').disabled = off;
+    $('#impDry').title = $('#impLive').title = !c ? 'Nincs kiválasztott ügyfél' : !c.spreadsheet_id ? 'Előbb adja meg az ügyfél Google Sheetjét (Szerkesztés)' : '';
+  }
+  async function runImp(dry){
+    const c = rows.find(r => +r.id === APP.me.clientId); if (!c) return;
+    if (!dry){ const ok = await confirmBox({ title:`Átveszi a(z) ${c.name} adatait a Google Sheetből?`, body:'A forrásokat, kulcsszavakat, a havi lapok cikkeit, a posztokat, az ötleteket és a beállításokat beírja az adatbázisba. Többször is futtatható: a meglévőt frissíti, nem duplikál. A szabályokat csak akkor tölti be, ha még nincs szabály.', confirm:'Adatok átvétele', danger:false }); if (!ok) return; }
+    const b = dry ? $('#impDry') : $('#impLive'); busy(b, true); $('#impDry').disabled = $('#impLive').disabled = true;
+    try {
+      const r = await api('atvetel', { dry });
+      $('#impLines').innerHTML = r.lines.map(l => { const L = LEVEL[l.level] || LEVEL.info; return `<li class="l-${esc(l.level)}">${ic(L[0])}<span><span class="sr-only">${L[1]}: </span>${esc(l.text)}</span></li>`; }).join('');
+      $('#impLines').hidden = false;
+      setRows(r.clients); table.render(); renderOnb();
+      toast(r.ok ? (dry ? 'Szárazfuttatás kész. Nézze át az eredményt.' : 'Az adatok átvétele kész.') : 'Az adatátvétel nem sikerült. A részletek a kártyán.', { type:r.ok ? 'success' : 'error' });
+    } catch(e){ toast(e.message, { type:'error' }); }
+    finally { busy(b, false); renderImp(); }
+  }
+  $('#impDry').addEventListener('click', () => runImp(true));
+  $('#impLive').addEventListener('click', () => runImp(false));
+  renderImp();
 }
 
 /* ==================================================================

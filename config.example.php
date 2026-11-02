@@ -20,10 +20,8 @@ return [
     // Kulcs a cron-hívásokhoz: cron.php?feladat=havi&k=<cron_key>
     'cron_key' => '',
 
-    // A Google Sheet azonosítója.
-    'spreadsheet_id' => '1MuPaB3VG2LAkHntWJy7FmjTyzzDSx9thgeKjLkZSqPA',
-
-    // Google szolgáltatásfiók (csak a korábbi adatok egyszeri átvételéhez): VAGY a letöltött JSON-fájl elérési útja,
+    // Google szolgáltatásfiók az adatátvételhez. A táblát ügyfelenként az Ügyfelek oldalon adod meg,
+    // és megosztod ennek a fióknak az e-mail-címével. VAGY a letöltött JSON-fájl elérési útja,
     // VAGY a JSON teljes tartalma idézőjelek között (az egyik elég).
     'google_service_account_file' => '',
     'google_service_account_json' => '',

@@ -7,7 +7,7 @@ PHP 8.1+ (a szerveren 8.2), MySQL/MariaDB, éles függőség nélkül (PDO, cURL
 | Fájl | Mire | Védelem |
 |---|---|---|
 | `index.php` | Oldalak: `?p=attekintes`, `felhasznalok`, `ugyfelek`, `vezerlo`, `naplo`, `profil` (és a későbbi lépések helyőrzői); belépés nélkül: `belepes`, `meghivo&t=`, `jelszo&t=`, első indításkor beállítóoldal | munkamenet (e-mail + jelszó); jogosultság oldalanként; CSRF minden POST-on |
-| `api.php` | JSON-műveletek: `?m=felhasznalok`, `meghivas`, `felhasznalo`, `letiltas`, `torles`, `link`, `ugyfel`, `jelszocsere`, `futtatas` | munkamenet + `X-CSRF-Token`; minden művelet a szerveren ellenőrzi a jogosultságot és az ügyfélhatárt |
+| `api.php` | JSON-műveletek: `?m=felhasznalok`, `meghivas`, `felhasznalo`, `letiltas`, `torles`, `link`, `ugyfel`, `jelszocsere`, `futtatas`, `atvetel` | munkamenet + `X-CSRF-Token`; minden művelet a szerveren ellenőrzi a jogosultságot és az ügyfélhatárt |
 | `cron.php` | Időzített futás: `?feladat=havi\|orankenti&k=<cron_key>[&dry=1]`, vagy `php cron.php havi [--dry]` | cron-kulcs; hibánál HTTP 500 |
 
 Minden webes kérés elején a `Migrator` lefuttatja a még hiányzó adatbázis-migrációkat (`app/migrations/*.sql`, MySQL `GET_LOCK`-kal).
@@ -27,12 +27,16 @@ Minden webes kérés elején a `Migrator` lefuttatja a még hiányzó adatbázis
 | `Auth\Authenticator` | Belépés, hibás próbálkozások korlátozása (IP-nként 5 / 15 perc) | `index.php` |
 | `Auth\AuditLog` | Ki, mit, mikor; ügyfelenként szűrve | Napló oldal |
 | `Web\Session`, `Web\Http`, `Web\View` | Munkamenet, CSRF, biztonsági fejlécek (CSP), sablonmegjelenítés | belépési pontok |
-| `Task\*`, `Log\LocalLog` | Futások (havi, óránkénti, kapcsolat-ellenőrzés), zárolás, helyi futásnapló | `cron.php`, Vezérlőpult |
-| `Google\*`, `Sheets\Source`, `Sheets\Keyword` | Sheets-olvasás a 3. lépés egyszeri adatátvételéhez | `ConnectionCheckTask` |
+| `Task\*`, `Log\LocalLog` | Futások (havi, óránkénti), zárolás, helyi futásnapló | `cron.php`, Vezérlőpult |
+| `Import\SheetParser`, `Import\Url` | A Sheet lapjainak értelmezése (régi és 2609+ havi formátum, posztok, ötletek, kulcs–érték lapok), linkek egységesítése | `SheetImporter` |
+| `Import\SheetImporter`, `Import\ImportService` | Adatátvétel az aktuális ügyfél saját Sheetjéből: szárazon számol, élesben tranzakcióban upsert; zárolás, futás- és műveleti napló | `api.php?m=atvetel`, Ügyfelek oldal |
+| `Google\*`, `Sheets\*` | Szolgáltatásfiókos Sheets-olvasás (`App::sheetsFor(id)`, ügyfelenként) | `ImportService` |
 
-## Adatbázis (001_alap)
+## Adatbázis
 
-`clients`, `users`, `memberships` (felhasználó × ügyfél × szerepkör), `user_tokens`, `login_attempts`, `audit_log`, `schema_migrations`. Az üzemeltető `users.is_operator = 1`, tagság nélkül minden ügyfélhez hozzáfér. A későbbi ügyféladatok (források, cikkek, posztok, szabályok) `client_id`-vel kapcsolódnak, és csak az `Access` által engedett ügyfélre kérdezhetők le.
+**001_alap:** `clients`, `users`, `memberships` (felhasználó × ügyfél × szerepkör), `user_tokens`, `login_attempts`, `audit_log`, `schema_migrations`. Az üzemeltető `users.is_operator = 1`, tagság nélkül minden ügyfélhez hozzáfér. A későbbi ügyféladatok (források, cikkek, posztok, szabályok) `client_id`-vel kapcsolódnak, és csak az `Access` által engedett ügyfélre kérdezhetők le.
+
+**002_ugyfeladatok:** `clients.spreadsheet_id`; `sources`, `keywords`, `articles` (egyedi: ügyfél + egységesített link lenyomata), `posts` (ügyfél + kód), `post_ideas`, `post_rules`, `client_settings`. Mind `client_id`-vel, ügyfél törlésekor kaszkádolva.
 
 ## Felület
 

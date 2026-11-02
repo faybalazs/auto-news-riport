@@ -2,7 +2,7 @@
 
 Havi sajtófigyelés, élő cikkfeltöltés és LinkedIn-posztgenerálás az Xperion (xperion.hu) számára, saját felülettel és MySQL-adatbázissal, több ügyfélre felkészítve.
 
-- **Állapot:** 2. lépés kész (adatbázis, ügyfelek, felhasználók, belépés). Részletek: [docs/project-state.md](docs/project-state.md)
+- **Állapot:** 3. lépés kész (adatátvétel ügyfelenkénti Google Sheetből). Részletek: [docs/project-state.md](docs/project-state.md)
 - **Technológia:** PHP 8.1+ (a szerveren 8.2), MySQL, függőség nélküli éles kód; Claude API, SMTP, a meglévő feltöltő program; a Google Sheetből egyszeri adatátvétel
 - **Követelmények:** [docs/product.md](docs/product.md) · **Felépítés:** [docs/architecture.md](docs/architecture.md)
 - **AI-ügynököknek:** [AGENTS.md](AGENTS.md)
@@ -21,7 +21,7 @@ Másold le a `config.example.php`-t `config.php` néven, és töltsd ki:
 - `admin_key`: beállítókulcs, legalább 16 karakteres véletlen szöveg. Csak az első belépéshez kell.
 - `cron_key`: másik, legalább 16 karakteres véletlen szöveg.
 - `db`: a MySQL-adatbázis adatai az 1. pontból.
-- A Google-szolgáltatásfiók (`google_service_account_file` vagy `_json`) csak a korábbi adatok egyszeri átvételéhez kell; ha már be van állítva, maradhat.
+- A Google-szolgáltatásfiók (`google_service_account_file` vagy `_json`) az adatátvételhez kell; ha már be van állítva, maradhat. A régi `spreadsheet_id` sor törölhető: a táblát ügyfelenként adod meg.
 
 ### 4. Első indítás
 1. Nyisd meg böngészőben: `https://<domain>/xperion/`. A program létrehozza az adatbázistáblákat, és az **Első beállítás** oldal jelenik meg.
@@ -29,7 +29,14 @@ Másold le a `config.example.php`-t `config.php` néven, és töltsd ki:
 3. **Ügyfelek → Új ügyfél**: hozd létre az Xperiont (név, weboldal).
 4. **Felhasználók → Meghívás**: Attila (ügyfél-adminisztrátor), Emi (tartalomkezelő). A program meghívó linket ad; ezt küldd el nekik e-mailben vagy üzenetben. A link 7 napig érvényes, és egyszer használható.
 
-### 5. Időzítés (cron)
+### 5. Korábbi adatok átvétele a Google Sheetből (ügyfelenként)
+1. **Ügyfelek →** az ügyfél sorában **⋯ → Szerkesztés**: a „Google Sheet” mezőbe másold be a tábla linkjét a böngésző címsorából, és ments.
+2. A felső sávban (vagy a sor **⋯ → Váltás erre az ügyfélre** menüjével) válaszd ki az ügyfelet.
+3. Az **Adatátvétel a Google Sheetből** kártyán látod a szolgáltatásfiók e-mail-címét. A Google Sheetben **Megosztás**: add hozzá ezt a címet (olvasóként elég).
+4. **Szárazfuttatás:** lapról lapra megmutatja, mit találna (forrás, kulcsszó, havi lapok cikkei, posztok, szabályok, beállítások), de nem ír semmit.
+5. Ha rendben van: **Adatok átvétele**. Többször is futtatható: a meglévőt frissíti, nem duplikál. A posztszabályokat csak akkor tölti be, ha az ügyfélnél még nincs szabály.
+
+### 6. Időzítés (cron)
 A tárhely vezérlőpultjában két időzített feladat kell; a pontos címeket a **Vezérlőpult → Időzítés (cron)** kártyán másolhatod:
 - **Havi futás:** minden hónap 1-jén 06:00-kor (Europe/Budapest).
 - **Óránkénti futás:** minden órában.
