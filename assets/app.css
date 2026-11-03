@@ -1,6 +1,6 @@
 /*
   Sajtófigyelés – felület stílusai.
-  Forrás: Auris admin sablon v1.5.0 (CSS 1–18.), Xperion-színekkel; projektrész: „P. PROJEKT”.
+  Forrás: Auris admin sablon v1.6.0 (CSS 1–18.), Xperion-színekkel; projektrész: „P. PROJEKT”.
   Generált fájl: a forrásrészek változásakor újra kell építeni.
 */
 /* ================= 1. TOKENEK ================= */
@@ -536,6 +536,58 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 .pi-meta{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px; font-size:var(--fs-sm); color:var(--text-2); }
 .pi-meta .badge{ font-size:11px; }
 .pi-empty{ color:var(--text-2); font-size:var(--fs-sm); padding:8px 0; }
+
+/* ---- 15/C. Folyamatok és teendők (v1.6.0) ---- */
+/* Teendő-csempe: egy teendő = egy widget; ikoncsempe a fejben, alul nagy szám + művelet */
+.todo-tiles{ display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr)); gap:var(--gap); }
+.todo-w{ display:flex; flex-direction:column; gap:12px; }
+.todo-w .tw-body{ display:flex; gap:12px; align-items:center; margin-top:auto; }
+.todo-w .tw-n{ font-size:28px; font-weight:600; line-height:1; font-variant-numeric:tabular-nums; }
+.todo-w .tw-body .btn{ margin-left:auto; }
+/* Futásállapot: mi fut most (mióta, ki, melyik lépés) + legutóbbi eredmények */
+.rs-now{ display:flex; gap:12px; align-items:flex-start; padding:12px 14px; border:1px solid var(--border-control); border-radius:var(--r-lg); background:var(--surface-subtle); }
+.rs-now > div{ display:flex; flex-direction:column; gap:2px; font-size:var(--fs-sm); }
+.rs-step{ color:var(--text); }
+.spinner{ width:18px; height:18px; flex:none; margin-top:2px; border-radius:50%; border:3px solid var(--border-control); border-top-color:var(--accent); animation:spin .9s linear infinite; }
+@keyframes spin{ to{ transform:rotate(360deg); } }
+@media (prefers-reduced-motion:reduce){ .spinner{ animation:none; border-top-color:var(--accent); } }
+.rs-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+.rs-list li{ display:flex; gap:12px; align-items:center; padding:10px 0; border-top:1px solid var(--border); font-size:var(--fs-sm); }
+.rs-list li:first-child{ border-top:0; }
+.rs-list li > div{ flex:1; display:flex; flex-direction:column; min-width:0; }
+/* Folyamatnapló: egy futás jegyzőkönyve, szintenként ikonnal (a szín nem egyedül jelez) */
+.run-lines{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; font-size:var(--fs-sm); }
+.run-lines li{ display:flex; gap:10px; align-items:flex-start; padding:8px 0; border-top:1px solid var(--border); overflow-wrap:anywhere; }
+.run-lines li:first-child{ border-top:0; }
+.run-lines .icon{ flex:none; margin-top:2px; }
+.run-lines .l-ok .icon{ color:var(--success-text); } .run-lines .l-warn .icon{ color:var(--warning-text); }
+.run-lines .l-error{ color:var(--danger-text); } .run-lines .l-dry .icon{ color:var(--info-text); } .run-lines .l-info .icon{ color:var(--text-3); }
+/* Lépéslista: beállítás / bevezetés lépései valódi állapottal, a hiányzónál linkkel */
+.checklist{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+.checklist li{ display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-top:1px solid var(--border); font-size:var(--fs-sm); }
+.checklist li:first-child{ border-top:0; padding-top:0; }
+.checklist .ck{ width:24px; height:24px; border-radius:50%; display:grid; place-items:center; flex:none; border:2px solid var(--border-control); font-size:12px; font-weight:600; color:var(--text-2); }
+.checklist li.done .ck{ background:var(--success-bg); border-color:var(--success-text); color:var(--success-text); }
+.checklist small{ display:block; color:var(--text-3); font-size:var(--fs-xs); }
+.checklist .cl-link{ display:inline-flex; align-items:center; gap:2px; font-size:var(--fs-xs); font-weight:600; margin-top:4px; min-height:24px; }
+/* Választókártya: jelölőnégyzet vagy rádió kártyaként (több soros leírással) */
+.opt-cards{ border:0; padding:0; margin:0; display:flex; flex-direction:column; gap:8px; min-width:0; }
+.opt-card{ display:flex; gap:10px; align-items:flex-start; padding:10px 12px; min-height:44px; border:1px solid var(--border-control); border-radius:var(--r-md); font-size:var(--fs-sm); cursor:pointer; }
+.opt-card:has(input:checked){ border-color:var(--accent); background:var(--accent-subtle); }
+.opt-card:has(input:focus-visible){ outline:2px solid var(--focus); outline-offset:2px; }
+.opt-card:has(input:disabled){ opacity:.6; cursor:not-allowed; }
+.opt-card input{ margin-top:3px; }
+/* Hibabanner javítással: ok + teendő (sortöréssel) + másolható kód */
+.fix .b-body{ flex:1; min-width:0; }
+.fix .b-body > span{ white-space:pre-line; overflow-wrap:anywhere; }
+.fix .copy-box{ margin-top:8px; }
+.fix .copy-box code{ white-space:pre-wrap; overflow-wrap:anywhere; text-overflow:clip; }
+/* Lista alatti tabos részletkártya: a kiválasztott elem részletei, egyszerre egy tab */
+.detail-card{ margin-top:var(--gap); display:flex; flex-direction:column; gap:16px; }
+.detail-card .tabs{ margin:0 -4px; }
+.detail-grid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(220px,320px); gap:24px; align-items:start; }
+.detail-note{ background:var(--surface-subtle); border-radius:var(--r-lg); padding:16px; }
+@media (max-width:1023px){ .detail-grid{ grid-template-columns:minmax(0,1fr); } }
 
 /* ================= 16. IDŐVONAL ================= */
 .timeline{ list-style:none; margin:0; padding:0; }

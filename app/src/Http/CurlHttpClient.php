@@ -74,7 +74,8 @@ final class CurlHttpClient implements HttpClient
             throw new HttpException('Hálózati hiba: ' . $err);
         }
         $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        $final = (string) curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
         curl_close($ch);
-        return new HttpResponse($status, (string) $result);
+        return new HttpResponse($status, (string) $result, $final);
     }
 }

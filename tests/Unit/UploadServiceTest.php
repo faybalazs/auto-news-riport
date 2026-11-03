@@ -194,6 +194,26 @@ final class UploadServiceTest extends DbTestCase
             self::assertStringContainsString('RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]', $e->getMessage());
             self::assertStringContainsString('.htaccess', $e->getMessage());
         }
+        // a webhely átirányít (pl. www-re): a belépési adat elveszik
+        $this->wp->finalUrl = 'https://www.xperion.hu/wp-json/';
+        try {
+            $this->svc->check($op);
+            self::fail('hiba várt');
+        } catch (\Xperion\Press\WpException $e) {
+            self::assertStringContainsString("'base_url' => 'https://www.xperion.hu'", $e->getMessage());
+            self::assertStringNotContainsString('.htaccess', $e->getMessage());
+        }
+        $this->wp->finalUrl = '';
+        // az alkalmazásjelszavak nem elérhetők (biztonsági bővítmény vagy nem érzékelt HTTPS)
+        $this->wp->index = ['name' => 'Xperion', 'authentication' => []];
+        try {
+            $this->svc->check($op);
+            self::fail('hiba várt');
+        } catch (\Xperion\Press\WpException $e) {
+            self::assertStringContainsString('alkalmazásjelszavak ezen a webhelyen nem használhatók', $e->getMessage());
+            self::assertStringContainsString("\$_SERVER['HTTPS'] = 'on'", $e->getMessage());
+        }
+        $this->wp->index = null;
         // a belépés jó, de a végpont tiltja (jogosultság)
         $this->wp->status = 403;
         $this->wp->me = [200, ['name' => 'cikkfigyelo', 'roles' => ['subscriber']]];

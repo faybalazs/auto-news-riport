@@ -23,10 +23,17 @@ final class FakeWpBridge implements HttpClient
     public array $me = [200, ['name' => 'cikkfigyelo', 'roles' => ['author']]];
     /** @var list<array{tool:string, args:array<string,mixed>, auth:string, url:string}> */
     public array $calls = [];
+    /** @var array<string,mixed>|null a /wp-json/ index válasza (null: nem JSON-RPC-index, mint eddig) */
+    public ?array $index = null;
+    /** A végső cím átirányítás után (üres: nincs átirányítás). */
+    public string $finalUrl = '';
     private int $nextId = 100;
 
     public function request(string $method, string $url, array $headers = [], ?string $body = null): HttpResponse
     {
+        if ($method === 'GET' && str_ends_with($url, '/wp-json/')) {
+            return new HttpResponse(200, (string) json_encode($this->index ?? ['name' => 'Xperion', 'authentication' => ['application-passwords' => ['endpoints' => []]]]), $this->finalUrl !== '' ? $this->finalUrl : $url);
+        }
         if ($method === 'GET' && str_contains($url, 'users/me')) {
             $this->calls[] = ['tool' => 'users/me', 'args' => [], 'auth' => (string) ($headers['Authorization'] ?? ''), 'url' => $url];
             return new HttpResponse($this->me[0], (string) json_encode($this->me[1]));

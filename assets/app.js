@@ -1,6 +1,6 @@
 /*
   Sajtófigyelés – felület.
-  Forrás: Auris admin sablon v1.5.0 (JS 0–3., 9. és sorművelet-menü; DataTable kiegészítés: render, selectable:false, setLoading),
+  Forrás: Auris admin sablon v1.6.0 (JS 0–3., 9. és sorművelet-menü; DataTable kiegészítés: render, selectable:false, setLoading),
   projektrész: 12–14. szekció. Generált fájl.
 */
 (() => {
@@ -633,9 +633,10 @@ if (APP.page === 'vezerlo'){
       const ok = w.can_publish && w.can_upload && w.hu_category && w.en_category && w.language_engine && String(w.version).startsWith('0.6');
       toast(ok ? 'A WordPress-kapcsolat rendben van.' : 'A kapcsolat él, de nézze meg a sárga és piros sorokat.', { type:ok ? 'success' : 'warning' });
     } catch(e){
-      $('#wpKv').hidden = true; $('#wpErrText').textContent = e.message; $('#wpErr').hidden = false;
-      const m = e.message.match(/RewriteEngine On\nRewriteRule[^\n]*/);
-      $('#wpErrCopy').innerHTML = m ? `<div class="copy-box"><code style="white-space:pre">${esc(m[0])}</code><button class="btn btn-ghost sm" type="button" data-copy="${esc(m[0])}">${ic('copy')}Másolás</button></div>` : '';
+      // a szerver a másolandó részt ``` jelek közé teszi: azt másolható dobozba emeljük
+      const m = e.message.match(/\n```\n([\s\S]*?)\n```\n?/);
+      $('#wpKv').hidden = true; $('#wpErrText').textContent = m ? e.message.replace(m[0], '\n').trim() : e.message; $('#wpErr').hidden = false;
+      $('#wpErrCopy').innerHTML = m ? `<div class="copy-box"><code style="white-space:pre-wrap;overflow-wrap:anywhere">${esc(m[1])}</code><button class="btn btn-ghost sm" type="button" data-copy="${esc(m[1])}">${ic('copy')}Másolás</button></div>` : '';
       toast('A WordPress-kapcsolat nem működik; az ok és a teendő a kártyán.', { type:'error' });
     }
     finally { busy(b, false); }

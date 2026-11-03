@@ -16,7 +16,7 @@ if (PHP_VERSION_ID < 80100) {
 }
 
 define('XPERION_ROOT', dirname(__DIR__));
-define('XPERION_VERSION', '0.10.7');
+define('XPERION_VERSION', '0.10.8');
 
 require __DIR__ . '/autoload.php';
 

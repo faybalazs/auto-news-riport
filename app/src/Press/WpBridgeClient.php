@@ -68,6 +68,29 @@ final class WpBridgeClient
      */
     public function diagnose(): array
     {
+        $fail = fn (string $code, string $hint, string $msg = '') => ['ok' => false, 'user' => '', 'roles' => [], 'code' => $code, 'message' => $msg, 'hint' => $hint];
+        // 1. Átirányít-e a webhely (pl. www nélkül → www-vel, http → https)? Átirányításkor a belépési adat elveszik.
+        try {
+            $idx = $this->http->request('GET', $this->baseUrl . '/wp-json/', ['Accept' => 'application/json']);
+            if ($idx->status === 404) {
+                $idx = $this->http->request('GET', $this->baseUrl . '/?rest_route=/', ['Accept' => 'application/json']);
+            }
+        } catch (HttpException $e) {
+            return $fail('transport', 'A webhely nem érhető el (' . $e->getMessage() . ').');
+        }
+        $final = self::origin($idx->url);
+        if ($final !== '' && $final !== self::origin($this->baseUrl)) {
+            return $fail('redirect', 'A(z) ' . $this->baseUrl . ' cím átirányít ide: ' . $final . '. Átirányításkor a belépési adat elveszik, ezért a WordPress nem lát belépést. '
+                . 'Írja a config.php wordpress részébe, a felhasználó és az alkalmazásjelszó mellé ezt a sort, majd próbálja újra:' . "\n```\n'base_url' => '" . $final . "',\n```");
+        }
+        // 2. Elérhetők-e az alkalmazásjelszavak? (A WordPress csak HTTPS-en kínálja őket; biztonsági bővítmény is kikapcsolhatja.)
+        $index = json_decode($idx->body, true);
+        if (is_array($index) && array_key_exists('authentication', $index) && !isset(((array) $index['authentication'])['application-passwords'])) {
+            return $fail('application_passwords_unavailable', 'Az alkalmazásjelszavak ezen a webhelyen nem használhatók, ezért a WordPress figyelmen kívül hagyja a belépési adatot. Két gyakori oka van:' . "\n"
+                . '1. Egy biztonsági bővítmény (pl. Wordfence, iThemes/Solid Security, All In One WP Security) kikapcsolta őket: a bővítmény beállításaiban engedélyezze az alkalmazásjelszavakat (Application Passwords).' . "\n"
+                . '2. A WordPress nem érzékeli a HTTPS-t (a tárhely proxyn vagy CDN-en át szolgál ki). Ekkor a WordPress gyökérmappájában lévő wp-config.php-ba, a „That\'s all, stop editing” sor elé írja be:' . "\n```\n" . 'if (($_SERVER[\'HTTP_X_FORWARDED_PROTO\'] ?? \'\') === \'https\') { $_SERVER[\'HTTPS\'] = \'on\'; }' . "\n```");
+        }
+        // 3. Belépés próbája (csak olvas).
         $h = ['Authorization' => 'Basic ' . base64_encode($this->user . ':' . $this->appPassword), 'Accept' => 'application/json'];
         try {
             $r = $this->http->request('GET', $this->baseUrl . '/wp-json/wp/v2/users/me?context=edit', $h);
@@ -75,7 +98,7 @@ final class WpBridgeClient
                 $r = $this->http->request('GET', $this->baseUrl . '/?rest_route=/wp/v2/users/me&context=edit', $h);
             }
         } catch (HttpException $e) {
-            return ['ok' => false, 'user' => '', 'roles' => [], 'code' => 'transport', 'message' => $e->getMessage(), 'hint' => 'A webhely nem érhető el.'];
+            return $fail('transport', 'A webhely nem érhető el (' . $e->getMessage() . ').');
         }
         $d = json_decode($r->body, true) ?: [];
         if ($r->status === 200) {
@@ -83,9 +106,22 @@ final class WpBridgeClient
         }
         $code = (string) ($d['code'] ?? '');
         $hint = $r->status === 401 && in_array($code, ['rest_not_logged_in', 'rest_forbidden', ''], true)
-            ? 'A belépési adat nem jut el a WordPressig: a tárhely kiszűri az „Authorization” fejlécet. A tárhely fájlkezelőjében nyissa meg a WordPress gyökérmappájában lévő .htaccess fájlt, és a „# BEGIN WordPress” sor elé írja be ezt a két sort:' . "\n" . 'RewriteEngine On' . "\n" . 'RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]' . "\n" . 'Mentés után próbálja újra. Ha így sem megy, a tárhely ügyfélszolgálata tudja engedélyezni az Authorization fejléc továbbítását.'
+            ? 'A webhely nem irányít át, és az alkalmazásjelszavak elérhetők, mégsem ér el a belépési adat a WordPressig: a tárhely kiszűri az „Authorization” fejlécet.' . "\n"
+                . 'Ellenőrizze: a .htaccess az, amelyik a WordPress gyökérmappájában, a wp-config.php mellett van (nem a sajtófigyelő mappájában), és a sorok a „# BEGIN WordPress” sor FÖLÖTT vannak. Ezt a három sort írja be (a harmadik egyes tárhelyeken kell):'
+                . "\n```\n" . 'RewriteEngine On' . "\n" . 'RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]' . "\n" . 'SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1' . "\n```\n"
+                . 'Ha így sem megy, kérje a tárhely ügyfélszolgálatától az Authorization fejléc továbbítását a PHP felé (LiteSpeed vagy nginx szervernél a .htaccess ezt nem mindig tudja).'
             : self::authMessage($r->status, $code, (string) ($d['message'] ?? ''));
-        return ['ok' => false, 'user' => '', 'roles' => [], 'code' => $code, 'message' => (string) ($d['message'] ?? ''), 'hint' => $hint];
+        return $fail($code, $hint, (string) ($d['message'] ?? ''));
+    }
+
+    /** séma://gép a címből (kisbetűvel, port nélkül, ha alapértelmezett); üres, ha nem értelmezhető */
+    private static function origin(string $url): string
+    {
+        $p = parse_url($url);
+        if (!is_array($p) || empty($p['scheme']) || empty($p['host'])) {
+            return '';
+        }
+        return strtolower($p['scheme']) . '://' . strtolower($p['host']) . (isset($p['port']) ? ':' . $p['port'] : '');
     }
 
     /**
