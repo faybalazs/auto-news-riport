@@ -32,6 +32,7 @@ final class FakeWpBridge implements HttpClient
     public function request(string $method, string $url, array $headers = [], ?string $body = null): HttpResponse
     {
         if ($method === 'GET' && str_ends_with((string) parse_url($url, PHP_URL_PATH), '/wp-json/')) {
+            $this->calls[] = ['tool' => 'index', 'args' => [], 'auth' => (string) ($headers['Authorization'] ?? ''), 'alt' => (string) ($headers['X-Xperion-Auth'] ?? ''), 'url' => $url];
             return new HttpResponse(200, (string) json_encode($this->index ?? ['name' => 'Xperion', 'authentication' => ['application-passwords' => ['endpoints' => []]]]), $this->finalUrl !== '' ? $this->finalUrl : $url);
         }
         if ($method === 'GET' && str_contains($url, 'users/me')) {

@@ -73,9 +73,10 @@ final class WpBridgeClient
         try {
             // gyorsítótár-kerülő paraméterrel: egy gyorsítótárazó bővítmény ne régi indexet adjon
             $nc = 'xp=' . time();
-            $idx = $this->http->request('GET', $this->baseUrl . '/wp-json/?' . $nc, ['Accept' => 'application/json', 'Cache-Control' => 'no-cache']);
+            // a belépést is elküldjük: a WordPress-oldali kiegészítő jelenti, mi érkezett meg belőle
+            $idx = $this->http->request('GET', $this->baseUrl . '/wp-json/?' . $nc, $this->authHeaders() + ['Accept' => 'application/json', 'Cache-Control' => 'no-cache']);
             if ($idx->status === 404) {
-                $idx = $this->http->request('GET', $this->baseUrl . '/?rest_route=/&' . $nc, ['Accept' => 'application/json', 'Cache-Control' => 'no-cache']);
+                $idx = $this->http->request('GET', $this->baseUrl . '/?rest_route=/&' . $nc, $this->authHeaders() + ['Accept' => 'application/json', 'Cache-Control' => 'no-cache']);
             }
         } catch (HttpException $e) {
             return $fail('transport', 'A webhely nem érhető el (' . $e->getMessage() . ').');
@@ -110,7 +111,7 @@ final class WpBridgeClient
         $helper = is_array($index) && isset($index['xperion_auth_header']);
         $hint = $r->status === 401 && in_array($code, ['rest_not_logged_in', 'rest_forbidden', ''], true)
             ? ($helper
-                ? 'A belépési kiegészítő (xperion-auth-fejlec.php) telepítve van, mégsem ér el a belépési adat a WordPressig: a tárhely valószínűleg a tartalék fejlécet is kiszűri, vagy egy biztonsági bővítmény (pl. Wordfence) blokkolja a REST-belépést. Nézze meg a biztonsági bővítmény naplóját, vagy kérje a tárhely ügyfélszolgálatától az Authorization fejléc továbbítását a PHP felé.'
+                ? self::helperHint($index)
                 : 'A webhely nem irányít át, és az alkalmazásjelszavak elérhetők, mégsem ér el a belépési adat a WordPressig: a tárhely kiszűri az „Authorization” fejlécet.' . "\n"
                     . 'Megoldás .htaccess nélkül: a belépési kiegészítő (xperion-auth-fejlec.php; az alábbi gombbal letölthető). A webhelyen most nem látszik, vagyis a WordPress nem tölti be. Ellenőrizze:' . "\n"
                     . '1. A WordPress-adminban a Bővítmények oldal tetején megjelenik-e a „Kötelezően használt” (Must-Use) fül, és abban az „Xperion – belépés…” sor. Ha igen, a kiegészítő fut.' . "\n"
@@ -119,6 +120,26 @@ final class WpBridgeClient
                     . 'Utána próbálja újra a Kapcsolat ellenőrzését.')
             : self::authMessage($r->status, $code, (string) ($d['message'] ?? ''));
         return $fail($code, $hint, (string) ($d['message'] ?? ''));
+    }
+
+    /** A WordPress-oldali kiegészítő jelentéséből a pontos ok és teendő. @param array<string,mixed> $index */
+    private static function helperHint(array $index): string
+    {
+        $ver = (string) $index['xperion_auth_header'];
+        $seen = is_array($index['xperion_auth_seen'] ?? null) ? $index['xperion_auth_seen'] : null;
+        if ($seen === null || version_compare($ver, '1.1.0', '<')) {
+            return 'A WordPressben a belépési kiegészítő régi változata (' . $ver . ') fut. Töltse le újra (az alábbi gombbal), és cserélje le vele a wp-content/mu-plugins/xperion-auth-fejlec.php fájlt; az új változat a korai felhasználó-lekérdezés hibáját is kezeli, és pontosan jelenti, mi érkezik meg. Utána próbálja újra a Kapcsolat ellenőrzését.';
+        }
+        $failed = (string) ($seen['failed'] ?? '');
+        if ($failed !== '') {
+            return self::authMessage(401, $failed, '');
+        }
+        if (empty($seen['authorization']) && empty($seen['alt'])) {
+            return 'A WordPress-kiegészítő fut, de a belépési adat egyik fejlécben sem érkezik meg: a tárhely (vagy előtte egy tűzfal, CDN, pl. Cloudflare) minden belépési fejlécet kiszűr. Ezt csak a tárhely ügyfélszolgálata tudja feloldani: kérje, hogy az „Authorization” fejléc jusson el a PHP-ig az xperion.hu-n.';
+        }
+        return 'A belépési adat megérkezik a WordPressbe, mégsem lép be vele. Gyakori okok:' . "\n"
+            . '1. A config.php-ban megadott felhasználónál nincs alkalmazásjelszó, vagy más felhasználónál hozták létre: a WordPress-adminban a Felhasználók → (a config.php-ban megadott felhasználó) → Profil oldal alján, az „Alkalmazásjelszavak” résznél legyen egy jelszó, és pontosan az legyen a config.php-ban.' . "\n"
+            . '2. Egy biztonsági bővítmény (pl. Wordfence, Solid Security, All In One WP Security) tiltja a REST-belépést vagy az alkalmazásjelszavakat: a beállításaiban engedélyezze, és nézze meg a naplóját.';
     }
 
     /**

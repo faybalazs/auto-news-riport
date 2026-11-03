@@ -198,14 +198,26 @@ final class UploadServiceTest extends DbTestCase
         $last = end($this->wp->calls);
         self::assertSame($last['auth'], $last['alt']);
         self::assertStringStartsWith('Basic ', $last['alt']);
-        // a kiegészítő telepítve van, mégsem megy: más ok
-        $this->wp->index = ['name' => 'Xperion', 'authentication' => ['application-passwords' => []], 'xperion_auth_header' => '1.0.0'];
-        try {
-            $this->svc->check($op);
-            self::fail('hiba várt');
-        } catch (\Xperion\Press\WpException $e) {
-            self::assertStringContainsString('telepítve van', $e->getMessage());
+        // a kiegészítő jelentése szerinti pontos ok
+        $ap = ['application-passwords' => []];
+        foreach ([
+            [['xperion_auth_header' => '1.0.0'], 'régi változata'],
+            [['xperion_auth_header' => '1.1.0', 'xperion_auth_seen' => ['authorization' => false, 'alt' => false, 'failed' => '', 'logged_in' => false]], 'minden belépési fejlécet kiszűr'],
+            [['xperion_auth_header' => '1.1.0', 'xperion_auth_seen' => ['authorization' => true, 'alt' => true, 'failed' => 'incorrect_password', 'logged_in' => false]], 'alkalmazásjelszó hibás'],
+            [['xperion_auth_header' => '1.1.0', 'xperion_auth_seen' => ['authorization' => false, 'alt' => true, 'failed' => '', 'logged_in' => false]], 'megérkezik a WordPressbe'],
+        ] as [$extra, $expect]) {
+            $this->wp->index = ['name' => 'Xperion', 'authentication' => $ap] + $extra;
+            try {
+                $this->svc->check($op);
+                self::fail('hiba várt');
+            } catch (\Xperion\Press\WpException $e) {
+                self::assertStringContainsString($expect, $e->getMessage());
+            }
         }
+        // a webhely lekérdezése is viszi a belépést
+        $idxCall = array_values(array_filter($this->wp->calls, static fn ($c) => $c['tool'] === 'index'));
+        self::assertNotEmpty($idxCall);
+        self::assertStringStartsWith('Basic ', $idxCall[0]['alt']);
         $this->wp->index = null;
         // a webhely átirányít (pl. www-re): a belépési adat elveszik
         $this->wp->finalUrl = 'https://www.xperion.hu/wp-json/';
