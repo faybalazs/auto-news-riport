@@ -1,5 +1,7 @@
 # Ütemterv
 
+A termékké alakítás javasolt szakaszai (többügyfeles alap, önkiszolgáló bevezetés, integrációk, üzleti réteg): [termek-roadmap.md](termek-roadmap.md).
+
 Frissítve: 2026-11-03 (0.13.3); a saját felületre és adatbázisra váltás 2026-11-02-án történt (lásd [decisions.md](decisions.md)). Minden lépés egy kis pull request, szárazon kipróbálható állapotban. A felület mintája: [terv/ugyfelfelulet-prototipus.html](terv/ugyfelfelulet-prototipus.html).
 
 | # | Lépés | Állapot | Tartalom |
