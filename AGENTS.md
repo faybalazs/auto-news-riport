@@ -1,6 +1,6 @@
 # Útmutató AI-ügynököknek: Xperion automatizálás
 
-PHP-alkalmazás, amely havonta lefuttatja az Xperion (xperion.hu) sajtófigyelését a Google Sheetből, az ügyfél döntései alapján élesben feltölti a cikkeket, LinkedIn-posztokat generál, és egy webes felületen előnézettel elérhetővé teszi őket.
+PHP-alkalmazás saját felülettel és MySQL-adatbázissal (több ügyfélre): havonta begyűjti és a Claude-dal értékelteti az ügyfél (elsőként az Xperion, xperion.hu) sajtófigyelésének cikkeit, az ügyfél döntései alapján magyarul és angolul feltölti őket a weboldalra, havi e-mailt és LinkedIn-posztokat készít.
 
 ## Indulás
 1. [docs/project-state.md](docs/project-state.md): aktuális állapot, blokkolók, következő lépések.
@@ -13,9 +13,9 @@ PHP-alkalmazás, amely havonta lefuttatja az Xperion (xperion.hu) sajtófigyelé
 
 ## Mérvadó források
 - **Követelmények:** docs/product.md. Ha a kód vagy egy kérés ellentmond neki, jelezd, ne dönts helyette.
-- **Google Sheet:** ID `1MuPaB3VG2LAkHntWJy7FmjTyzzDSx9thgeKjLkZSqPA`; szerkezete a product.md 4. pontjában.
-- **Posztszabályok:** a Sheet „LinkedIn szabályok” lapja. Nem a kódban és nem ebben a repóban élnek; mindig frissen olvasd be.
-- **Minták:** a Sheet `2609` lapja (havi lap) és a „LinkedIn posztok” lap `LI-2609-01` sora (poszt).
+- **Adatok:** a saját felület és MySQL-adatbázis (döntés: 2026-11-02). A Google Sheet (ID `1MuPaB3VG2LAkHntWJy7FmjTyzzDSx9thgeKjLkZSqPA`, szerkezete a product.md 4. pontjában) csak az egyszeri adatátvétel forrása.
+- **Posztszabályok:** az alkalmazás Posztszabályok oldalán, ügyfelenként az adatbázisban (a Sheet „LinkedIn szabályok” lapjából átvéve).
+- **Minták:** a Sheet `2609` lapja (havi lap), a „LinkedIn posztok” lap `LI-2609-01` sora (poszt), a jóváhagyott posztkép `docs/terv/poszt-kep-minta.png`.
 
 ## Munkaszabályok (a felhasználó tartós kérései)
 - A felhasználó (Balázs, Auris Dynamics) iPaden dolgozik, **nincs terminálja**. Neki szóló lépés csak grafikus felületen lehet: böngésző, GitHub webes felülete, tárhely-vezérlőpult. Parancssori utasítást ne adj neki.
@@ -28,7 +28,7 @@ PHP-alkalmazás, amely havonta lefuttatja az Xperion (xperion.hu) sajtófigyelé
 - Éles szerverre nem telepítesz. A kiadást a felhasználó tölti fel (ZIP a tárhely fájlkezelőjével, vagy általa jóváhagyott GitHub Actions).
 
 ## Ellenőrzés
-- Még nincs kód és nincs tesztparancs. Az 1. ütemtől: PHPUnit a sandboxban (csak fejlesztői függőség), élesben pedig szárazfuttatás (`dry=1`) a kulccsal védett admin oldalon, a felhasználó szerverén.
+- Tesztek: `vendor/bin/phpunit` (az adatbázistesztekhez fusson a MariaDB: `service mariadb start`). Felület: a `tools/felulet/` forrásait szerkeszd, utána építs (`tools/felulet/README.md`), és futtasd az auris-admin-sablon skill `scripts/app-ellenorzes.js` felületellenőrzőjét. Élesben a szárazfuttatás a Vezérlőpulton.
 - A sandbox hálózata korlátozott: a Google Sheets, a Claude API, az MCP-szerver és az SMTP élő hívását itt nem lehet ellenőrizni. Ezeket helyettesítővel teszteld, és „megvalósított, nem ellenőrzött” állapotban jelöld, amíg a felhasználó élesben ki nem próbálja.
 - Bizonyíték nélkül semmi nem „ellenőrzött”.
 

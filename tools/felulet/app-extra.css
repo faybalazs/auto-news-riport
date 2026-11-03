@@ -1,0 +1,206 @@
+/* ================= P. PROJEKT: SAJTÓFIGYELÉS ================= */
+.brand-mark.xp{ background:linear-gradient(135deg,#2D388A,#00A6EA); }
+.auth-side.xp{ background:linear-gradient(160deg,#1B2260 0%,#2D388A 55%,#0B7FB5 100%); }
+:root{ --li:#0A66C2; --li-bg:#E8F1FB; --ai-bg:#F1ECFE; --ai-text:#5B3CC4; }
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){ --li:#70B5F9; --li-bg:#0F2740; --ai-bg:#2A2150; --ai-text:#C4B5FD; } }
+:root[data-theme="dark"]{ --li:#70B5F9; --li-bg:#0F2740; --ai-bg:#2A2150; --ai-text:#C4B5FD; }
+.bn-success{ background:var(--success-bg); color:var(--success-text); border-color:color-mix(in srgb, var(--success-text) 30%, transparent); }
+.bn-success a{ color:inherit; font-weight:600; }
+.b-ai{ background:var(--ai-bg); color:var(--ai-text); }
+.link-btn{ border:0; background:none; padding:0; color:var(--accent-text); font-size:var(--fs-xs); font-weight:500; cursor:pointer; text-decoration:underline; min-height:24px; }
+.steps{ margin:0; padding-left:20px; display:flex; flex-direction:column; gap:10px; font-size:var(--fs-sm); color:var(--text-2); }
+.sec-title{ font-size:16px; font-weight:600; display:flex; gap:10px; align-items:baseline; flex-wrap:wrap; }
+.todo-sec{ display:flex; flex-direction:column; gap:12px; }
+.todo-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr)); gap:16px; }
+.todo-w{ display:flex; flex-direction:column; gap:12px; }
+.todo-w .tw-body{ display:flex; gap:12px; align-items:center; margin-top:auto; }
+.todo-w .tw-body .btn{ margin-left:auto; }
+.todo-w .tw-n{ font-size:28px; font-weight:600; line-height:1; color:var(--text); }
+.todo-w .widget-head .meta{ margin-top:4px; }
+.empty-state{ display:flex; flex-direction:column; gap:4px; padding:24px; border:1px dashed var(--border-strong); border-radius:var(--r-md); font-size:var(--fs-sm); color:var(--text-2); }
+.empty-state b{ color:var(--text); }
+.checklist{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+.checklist li{ display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-top:1px solid var(--border); font-size:var(--fs-sm); }
+.checklist li:first-child{ border-top:0; padding-top:0; }
+.checklist .ck{ width:24px; height:24px; border-radius:50%; display:grid; place-items:center; flex:none; border:2px solid var(--border-control); font-size:12px; font-weight:600; color:var(--text-2); }
+.checklist li.done .ck{ background:var(--success-bg); border-color:var(--success-text); color:var(--success-text); }
+.checklist small{ display:block; color:var(--text-3); font-size:var(--fs-xs); }
+.field-set{ border:0; padding:0; margin:0; display:flex; flex-direction:column; gap:6px; min-width:0; }
+.role-choices{ display:flex; flex-direction:column; gap:8px; }
+.open-opt{ display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border:1px solid var(--border-control); border-radius:var(--r-md); cursor:pointer; font-size:var(--fs-sm); }
+.open-opt:has(input:checked){ border-color:var(--accent); background:var(--accent-subtle); }
+.open-opt input{ margin-top:3px; accent-color:var(--accent); }
+.user-cell{ display:flex; gap:10px; align-items:center; white-space:nowrap; }
+.user-cell > div{ display:flex; flex-direction:column; }
+.matrix td, .matrix th{ text-align:center; }
+.matrix td:first-child, .matrix th:first-child{ text-align:left; }
+.matrix .yes{ color:var(--success-text); }
+.matrix .no{ color:var(--text-3); }
+.menu form{ margin:0; }
+.menu form button{ width:100%; }
+.pop-title{ padding:6px 12px; font-size:var(--fs-xs); font-weight:600; color:var(--text-2); }
+.task-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr)); gap:16px; }
+.task{ display:flex; flex-direction:column; gap:12px; }
+.task .widget-head .meta{ margin-top:4px; color:var(--text-2); }
+.task p{ color:var(--text-2); font-size:var(--fs-sm); flex:1; }
+.task .last{ font-size:var(--fs-xs); color:var(--text-3); display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.task .acts{ display:flex; flex-wrap:wrap; gap:8px; }
+.run-lines{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; font-size:var(--fs-sm); }
+.run-lines li{ display:flex; gap:10px; align-items:flex-start; padding:8px 0; border-top:1px solid var(--border); overflow-wrap:anywhere; }
+.run-lines li:first-child{ border-top:0; }
+.run-lines .icon{ flex:none; margin-top:2px; }
+.run-lines .l-ok .icon{ color:var(--success-text); }
+.run-lines .l-warn .icon{ color:var(--warning-text); }
+.run-lines .l-error{ color:var(--danger-text); }
+.run-lines .l-dry .icon{ color:var(--info-text); }
+.run-lines .l-info .icon{ color:var(--text-3); }
+.result-meta{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; font-size:var(--fs-xs); color:var(--text-2); margin-top:6px; }
+.cron-hint{ font-size:var(--fs-sm); color:var(--text-2); }
+.copy-label{ font-size:var(--fs-xs); font-weight:600; color:var(--text-2); margin-top:6px; display:block; }
+.copy-box code{ overflow-wrap:anywhere; }
+#linkDlg .copy-box code{ white-space:normal; }
+.tabs .tab .icon{ margin-right:2px; }
+.acts-row{ display:flex; gap:8px; flex-wrap:wrap; }
+#impCard .copy-box{ margin-top:0; }
+#impLines{ border-top:1px solid var(--border); padding-top:8px; }
+.collect-bar{ display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; }
+.collect-bar .field{ min-width:200px; }
+.sub-h{ font-size:var(--fs-sm); font-weight:600; margin:16px 0 8px; }
+.cell-title{ display:flex; flex-direction:column; gap:2px; min-width:220px; max-width:380px; white-space:normal; }
+.cell-title a{ font-weight:500; }
+.cell-title span{ color:var(--text-2); font-size:var(--fs-xs); }
+.cnt-badge{ display:inline-grid; place-items:center; min-width:20px; height:20px; padding:0 6px; margin-left:6px; border-radius:999px; background:var(--accent); color:#fff; font-size:12px; font-weight:600; }
+.cell-why{ min-width:150px; max-width:220px; white-space:normal; color:var(--text-2); font-size:var(--fs-xs); }
+.src-cell{ display:flex; flex-direction:column; gap:4px; align-items:flex-start; white-space:nowrap; }
+.dec{ min-width:150px; }
+.up-cell{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-size:var(--fs-xs); white-space:nowrap; }
+.sum-text{ display:flex; flex-direction:column; gap:6px; }
+.sum-text h3{ font-size:var(--fs-sm); font-weight:600; }
+.sum-text p{ font-size:var(--fs-sm); color:var(--text-2); max-width:75ch; }
+#artViews{ flex-wrap:wrap; }
+.rec-cell, .dec-cell{ display:flex; flex-direction:column; gap:6px; align-items:flex-start; }
+.rec-cell .cell-why{ min-width:160px; max-width:240px; }
+#artTable table{ min-width:860px; }
+#artTable .cell-title{ max-width:340px; }
+.imp-steps{ list-style:none; counter-reset:st; margin:0; padding:0; display:flex; flex-direction:column; gap:14px; }
+.imp-steps li{ counter-increment:st; display:flex; flex-direction:column; gap:6px; padding-left:34px; position:relative; }
+.imp-steps li::before{ content:counter(st); position:absolute; left:0; top:0; width:24px; height:24px; border-radius:50%; background:var(--accent-subtle); color:var(--accent-text); display:grid; place-items:center; font-size:12px; font-weight:600; }
+.imp-steps .copy-box{ margin-top:0; }
+
+/* Havi e-mail (Vezérlőpult) */
+#mailCard{ display:flex; flex-direction:column; gap:16px; }
+.mail-prev{ border:1px solid var(--border); border-radius:var(--r-md); overflow:hidden; }
+.mail-subj{ display:flex; flex-wrap:wrap; gap:8px 12px; align-items:baseline; padding:10px 16px; background:var(--surface-subtle); border-bottom:1px solid var(--border); font-size:var(--fs-sm); }
+.mail-subj .badge{ margin-left:auto; }
+.mail-body{ padding:16px; font-size:var(--fs-sm); line-height:1.55; white-space:pre-wrap; overflow-wrap:anywhere; max-width:75ch; }
+.mail-edit{ padding:16px; display:flex; flex-direction:column; gap:12px; }
+.mail-edit textarea{ font-family:inherit; line-height:1.5; min-height:280px; }
+#mailSettings textarea{ font-family:inherit; line-height:1.5; }
+#dlgDesc{ white-space:pre-line; }
+.up-err{ display:flex; flex-direction:column; align-items:flex-start; gap:4px; max-width:260px; }
+.up-err .meta{ font-size:var(--fs-xs); line-height:1.35; overflow-wrap:anywhere; }
+
+/* LinkedIn-posztok, ötletek, szabályok */
+.post-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr)); gap:16px; }
+.post-card{ display:flex; flex-direction:column; gap:10px; text-decoration:none; color:var(--text); }
+.post-card:hover{ border-color:var(--border-control); }
+.post-card .row{ display:flex; justify-content:space-between; gap:8px; align-items:center; flex-wrap:wrap; }
+.post-card .row .badge{ flex:none; }
+.post-card .id{ font-size:var(--fs-xs); font-weight:600; color:var(--text-3); letter-spacing:.02em; }
+.post-card h2{ font-size:16px; }
+.post-card p{ font-size:var(--fs-sm); color:var(--text-2); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.post-card .meta{ margin-top:auto; }
+.post-layout{ grid-template-columns:minmax(0,560px) minmax(0,1fr); }
+.li-card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); overflow:hidden; box-shadow:var(--shadow-sm); max-width:560px; }
+.li-head{ display:flex; gap:10px; padding:12px 16px 0; align-items:flex-start; }
+.li-head > .li-meta{ display:flex; flex-direction:column; line-height:1.3; flex:1; min-width:0; }
+.li-head b{ font-size:var(--fs-sm); }
+.li-head span{ font-size:12px; color:var(--text-3); display:inline-flex; align-items:center; gap:4px; }
+.li-head .icon{ width:12px; height:12px; }
+.li-logo{ width:48px; height:48px; border-radius:4px; background:linear-gradient(135deg,#2D388A,#00AEEF); color:#fff; display:grid; place-items:center; font-weight:700; font-size:22px; flex:none; }
+.li-follow{ font-size:var(--fs-sm); font-weight:600; color:var(--accent-text); white-space:nowrap; }
+.li-text{ padding:12px 16px; font-size:var(--fs-sm); white-space:pre-line; overflow-wrap:anywhere; line-height:1.5; }
+.li-text .more{ color:var(--text-3); font-weight:500; }
+.linklike{ border:0; background:none; padding:0; font:inherit; color:var(--text-2); font-weight:600; cursor:pointer; text-decoration:underline; }
+.li-card canvas{ display:block; width:100%; height:auto; max-width:100%; aspect-ratio:1/1; }
+.li-react{ display:flex; justify-content:space-around; border-top:1px solid var(--border); padding:6px 8px; font-size:var(--fs-xs); font-weight:600; color:var(--text-2); }
+.li-react span{ display:flex; align-items:center; gap:6px; padding:8px; }
+.open-choices{ border:0; padding:0; margin:0; display:flex; flex-direction:column; gap:8px; min-width:0; }
+.open-opt{ display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border:1px solid var(--border-control); border-radius:var(--r-md); cursor:pointer; font-size:var(--fs-sm); }
+.open-opt:has(input:checked){ border-color:var(--accent); background:var(--accent-subtle); }
+.open-opt input{ margin-top:3px; }
+#postActs{ display:inline-flex; }
+.rules-table td{ vertical-align:top; }
+.rule-val{ white-space:pre-line; max-width:70ch; font-size:var(--fs-sm); }
+.rule-acts{ white-space:nowrap; text-align:right; }
+.idea-form{ display:flex; flex-direction:column; gap:20px; max-width:900px; }
+.idea-form textarea, #postForm textarea{ font-family:inherit; line-height:1.5; }
+#postForm{ display:flex; flex-direction:column; gap:16px; }
+@media (max-width:1279px){ .post-layout{ grid-template-columns:minmax(0,1fr); } }
+@media (max-width:767px){ .grid-2{ grid-template-columns:minmax(0,1fr); } }
+.li-card img{ display:block; width:100%; height:auto; aspect-ratio:1/1; }
+.li-card canvas[hidden], .li-card img[hidden]{ display:none; }
+.onb-link{ display:inline-flex; align-items:center; gap:2px; font-size:var(--fs-xs); font-weight:600; margin-top:4px; }
+.onb-link .icon{ width:14px; height:14px; }
+.log-filters .select{ min-width:140px; }
+.date-f{ display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-xs); color:var(--text-2); }
+.date-f .input{ width:auto; }
+.run-err{ color:var(--danger-text); }
+.choice{ display:inline-flex; align-items:center; gap:8px; font-size:var(--fs-sm); }
+.rule-acts .icon-btn{ display:inline-flex; vertical-align:middle; }
+
+/* Ügyfelek: kiválasztott ügyfél tabokkal (lista + szerkesztő minta) */
+.client-detail{ margin-top:var(--gap); display:flex; flex-direction:column; gap:16px; }
+.client-detail .tabs{ margin:0 -4px; }
+.cd-panel{ padding-top:4px; }
+.cd-grid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(220px,320px); gap:24px; align-items:start; }
+.cd-note{ background:var(--surface-subtle); border-radius:var(--r-lg); padding:16px; }
+.cd-form{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px 24px; max-width:900px; }
+.cd-form > .field:has(textarea), .cd-form > .acts-row, .cd-form > .help, .cd-form > p{ grid-column:1/-1; }
+#p-lepesek .checklist{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:32px; }
+#p-lepesek .checklist li:nth-child(2){ border-top:0; padding-top:0; }
+@media (max-width:1023px){ .cd-grid, .cd-form, #p-lepesek .checklist{ grid-template-columns:minmax(0,1fr); } #p-lepesek .checklist li:nth-child(2){ border-top:1px solid var(--border); padding-top:10px; } }
+
+/* posztlista: kis LinkedIn-mockup */
+.mini-li{ border:1px solid var(--border); border-radius:var(--r-md); overflow:hidden; background:var(--surface); }
+.mini-head{ display:flex; align-items:center; gap:8px; padding:8px 10px 0; font-size:var(--fs-xs); }
+.mini-logo{ width:22px; height:22px; border-radius:3px; background:linear-gradient(135deg,#2D388A,#00AEEF); color:#fff; display:grid; place-items:center; font-weight:700; font-size:12px; }
+.mini-li p{ padding:6px 10px 8px; margin:0; font-size:var(--fs-xs) !important; -webkit-line-clamp:2 !important; }
+.mini-li img{ display:block; width:100%; height:auto; aspect-ratio:1/1; }
+.mini-noimg{ aspect-ratio:1/1; display:grid; place-items:center; background:var(--surface-subtle); color:var(--text-3); font-size:var(--fs-xs); }
+.arts-list{ border:0; padding:0; margin:0; display:flex; flex-direction:column; gap:8px; max-height:360px; overflow:auto; min-width:0; }
+.art-opt{ display:flex; gap:10px; align-items:flex-start; padding:8px 10px; border:1px solid var(--border-control); border-radius:var(--r-md); font-size:var(--fs-sm); cursor:pointer; }
+.art-opt:has(input:checked){ border-color:var(--accent); background:var(--accent-subtle); }
+.art-opt input{ margin-top:3px; }
+.smtp-check{ display:flex; flex-direction:column; gap:6px; border-top:1px solid var(--border); padding-top:12px; }
+.smtp-check > .btn{ align-self:flex-start; }
+#smtpOut td{ white-space:normal; vertical-align:top; } #smtpOut td .meta{ display:inline; overflow-wrap:anywhere; }
+/* Futások állapota */
+.rs-now{ display:flex; gap:12px; align-items:flex-start; padding:12px 14px; border:1px solid var(--border-control); border-radius:var(--r-lg); background:var(--surface-subtle); }
+.rs-now > div{ display:flex; flex-direction:column; gap:2px; font-size:var(--fs-sm); }
+.rs-step{ color:var(--text); }
+.spinner{ width:18px; height:18px; flex:none; margin-top:2px; border-radius:50%; border:3px solid var(--border-control); border-top-color:var(--accent); animation:rs-spin 0.9s linear infinite; }
+@keyframes rs-spin{ to{ transform:rotate(360deg); } }
+@media (prefers-reduced-motion:reduce){ .spinner{ animation:none; } }
+.rs-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+.rs-list li{ display:flex; gap:12px; align-items:center; padding:10px 0; border-top:1px solid var(--border); font-size:var(--fs-sm); }
+.rs-list li:first-child{ border-top:0; }
+.rs-list li > div{ flex:1; display:flex; flex-direction:column; min-width:0; }
+
+/* Sablon 1.5.0 kiegészítés: LinkedIn-színű ikoncsempe, posztkártya, érintőképernyős célterület */
+.t-li{ --tc:var(--li); }
+.todo-w .tw-body .btn{ margin-left:auto; }
+@media (pointer:coarse){ .btn.sm, .select.sm, .input.sm, .th-sort, .ws-btn, #wsBtn, .icon-btn, .seg button{ min-height:44px; } .icon-btn{ min-width:44px; } .linklike{ padding:12px 6px; margin:-12px -6px; } }
+.pre-line{ white-space:pre-line; }
+/* Havi cikkek: az elkészült HU/EN szöveg a sorban, összecsukva */
+.up-text{ margin-top:6px; font-size:var(--fs-sm); }
+.up-text > summary{ cursor:pointer; color:var(--accent-text); font-weight:600; min-height:24px; display:inline-flex; align-items:center; }
+@media (pointer:coarse){ .up-text > summary{ min-height:44px; } }
+.up-text > summary:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; border-radius:4px; }
+.up-text .cell-title{ margin-top:6px; padding-top:6px; border-top:1px solid var(--border); }
+/* Vezetői összefoglaló: bevezető + tagolt csoportok */
+.sum-lead{ font-size:var(--fs-md, 15px); color:var(--text); max-width:80ch; line-height:1.55; }
+.sum-groups{ display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap:16px 24px; margin-top:8px; }
+.sum-group h3{ font-size:var(--fs-sm); font-weight:600; margin-bottom:6px; }
+.sum-group ul{ margin:0; padding-left:18px; display:flex; flex-direction:column; gap:6px; }
+.sum-group li{ font-size:var(--fs-sm); color:var(--text-2); line-height:1.5; }
