@@ -79,7 +79,7 @@ Minden webes kérés elején a `Migrator` lefuttatja a még hiányzó adatbázis
 
 ## Felület
 
-`app/views/layout.php` (app shell), `app/views/auth/*` (belépés nélküli oldalak), `app/views/pages/*`; `assets/app.css`, `assets/app.js`: az Auris admin sablon v1.7.0 részei Xperion-színekkel, generált fájlok; forrásuk és az építőszkript a `tools/felulet/` mappában (leírás: `tools/felulet/README.md`; a szkript a sablon szakaszjelölői alapján dolgozik, így újabb sablonverzióval is újraépíthető) (sablon CSS 1–18., JS 0–3., 9. és sorművelet-menü; projektrész: „P. PROJEKT” CSS és 12–14. JS-szekció). A kattintható terv: `docs/terv/ugyfelfelulet-prototipus.html`.
+`app/views/layout.php` (app shell), `app/views/auth/*` (belépés nélküli oldalak), `app/views/pages/*`; `assets/app.css`, `assets/app.js`: az Auris admin sablon v1.8.0 részei Xperion-színekkel, generált fájlok; forrásuk és az építőszkript a `tools/felulet/` mappában (leírás: `tools/felulet/README.md`; a szkript a sablon szakaszjelölői alapján dolgozik, így újabb sablonverzióval is újraépíthető) (sablon CSS 1–18., JS 0–3., 9. és sorművelet-menü; projektrész: „P. PROJEKT” CSS és 12–14. JS-szekció). A kattintható terv: `docs/terv/ugyfelfelulet-prototipus.html`.
 
 ## Tárhely és védelem
 

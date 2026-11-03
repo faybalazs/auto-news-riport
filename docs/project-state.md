@@ -38,7 +38,7 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 | Feltöltő MCP-szerver (ChatGPT-vel készült, távoli, OAuth) | használatban | felhasználói közlés, nem vizsgált |
 | Xperion OAuth Bridge WordPress-bővítmény 0.6.0 az xperion.hu-n | telepítve, működik (Kapcsolat ellenőrzése, 2026-11-03); HU/EN alapkategória beállítva; törlő művelete nincs | felhasználói közlés, Vezérlőpult |
 | `wordpress/mu-plugins/xperion-auth-fejlec.php` 1.1.0 az xperion.hu `wp-content/mu-plugins` mappájában | telepítve, a belépés ezzel működik | felhasználói közlés, 2026-11-03 |
-| Skillek (claude.ai): auris-admin-sablon, auris-felhasznaloi-kezikonyv | telepítve: sablon v1.6.0 (a felület ebből épül); átadva, feltöltésre vár: sablon v1.7.0 (lábléc, külső menüpont – addig a `tools/felulet/app-extra.css` adja), kézikönyv 1.2.0 | munkamenet, skill-csomagok |
+| Skillek (claude.ai): auris-admin-sablon, auris-felhasznaloi-kezikonyv | a felület a sablon v1.8.0-ból épül (teendő-csempe részlettel, `.tip-end`, „gomb alatt nincs magyarázó bekezdés” szabály); átadva, feltöltésre vár: sablon v1.8.0 (a v1.7.0 helyére), kézikönyv 1.2.0 | munkamenet, skill-csomagok |
 | auris-dontesbank skill (claude.ai) | 1.2 átadva 2026-11-03 (részletes beállítási lépések; a sajtófigyelés mai döntései); a feltöltés a felhasználóra vár | a skill-csomag (zip) |
 | xperion-linkedin skill (claude.ai) | használatban, a szabályokat a Sheetből olvassa | felhasználói közlés |
 

@@ -1,6 +1,6 @@
 /*
   Sajtófigyelés – felület stílusai.
-  Forrás: Auris admin sablon v1.7.0 (CSS 1–18.), Xperion-színekkel; projektrész: „P. PROJEKT”.
+  Forrás: Auris admin sablon v1.8.0 (CSS 1–18.), Xperion-színekkel; projektrész: „P. PROJEKT”.
   Generált fájl: a forrásrészek változásakor újra kell építeni.
 */
 /* ================= 1. TOKENEK ================= */
@@ -274,6 +274,10 @@ output{ min-width:48px; text-align:right; font-weight:600; font-size:var(--fs-sm
 .tip-btn{ width:24px; height:24px; display:grid; place-items:center; border:0; background:transparent; color:var(--text-3); border-radius:50%; cursor:help; padding:0; }
 .tip-btn:hover{ color:var(--accent-text); background:var(--accent-subtle); }
 .tip-btn .icon{ width:16px; height:16px; }
+/* v1.8.0: jobbra igazított buborék (sor végi, gombsor melletti tooltip), érintésen 44 px-es célterület */
+.tip.tip-end .tip-body{ left:auto; right:-6px; transform:none; max-width:min(320px, calc(100vw - 48px)); }
+.tip.tip-end .tip-body::after{ left:auto; right:12px; margin-left:0; }
+@media (pointer:coarse){ .tip-btn{ width:44px; height:44px; } }
 .tip-body{ position:absolute; left:50%; bottom:calc(100% + 8px); transform:translateX(-50%); width:max-content; max-width:260px; background:var(--text); color:var(--bg); font-size:var(--fs-xs); font-weight:400; line-height:1.45; padding:8px 10px; border-radius:var(--r-md); box-shadow:var(--shadow-md); z-index:45; opacity:0; visibility:hidden; transition:opacity .12s var(--ease); }
 .tip-body::before{ content:""; position:absolute; left:0; right:0; top:100%; height:10px; } /* híd: az egér átvihető a buborékra (WCAG 1.4.13) */
 .tip-body::after{ content:""; position:absolute; top:100%; left:50%; margin-left:-5px; border:5px solid transparent; border-top-color:var(--text); }
@@ -550,6 +554,10 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 .todo-w .tw-body{ display:flex; gap:12px; align-items:center; margin-top:auto; }
 .todo-w .tw-n{ font-size:28px; font-weight:600; line-height:1; font-variant-numeric:tabular-nums; }
 .todo-w .tw-body .btn{ margin-left:auto; }
+/* v1.8.0: rövid fej, a részlet a tartalomban (legfeljebb 3 sor), a művelet akcentusszínű link */
+.todo-w .tw-detail{ margin:0; font-size:var(--fs-sm); color:var(--text-2); line-height:1.45; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; overflow-wrap:anywhere; }
+.todo-w .tw-link{ color:var(--accent-text); font-weight:600; }
+.todo-w .tw-link:hover{ background:var(--accent-subtle); color:var(--accent-text); }
 /* Futásállapot: mi fut most (mióta, ki, melyik lépés) + legutóbbi eredmények */
 .rs-now{ display:flex; gap:12px; align-items:flex-start; padding:12px 14px; border:1px solid var(--border-control); border-radius:var(--r-lg); background:var(--surface-subtle); }
 .rs-now > div{ display:flex; flex-direction:column; gap:2px; font-size:var(--fs-sm); }
@@ -847,21 +855,8 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 /* Napló: a művelet és a részletek tördelődnek, a táblázat nem lóg ki */
 .log-act{ font-weight:500; display:block; min-width:160px; max-width:260px; white-space:normal; }
 .log-det{ display:block; min-width:200px; max-width:480px; white-space:normal; overflow-wrap:anywhere; color:var(--text-2); font-size:var(--fs-sm); }
-/* Oldalsáv alja: a kézikönyv külső (új ablakos) menüpont, elkülönítve a funkcionális menüponttól */
-.nav-ext .nav-ext-ic{ margin-left:auto; opacity:.6; }
-.shell[data-nav="closed"] .nav-ext .nav-ext-ic{ display:none; }
-/* Lábléc: copyright, alkalmazásverzió, kiadás dátuma */
-.app-foot{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 16px; padding:16px 32px 24px; border-top:1px solid var(--border); color:var(--text-3); font-size:var(--fs-xs); margin-top:auto; }
-@media (max-width:767px){ .app-foot{ padding:16px; flex-direction:column; } }
-/* Teendő-csempe: rövid fej, a részlet a tartalomban (legfeljebb 3 sor), a művelet kék link */
-.todo-w .tw-detail{ margin:0; font-size:var(--fs-sm); color:var(--text-2); line-height:1.45; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; overflow-wrap:anywhere; }
-.todo-w .tw-link{ color:var(--accent-text); font-weight:600; }
-.todo-w .tw-link:hover{ background:var(--accent-subtle); color:var(--accent-text); }
-/* (i) súgó a gombsor végén: jobbra igazított buborék, hogy telefonon se lógjon ki */
+/* Lábléc, külső menüpont, teendő-csempe részlete és linkje, .tip-end: a sablon v1.8.0 része */
 .acts-row .tip, .collect-bar .tip, .smtp-check .tip, .head-actions .tip{ align-self:center; }
-.tip.tip-end .tip-body{ left:auto; right:-6px; transform:none; max-width:min(320px, calc(100vw - 48px)); }
-.tip.tip-end .tip-body::after{ left:auto; right:12px; margin-left:0; }
-@media (pointer:coarse){ .tip-btn{ width:44px; height:44px; } }
 
 /* Javasolt források (új-forrás-figyelő) */
 .sug-src{ max-width:520px; }

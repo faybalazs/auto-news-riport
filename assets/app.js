@@ -1,6 +1,6 @@
 /*
   Sajtófigyelés – felület.
-  Forrás: Auris admin sablon v1.7.0 (JS 0–3., 9. és sorművelet-menü; DataTable kiegészítés: render, selectable:false, setLoading),
+  Forrás: Auris admin sablon v1.8.0 (JS 0–3., 9. és sorművelet-menü; DataTable kiegészítés: render, selectable:false, setLoading),
   projektrész: 12–14. szekció. Generált fájl.
 */
 (() => {
