@@ -20,6 +20,7 @@ PHP-alkalmazás, amely havonta lefuttatja az Xperion (xperion.hu) sajtófigyelé
 ## Munkaszabályok (a felhasználó tartós kérései)
 - A felhasználó (Balázs, Auris Dynamics) iPaden dolgozik, **nincs terminálja**. Neki szóló lépés csak grafikus felületen lehet: böngésző, GitHub webes felülete, tárhely-vezérlőpult. Parancssori utasítást ne adj neki.
 - Ha egy lépésnek több útja van, kérdezz rá, és jelezd, melyik a költséghatékonyabb.
+- Beállítási lépés a felhasználónak csak részletesen: pontos menüútvonal és mezőnevek; minden szakkifejezésnél (pl. alkalmazásjelszó, szolgáltatásfiók, cron-kulcs) mi az, hol készül, miben tér el a hasonlótól; hogyan néz ki a helyes érték; hova kerül pontosan, mintasorral; a gyakori tévesztés előre; és miből látszik, hogy sikerült (decisions.md, 2026-11-03).
 - Kommunikáció magyarul. Kódazonosítók angolul, a felhasználónak és az ügyfélnek szóló szövegek (felület, e-mail, napló, README) magyarul.
 - Mielőtt sok kódot írsz, rövid tervet kérj jóvá. Kis pull requestekben dolgozz, rövid magyar összefoglalóval.
 - Titkok (`config.php`, API-kulcsok, tokenek, szolgáltatásfiók JSON, `.env`) soha nem kerülnek a repóba; csak `config.example.php` a változónevekkel.

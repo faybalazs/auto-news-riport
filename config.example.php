@@ -46,9 +46,14 @@ return [
         // 'verify_peer' => false,
     ],
 
-    // WordPress-feltöltés (8. lépés): webhelyenként egy sor; a kulcs az ügyfél weboldala (Ügyfelek oldal).
-    // A felhasználó egy külön, nem admin WordPress-felhasználó (Szerző), a jelszó a profiljában létrehozott
-    // ALKALMAZÁSJELSZÓ (nem a belépési jelszó). Kell hozzá az Xperion OAuth Bridge 0.6.0 bővítmény.
+    // WordPress-feltöltés (8. lépés): webhelyenként egy sor; a kulcs az ügyfél weboldala (Ügyfelek oldal), pl. 'xperion.hu'.
+    // user: egy külön, nem admin WordPress-felhasználó FELHASZNÁLÓNEVE (Szerző szerepkörrel; a profil tetején „Felhasználónév”).
+    // app_password: ALKALMAZÁSJELSZÓ – NEM a WordPress-belépés jelszava! Így készül: WordPress-admin → Felhasználók →
+    //   a fenti felhasználó → Profil oldal alja → „Alkalmazásjelszavak” → név (pl. Sajtófigyelés) → „Új alkalmazásjelszó
+    //   hozzáadása”. A WordPress egyszer mutatja meg: 24 betű és szám, négyes csoportokban szóközzel
+    //   (pl. abcd EFGH 1234 ijkl MNOP 5678); így, a szóközökkel együtt másolja ide.
+    // Kell hozzá az Xperion OAuth Bridge 0.6.0 bővítmény; ha a tárhely kiszűri a belépési fejlécet, a
+    // wordpress/mu-plugins/xperion-auth-fejlec.php kiegészítő is (a WordPress wp-content/mu-plugins mappájába).
     'wordpress' => [
         'xperion.hu' => [
             'user' => '',
