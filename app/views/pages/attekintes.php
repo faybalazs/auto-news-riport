@@ -15,43 +15,44 @@ $sub = $e($client['name'] ?? 'Nincs ügyfél') . ($month !== '' ? ' · ' . $e($l
 $actions = $months ? '<label class="sr-only" for="period">Időszak</label><select class="select" id="period" style="width:auto">'
     . implode('', array_map(static fn ($m) => '<option value="' . $e($m) . '"' . ($m === $month ? ' selected' : '') . '>' . $e($label($m)) . '</option>', $months)) . '</select>' : '';
 
-/* Teendők: soronként külön widget, típus szerinti színnel. [tónus, ikon, cím, szám|null, szöveg (HTML), link, gomb] */
+/* Teendők: soronként külön widget, típus szerinti színnel. [tónus, ikon, cím, szám|null, rövid meta (fejléc), részlet (HTML, a csempe tartalma), link, gomb]
+   A fejléc csak a címet és egy rövid sort mutatja; a hosszabb részlet (pl. posztkód és téma) a tartalomba kerül. */
 $todos = [];
 if ($access->can('ops') && !$access->clients()) {
-    $todos[] = ['warn', 'folder', 'Hozza létre az első ügyfelet', null, 'Név és weboldal; utána jöhetnek a felhasználók.', 'index.php?p=ugyfelek', 'Ügyfelek'];
+    $todos[] = ['warn', 'folder', 'Hozza létre az első ügyfelet', null, 'Ügyfelek', 'Név és weboldal; utána jöhetnek a felhasználók.', 'index.php?p=ugyfelek', 'Ügyfelek'];
 }
 if (($t['decide'] ?? 0) > 0) {
-    $todos[] = ['warn', 'list', 'Cikk vár döntésre', $t['decide'], $e($label($t['decideMonth'])) . ' · Mehet, LinkedIn poszt vagy Nem kell' . (($t['decideOlder'] ?? 0) > 0 ? ' · korábbi hónapokban további ' . (int) $t['decideOlder'] : ''), 'index.php?p=cikkek&honap=' . $e($t['decideMonth']), 'Döntések'];
+    $todos[] = ['warn', 'list', 'Cikk vár döntésre', $t['decide'], $e($label($t['decideMonth'])), 'Mehet, LinkedIn poszt vagy Nem kell.' . (($t['decideOlder'] ?? 0) > 0 ? ' Korábbi hónapokban további ' . (int) $t['decideOlder'] . '.' : ''), 'index.php?p=cikkek&honap=' . $e($t['decideMonth']), 'Döntések'];
 }
-foreach ([['postsClient', 'LinkedIn-poszt jóváhagyásra vár'], ['postsApproved', 'Közzétehető a LinkedInen'], ['postsDraft', 'LinkedIn-tervezet, ügyfélnek küldhető']] as [$k, $ttl]) {
+foreach ([['postsClient', 'LinkedIn-poszt jóváhagyásra vár', 'Ügyfélnél'], ['postsApproved', 'Közzétehető a LinkedInen', 'Jóváhagyva'], ['postsDraft', 'LinkedIn-tervezet, ügyfélnek küldhető', 'Tervezet']] as [$k, $ttl, $st]) {
     if (!empty($t[$k])) {
         $first = explode(' · ', (string) $t[$k][0])[0];
-        $todos[] = ['li', 'linkedin', $ttl, count($t[$k]), implode('<br>', array_map($e, $t[$k])), 'index.php?p=poszt&kod=' . rawurlencode($first), ['postsClient' => 'Jóváhagyás', 'postsApproved' => 'Megnyitás', 'postsDraft' => 'Átnézés'][$k]];
+        $todos[] = ['li', 'linkedin', $ttl, count($t[$k]), $st . ' állapotú poszt', implode('<br>', array_map($e, $t[$k])), 'index.php?p=poszt&kod=' . rawurlencode($first), ['postsClient' => 'Jóváhagyás', 'postsApproved' => 'Megnyitás', 'postsDraft' => 'Átnézés'][$k]];
     }
 }
 foreach ($t['mail'] ?? [] as $mm) {
-    $todos[] = [$mm['error'] ? 'warn' : 'info', 'send', $mm['error'] ? 'A havi e-mail küldése nem sikerült' : 'Havi e-mail jóváhagyásra vár', null, $e($mm['subject']) . ' · az ügyfél még nem kapta meg', 'index.php?p=vezerlo', 'Jóváhagyás'];
+    $todos[] = [$mm['error'] ? 'warn' : 'info', 'send', $mm['error'] ? 'A havi e-mail küldése nem sikerült' : 'Havi e-mail jóváhagyásra vár', null, 'Havi e-mail', $e($mm['subject']) . ' · az ügyfél még nem kapta meg', 'index.php?p=vezerlo', 'Jóváhagyás'];
 }
 if (($t['ideas'] ?? 0) > 0) {
-    $todos[] = ['ai', 'sparkle', 'Posztötlet generálásra vár', $t['ideas'], 'Küldje posztgenerálásra, vagy egészítse ki.', 'index.php?p=otletek', 'Ötletek'];
+    $todos[] = ['ai', 'sparkle', 'Posztötlet generálásra vár', $t['ideas'], 'Posztötletek', 'Küldje posztgenerálásra, vagy egészítse ki.', 'index.php?p=otletek', 'Ötletek'];
 }
 if (($t['upload'] ?? 0) > 0) {
-    $todos[] = ['info', 'upload', 'Feltöltésre vár', $t['upload'], 'Mehet jelölésű cikk; az óránkénti futás magyarul és angolul feltölti a weboldalra.', 'index.php?p=cikkek', 'Havi cikkek'];
+    $todos[] = ['info', 'upload', 'Feltöltésre vár', $t['upload'], 'Mehet jelölésű cikk', 'Az óránkénti futás magyarul és angolul feltölti a weboldalra, vagy indítsa a Havi cikkek oldalról.', 'index.php?p=cikkek', 'Havi cikkek'];
 }
 if (($t['uploadErr'] ?? 0) > 0) {
-    $todos[] = ['warn', 'alert', 'Feltöltési hiba', $t['uploadErr'], 'Mehet cikk, amely nem került fel a weboldalra. Az okot a Havi cikkek oldalon látja.', 'index.php?p=cikkek', 'Havi cikkek'];
+    $todos[] = ['warn', 'alert', 'Feltöltési hiba', $t['uploadErr'], 'Mehet jelölésű cikk', 'Nem került fel a weboldalra. Az okot a Havi cikkek oldalon látja.', 'index.php?p=cikkek', 'Havi cikkek'];
 }
 if (($t['missingRun'] ?? '') !== '') {
-    $todos[] = ['info', 'play', 'A havi futás még nem készült el', null, $e($label($t['missingRun'])) . ' · a cron minden hónap 1-jén futtatja, vagy indítsa a Vezérlőpultról.', 'index.php?p=vezerlo', 'Vezérlőpult'];
+    $todos[] = ['info', 'play', 'A havi futás még nem készült el', null, $e($label($t['missingRun'])), 'A cron minden hónap 1-jén futtatja, vagy indítsa a Vezérlőpultról.', 'index.php?p=vezerlo', 'Vezérlőpult'];
 }
 if ($client && $access->can('users') && ($t['members'] ?? 0) === 0) {
-    $todos[] = ['info', 'users', 'Hívja meg az ügyfél felhasználóit', null, 'Ügyfél-adminisztrátor, tartalomkezelő. A meghívó link kimásolható.', 'index.php?p=felhasznalok', 'Felhasználók'];
+    $todos[] = ['info', 'users', 'Hívja meg az ügyfél felhasználóit', null, 'Felhasználók', 'Ügyfél-adminisztrátor, tartalomkezelő. A meghívó link kimásolható.', 'index.php?p=felhasznalok', 'Felhasználók'];
 }
 if ($client && $access->can('ops') && ($client['status'] ?? '') === 'beallitas') {
-    $todos[] = ['ai', 'settings', 'Az ügyfél beállítása folyamatban', null, 'Adatátvétel a Google Sheetből, majd állítsa Aktívra az ügyfelet.', 'index.php?p=ugyfelek', 'Ügyfelek'];
+    $todos[] = ['ai', 'settings', 'Az ügyfél beállítása folyamatban', null, 'Ügyfelek', 'Adatátvétel a Google Sheetből, majd állítsa Aktívra az ügyfelet.', 'index.php?p=ugyfelek', 'Ügyfelek'];
 }
 if (!$todos) {
-    $todos[] = ['ok', 'check', 'Nincs teendő', null, 'Minden döntés és jóváhagyás kész. Köszönjük!', 'index.php?p=cikkek', 'Havi cikkek'];
+    $todos[] = ['ok', 'check', 'Nincs teendő', null, 'Minden kész', 'Minden döntés és jóváhagyás kész. Köszönjük!', 'index.php?p=cikkek', 'Havi cikkek'];
 }
 
 /* KPI-k: címke → érték → változás az előző hónaphoz → trendvonal → időszak */
@@ -71,11 +72,12 @@ require __DIR__ . '/_head.php';
 <section aria-labelledby="h-todo" class="todo-sec">
   <h2 id="h-todo" class="sec-title">Teendők <span class="meta">· <?= count($todos) ?> tétel</span></h2>
   <div class="todo-grid">
-    <?php foreach ($todos as $ti => [$tone, $icon, $twTitle, $n, $text, $href, $cta]): ?>
+    <?php foreach ($todos as $ti => [$tone, $icon, $twTitle, $n, $twMeta, $twDetail, $href, $cta]): ?>
     <?php $tc = ['warn' => 't-orange', 'info' => 't-blue', 'li' => 't-li', 'ok' => 't-green', 'ai' => 't-purple'][$tone] ?? 't-blue'; ?>
     <section class="card widget todo-w" aria-labelledby="tw-<?= $ti ?>">
-      <div class="widget-head"><div class="wh"><span class="ic-tile <?= $tc ?>" aria-hidden="true"><?= $ic($icon, 'icon') ?></span><div><h2 id="tw-<?= $ti ?>"><?= $e($twTitle) ?></h2><p class="meta"><?= $text ?></p></div></div></div>
-      <div class="tw-body"><?php if ($n !== null): ?><span class="tw-n"><?= (int) $n ?></span><?php endif; ?><a class="btn btn-ghost sm" href="<?= $e($href) ?>"><?= $e($cta) ?><?= $ic('chev-right') ?></a></div>
+      <div class="widget-head"><div class="wh"><span class="ic-tile <?= $tc ?>" aria-hidden="true"><?= $ic($icon, 'icon') ?></span><div><h2 id="tw-<?= $ti ?>"><?= $e($twTitle) ?></h2><p class="meta"><?= $twMeta ?></p></div></div></div>
+      <p class="tw-detail"><?= $twDetail ?></p>
+      <div class="tw-body"><?php if ($n !== null): ?><span class="tw-n"><?= (int) $n ?></span><?php endif; ?><a class="btn btn-ghost sm tw-link" href="<?= $e($href) ?>"><?= $e($cta) ?><?= $ic('chev-right') ?></a></div>
     </section>
     <?php endforeach; ?>
   </div>

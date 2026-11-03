@@ -44,6 +44,7 @@ final class UploadService
         private LocalLog $log,
         private string $lockFile,
         ?callable $sleep = null,
+        private ?FeaturedImage $images = null,
     ) {
         $this->wpFor = $wpFor;
         $this->sleep = $sleep ?? static function (int $ms): void { usleep($ms * 1000); };
@@ -251,7 +252,23 @@ final class UploadService
             $ctx->write("{$ref}: deploy_pair ({$key}) – HU: „{$tr['hu']['title']}”, EN: „{$tr['en']['title']}”", static fn () => null);
             return ['state' => 'szaraz', 'hu' => $tr['hu'], 'en' => $tr['en'], 'key' => $key];
         }
-        $res = $wp->deployPair($args);
+        try {
+            $res = $wp->deployPair($args);
+        } catch (WpException $e) {
+            if (!self::isImageError($e->getMessage())) {
+                throw $e;
+            }
+            // A WordPress elutasította a forráscikk képét: a program saját, JPEG-re alakított képével vagy az ügyfél
+            // alapértelmezett képével próbálja újra (előtte a pár állapota, ahogy a bővítmény kéri).
+            $image = $this->imageFallback((int) $client['id'], $source, $e->getMessage(), $ctx, $ref);
+            $pair = $wp->getPair($key);
+            if (($pair['state'] ?? '') === 'published') {
+                $out = self::fromPosts($pair['posts'] ?? []);
+                $this->saveDone((int) $row['id'], $key, $out, $tr);
+                return ['state' => 'kint', 'hu' => $tr['hu'], 'en' => $tr['en']] + $out;
+            }
+            $res = $wp->deployPair($args + $image);
+        }
         if (($res['state'] ?? '') !== 'published') {
             throw new WpException('A deploy_pair nem publikált (állapot: ' . ($res['state'] ?? '?') . ').', 'tool');
         }
@@ -350,6 +367,39 @@ final class UploadService
             published_at = NULL, upload_error = '', upload_attempts = 0, updated_at = ? WHERE id = ? AND client_id = ?", [Database::now(), $articleId, $cid]);
         $this->audit->add($cid, $a->userId(), 'Feltöltés visszavonva', $row['month'] . '/' . ($row['no'] ?? $row['id']) . ' · ' . mb_substr((string) $row['title'], 0, 120) . ' (újra döntésre vár)');
         return ['ok' => true];
+    }
+
+    /** A bővítmény vagy a WordPress a kiemelt képet utasította el (a pár többi része rendben lehet). */
+    public static function isImageError(string $msg): bool
+    {
+        return (bool) preg_match('/featured image|og:image|image import|not allowed to upload this file type|not a JPEG, PNG, WebP or GIF/i', $msg);
+    }
+
+    /**
+     * Pótkép a kiemelt képhez: a forráscikk képe JPEG-re alakítva (featured_image_url), vagy ha az nem megy,
+     * az ügyfél alapértelmezett képe a WordPress médiatárából (featured_media).
+     *
+     * @return array<string,int|string>
+     */
+    private function imageFallback(int $clientId, string $source, string $wpError, TaskContext $ctx, string $ref): array
+    {
+        $why = '';
+        if ($this->images !== null) {
+            try {
+                $url = $this->images->prepare($source);
+                $ctx->info("{$ref}: a WordPress elutasította a forráscikk képét; JPEG-re alakítva újra próbálom ({$url}).");
+                return ['featured_image_url' => $url];
+            } catch (\Throwable $x) {
+                $why = $x->getMessage();
+            }
+        }
+        $media = (int) $this->db->value("SELECT value FROM client_settings WHERE client_id = ? AND name = 'alap_kep'", [$clientId]);
+        if ($media > 0) {
+            $ctx->info("{$ref}: a forráscikk képe nem használható" . ($why !== '' ? " ({$why})" : '') . "; az alapértelmezett képpel (#{$media}) töltöm fel.");
+            return ['featured_media' => $media];
+        }
+        throw new WpException($wpError . ' — A forráscikk képét a WordPress nem fogadta el' . ($why !== '' ? ', és átalakítani sem sikerült (' . $why . ')' : '')
+            . '. Megoldás: az Ügyfelek oldal Beállítások fülén adjon meg alapértelmezett kiemelt képet (a WordPress médiatárában lévő kép azonosítóját), majd indítsa újra a feltöltést.', 'tool');
     }
 
     /** @param list<string> $errors */

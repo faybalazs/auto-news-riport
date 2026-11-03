@@ -174,7 +174,8 @@ final class App
     {
         return new \Xperion\Press\UploadService($this->db(), $this->claude(), fn (array $c) => $this->wpFor($c),
             new \Xperion\Press\SourceText(new CurlHttpClient(1, 20, null, 'Mozilla/5.0 (compatible; XperionSajtofigyelo/0.8; +https://xperion.hu)')),
-            $this->mailer(), $this->audit(), $this->log(), $this->storageDir . '/futas.lock');
+            $this->mailer(), $this->audit(), $this->log(), $this->storageDir . '/futas.lock', null,
+            new \Xperion\Press\FeaturedImage(new CurlHttpClient(1, 30, null, 'Mozilla/5.0 (compatible; XperionSajtofigyelo/0.14; +https://xperion.hu)'), XPERION_ROOT . '/kepek', $this->baseUrl()));
     }
 
     public function rules(): \Xperion\Posts\RuleService

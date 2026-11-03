@@ -23,8 +23,8 @@ $rep = $data['report'] ?? null;
   <div class="acts-row">
     <button class="btn btn-secondary" type="button" id="upDry"<?= $why ?>><?= $ic('flask') ?>Szövegek elkészítése (szárazon)</button>
     <button class="btn btn-primary" type="button" id="upLive"<?= $why ?>><?= $ic('upload') ?>Feltöltés élesben</button>
+    <?= $tip('t-upload', 'feltöltés a weboldalra', '<b>Szövegek elkészítése:</b> a Claude megírja a Mehet cikkek magyar és angol címét és ajánlóját (cikkenként 2–3 cent); a weboldalra nem kerül semmi, a szöveg a cikk sorában átnézhető.<br><b>Feltöltés élesben:</b> a Mehet cikkek magyarul és angolul kikerülnek a weboldalra (a kész szöveggel, újra nem fizet érte), és „Publikálva” állapotba kerülnek.') ?>
   </div>
-  <p class="help"><b>Szövegek elkészítése:</b> a Claude megírja a Mehet cikkek magyar és angol címét és ajánlóját (cikkenként 2–3 cent); a weboldalra nem kerül semmi, a szöveg a cikk sorában átnézhető. <b>Feltöltés élesben:</b> a Mehet cikkek magyarul és angolul kikerülnek a weboldalra (a kész szöveggel, újra nem fizet érte), és „Publikálva” állapotba kerülnek.</p>
   <div id="upOut" hidden>
     <div class="result-meta" id="upMeta"></div>
     <ol class="run-lines" id="upLines"></ol>

@@ -1,6 +1,6 @@
 /*
   Sajtófigyelés – felület stílusai.
-  Forrás: Auris admin sablon v1.6.0 (CSS 1–18.), Xperion-színekkel; projektrész: „P. PROJEKT”.
+  Forrás: Auris admin sablon v1.7.0 (CSS 1–18.), Xperion-színekkel; projektrész: „P. PROJEKT”.
   Generált fájl: a forrásrészek változásakor újra kell építeni.
 */
 /* ================= 1. TOKENEK ================= */
@@ -88,6 +88,12 @@ label.btn:has(+ input[type="file"]:focus-visible){ outline:2px solid var(--focus
 .nav-item[aria-current="page"]::before{ content:""; position:absolute; left:0; top:10px; bottom:10px; width:3px; border-radius:0 3px 3px 0; background:var(--accent); }
 .nav-count{ margin-left:auto; font-size:12px; font-weight:600; background:var(--warning-bg); color:var(--warning-text); border-radius:999px; padding:1px 8px; }
 .sidebar-foot{ margin-top:auto; border-top:1px solid var(--border); padding-top:12px; }
+/* Külső, új ablakban nyíló menüpont (pl. kézikönyv, súgó) az oldalsáv alján, a funkcionális menütől elkülönítve (v1.7.0) */
+.nav-ext .nav-ext-ic{ margin-left:auto; opacity:.6; }
+.shell[data-nav="closed"] .nav-ext .nav-ext-ic{ display:none; }
+/* Lábléc: copyright, alkalmazásverzió, kiadás dátuma (v1.7.0) */
+.app-foot{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 16px; padding:16px 32px 24px; border-top:1px solid var(--border); color:var(--text-3); font-size:var(--fs-xs); margin-top:auto; }
+@media (max-width:767px){ .app-foot{ padding:16px; flex-direction:column; } }
 .scrim{ display:none; }
 
 .main-col{ flex:1; min-width:0; display:flex; flex-direction:column; }
@@ -847,6 +853,15 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 /* Lábléc: copyright, alkalmazásverzió, kiadás dátuma */
 .app-foot{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 16px; padding:16px 32px 24px; border-top:1px solid var(--border); color:var(--text-3); font-size:var(--fs-xs); margin-top:auto; }
 @media (max-width:767px){ .app-foot{ padding:16px; flex-direction:column; } }
+/* Teendő-csempe: rövid fej, a részlet a tartalomban (legfeljebb 3 sor), a művelet kék link */
+.todo-w .tw-detail{ margin:0; font-size:var(--fs-sm); color:var(--text-2); line-height:1.45; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; overflow-wrap:anywhere; }
+.todo-w .tw-link{ color:var(--accent-text); font-weight:600; }
+.todo-w .tw-link:hover{ background:var(--accent-subtle); color:var(--accent-text); }
+/* (i) súgó a gombsor végén: jobbra igazított buborék, hogy telefonon se lógjon ki */
+.acts-row .tip, .collect-bar .tip, .smtp-check .tip, .head-actions .tip{ align-self:center; }
+.tip.tip-end .tip-body{ left:auto; right:-6px; transform:none; max-width:min(320px, calc(100vw - 48px)); }
+.tip.tip-end .tip-body::after{ left:auto; right:12px; margin-left:0; }
+@media (pointer:coarse){ .tip-btn{ width:44px; height:44px; } }
 
 /* ================= 18. TÖRÉSPONTOK (mindig a CSS végén) ================= */
 @media (max-width:1279px){ .layout{ grid-template-columns:minmax(0,1fr); } .w-8, .w-4{ grid-column:span 12; } }

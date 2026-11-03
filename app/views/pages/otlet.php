@@ -28,8 +28,9 @@ $genOk = $idea && $idea['status'] !== 'elvetve' && $idea['post_code'] === '';
       <?php if ($idea['post_code'] !== ''): ?><a class="btn btn-primary" href="index.php?p=poszt&amp;kod=<?= $e(rawurlencode($idea['post_code'])) ?>"><?= $ic('linkedin') ?>Poszt megnyitása (<?= $e($idea['post_code']) ?>)</a><?php endif; ?>
       <button class="btn btn-ghost" type="button" id="ideaReject"<?= $idea['status'] === 'elvetve' ? ' hidden' : '' ?>><?= $ic('x') ?>Elvetés</button>
       <button class="btn btn-ghost danger" type="button" id="ideaDelete"><?= $ic('trash') ?>Törlés</button>
+      <span id="genHint"<?= $genOk ? '' : ' hidden' ?>><?= $tip('t-gen', 'posztgenerálás', 'A generálás fél–egy percig tart (Claude Opus, kb. 15–25 cent). A kész poszt magától jóváhagyásra kerül (Ügyfélnél állapot), és az ügyfél-adminisztrátor e-mailt kap róla.') ?></span>
       <?php endif; ?>
     </div>
     <?php if ($idea && $idea['pending']): ?><div class="banner bn-info" role="status"><?= $ic('clock', 'icon') ?><div class="b-body"><span>Generálásra vár: az előző próba nem sikerült, az óránkénti futás újrapróbálja.</span></div></div><?php endif; ?>
-    <p class="help" id="genHint"<?= $genOk ? '' : ' hidden' ?>>A generálás fél–egy percig tart (Claude Opus, kb. 15–25 cent). A kész poszt magától jóváhagyásra kerül (Ügyfélnél állapot), és az ügyfél-adminisztrátor e-mailt kap róla.</p>
+
   </form>

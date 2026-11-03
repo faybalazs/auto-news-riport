@@ -25,6 +25,9 @@ final class View
         $file = $this->dir . '/' . $template . '.php';
         $e = static fn ($s): string => htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8');
         $ic = static fn (string $id, string $cls = 'icon icon-sm'): string => '<svg class="' . $cls . '" aria-hidden="true"><use href="#i-' . $id . '"/></svg>';
+        // (i) súgó a gombsor végén (auris-admin-sablon .tip): a gombok alatti magyarázó bekezdés helyett. A $html megbízható, saját szöveg.
+        $tip = static fn (string $id, string $label, string $html): string => '<span class="tip tip-end"><button type="button" class="tip-btn" aria-label="Súgó: ' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '" aria-describedby="' . $id . '">'
+            . $ic('info', 'icon') . '</button><span class="tip-body" role="tooltip" id="' . $id . '">' . $html . '</span></span>';
         extract($vars, EXTR_SKIP);
         ob_start();
         require $file;

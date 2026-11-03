@@ -35,8 +35,9 @@ for ($i = 1; $i <= 6; $i++) {
     <button class="btn btn-secondary" type="button" id="colRun"<?= $access->client() ? '' : ' disabled' ?>><?= $ic('flask') ?>Csak gyűjtés</button>
     <button class="btn btn-secondary" type="button" id="monDry"<?= $access->client() ? '' : ' disabled' ?>><?= $ic('sparkle') ?>Havi futás szárazon</button>
     <button class="btn btn-primary" type="button" id="monLive"<?= $access->client() ? '' : ' disabled' ?>><?= $ic('play') ?>Havi futás élesben</button>
+    <?= $tip('t-col', 'havi futás', '<b>Csak gyűjtés:</b> a források eredménye Claude nélkül.<br><b>Havi futás szárazon:</b> gyűjtés és Claude-értékelés, mentés nélkül (néhány tized cent).<br><b>Élesben:</b> a hónap listája és összefoglalója bekerül a Havi cikkek közé; egy hónapra egyszer. Egy futás 1–3 perc lehet.') ?>
   </div>
-  <p class="help" id="colHint"><b>Csak gyűjtés:</b> a források eredménye Claude nélkül. <b>Havi futás szárazon:</b> gyűjtés és Claude-értékelés, mentés nélkül (néhány tized cent). <b>Élesben:</b> a hónap listája és összefoglalója bekerül a Havi cikkek közé; egy hónapra egyszer. Egy futás 1–3 perc lehet.</p>
+
   <div id="colOut" hidden>
     <div class="result-meta" id="colMeta"></div>
     <div class="table-wrap mini-table" style="border:1px solid var(--border);border-radius:var(--r-lg);margin-top:12px" id="colSources"></div>
@@ -57,8 +58,9 @@ for ($i = 1; $i <= 6; $i++) {
     <button class="btn btn-secondary" type="button" id="wpCheck"><?= $ic('globe') ?>Kapcsolat ellenőrzése</button>
     <button class="btn btn-secondary" type="button" id="upDry"><?= $ic('flask') ?>Feltöltés szárazon</button>
     <button class="btn btn-primary" type="button" id="upLive"><?= $ic('upload') ?>Feltöltés élesben</button>
+    <?= $tip('t-wp', 'feltöltés a weboldalra', '<b>Kapcsolat ellenőrzése:</b> a bővítmény verziója, jogok, alapkategóriák; semmit nem ír.<br><b>Szárazon:</b> a Claude megírja a magyar és angol címet és ajánlót (cikkenként 2–3 cent), a WordPressbe nem ír.<br><b>Élesben:</b> a Mehet cikkek kikerülnek a weboldalra, magyarul és angolul; futásonként legfeljebb ' . \Xperion\Press\UploadService::PER_RUN . ' cikk.') ?>
   </div>
-  <p class="help"><b>Kapcsolat ellenőrzése:</b> a bővítmény verziója, jogok, alapkategóriák; semmit nem ír. <b>Szárazon:</b> a Claude megírja a magyar és angol címet és ajánlót (cikkenként 2–3 cent), a WordPressbe nem ír. <b>Élesben:</b> a Mehet cikkek kikerülnek a weboldalra, magyarul és angolul; futásonként legfeljebb <?= \Xperion\Press\UploadService::PER_RUN ?> cikk.</p>
+
   <div class="banner bn-error" role="alert" id="wpErr" hidden><?= $ic('x-circle', 'icon') ?><div class="b-body"><span id="wpErrText" class="pre-line"></span><div id="wpErrCopy"></div><div class="acts-row" id="wpErrHelper" hidden><a class="btn btn-secondary sm" href="index.php?p=wpkiegeszito" download><?= $ic('download') ?>Belépési kiegészítő letöltése (xperion-auth-fejlec.php)</a></div></div></div>
   <dl class="kv" id="wpKv" hidden></dl>
   <div id="upOut" hidden>
@@ -101,7 +103,7 @@ for ($i = 1; $i <= 6; $i++) {
   </div>
   <div class="smtp-check">
     <button class="btn btn-secondary sm" type="button" id="smtpProbe"><?= $ic('globe') ?>SMTP-kapcsolat ellenőrzése</button>
-    <span class="help">Végigpróbálja a szokásos beállításokat (465/SSL, 587/STARTTLS, 25, localhost) belépésig, levél nélkül, és megmutatja, melyik működik a tárhelyen. Fél–egy perc.</span>
+    <?= $tip('t-smtp', 'SMTP-kapcsolat ellenőrzése', 'Végigpróbálja a szokásos beállításokat (465/SSL, 587/STARTTLS, 25, localhost) belépésig, levél nélkül, és megmutatja, melyik működik a tárhelyen. Fél–egy perc.') ?>
     <div id="smtpOut" hidden></div>
   </div>
 </section>

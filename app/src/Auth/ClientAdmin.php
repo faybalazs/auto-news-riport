@@ -91,7 +91,7 @@ final class ClientAdmin
         return rtrim($site, '/');
     }
 
-    public const SETTINGS = ['linkedin_nev', 'linkedin_kovetok', 'modell_ertekeles', 'modell_poszt', 'modell_linkedin', 'modell_feltoltes'];
+    public const SETTINGS = ['linkedin_nev', 'linkedin_kovetok', 'modell_ertekeles', 'modell_poszt', 'modell_linkedin', 'modell_feltoltes', 'alap_kep'];
     public const MODELS = ['claude-haiku-5-5', 'claude-sonnet-5-5', 'claude-opus-5-5'];
 
     /** @return array<string,string> az ügyfél felületről szerkeszthető beállításai */
@@ -115,6 +115,9 @@ final class ClientAdmin
                 continue;
             }
             $v = mb_substr(trim((string) $in[$k]), 0, 190);
+            if ($k === 'alap_kep' && $v !== '' && !ctype_digit($v)) {
+                throw new \InvalidArgumentException('Az alapértelmezett kép a WordPress médiatárában lévő kép azonosítója (csak szám, pl. 1234).');
+            }
             if (str_starts_with($k, 'modell_') && $v !== '' && !in_array($v, self::MODELS, true)) {
                 throw new \InvalidArgumentException('Ismeretlen modell: ' . $v);
             }

@@ -1,6 +1,6 @@
 /*
   Sajtófigyelés – felület.
-  Forrás: Auris admin sablon v1.6.0 (JS 0–3., 9. és sorművelet-menü; DataTable kiegészítés: render, selectable:false, setLoading),
+  Forrás: Auris admin sablon v1.7.0 (JS 0–3., 9. és sorművelet-menü; DataTable kiegészítés: render, selectable:false, setLoading),
   projektrész: 12–14. szekció. Generált fájl.
 */
 (() => {
@@ -302,6 +302,9 @@ document.addEventListener('click', e => { const b = e.target.closest('[data-copy
 
 const REC = { 'Erősen javasolt':['b-success','arrow-up','Erősen javasolt'], 'Javasolt':['b-info','check','Javasolt'], 'Nem javasolt':['b-neutral','minus','Nem javasolt'], 'Nem javasolt (már fent)':['b-neutral','archive','Már fent van'] };
 const REC_ORDER = ['Erősen javasolt','Javasolt','Nem javasolt','Nem javasolt (már fent)',''];
+/* (i) súgó: Esc rejti a nyitott buborékot (WCAG 1.4.13), érintésnél a második koppintás bezárja */
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.activeElement?.classList.contains('tip-btn')) document.activeElement.blur(); });
+document.addEventListener('click', e => { const b = e.target.closest('.tip-btn'); if (b && b.dataset.open === '1'){ b.blur(); b.dataset.open = ''; } else if (b) b.dataset.open = '1'; });
 /* Feltöltés a weboldalra: közös futtató a Vezérlőpultnak és a Havi cikkeknek */
 const UP_LEVEL = { ok:['check','Kész'], info:['chev-right','Információ'], warn:['alert','Figyelmeztetés'], error:['x-circle','Hiba'], dry:['info','Szárazfuttatás'] };
 const UPST = { kint:['b-success','check','Publikálva'], szaraz:['b-info','flask','Szöveg kész'], duplikatum:['b-neutral','archive','Már fent volt'], hiba:['b-danger','x-circle','Hiba'], zarolt:['b-info','clock','Folyamatban'], reszben:['b-info','clock','Részben kint'], '':['b-danger','x-circle','Hiba'] };
@@ -494,7 +497,7 @@ if (APP.page === 'ugyfelek'){
   function renderOnb(){}
   $('#csSave')?.addEventListener('click', async () => {
     const b = $('#csSave'); busy(b, true);
-    try { const settings = Object.fromEntries(['linkedin_nev','linkedin_kovetok','modell_ertekeles','modell_poszt','modell_linkedin','modell_feltoltes'].map(k => [k, $('#cs-' + k).value])); await api('ugyfelbeallitas', { settings }); toast('Az ügyfélbeállítások mentve.'); }
+    try { const settings = Object.fromEntries(['linkedin_nev','linkedin_kovetok','modell_ertekeles','modell_poszt','modell_linkedin','modell_feltoltes','alap_kep'].map(k => [k, $('#cs-' + k).value])); await api('ugyfelbeallitas', { settings }); toast('Az ügyfélbeállítások mentve.'); }
     catch(e){ toast(e.message, { type:'error' }); } finally { busy(b, false); }
   });
   // Adatátvétel a Google Sheetből (az aktuális ügyfélé)

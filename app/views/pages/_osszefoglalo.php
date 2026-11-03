@@ -13,7 +13,7 @@ $when = $rep ? ($rep['updated_at'] !== '' ? $rep['updated_at'] : $rep['created_a
     <div class="wh"><span class="ic-tile t-purple" aria-hidden="true"><?= $ic('sparkle', 'icon') ?></span><div><h2 id="w-sum">Vezetői összefoglaló</h2><p class="meta"><?= $e($monthLabel) ?><?= $when !== '' ? ' · ' . $e(\Xperion\Web\View::dateHu($when)) . ($rep['updated_at'] !== '' ? ' (újragenerálva)' : '') : '' ?></p></div></div>
     <div class="head-actions">
       <?php if ($rep): ?><span class="badge b-ai"><?= $ic('sparkle', 'icon') ?>AI által generált</span><?php endif; ?>
-      <?php if ($canRegen): ?><button class="btn btn-secondary sm" type="button" id="sumRegen" data-month="<?= $e($month) ?>"><?= $ic('refresh') ?><?= $rep ? 'Újragenerálás' : 'Összefoglaló készítése' ?></button><?php endif; ?>
+      <?php if ($canRegen): ?><?= $tip('t-sumregen', 'újragenerálás', 'A Claude a hónap cikkeiből és a mostani döntésekből írja meg: rövid bevezető, majd Újdonságok, Tények, számok és Trendek, konkrét forrásokkal. A mostani szöveg felülíródik. Néhány cent, 20–40 másodperc.') ?><button class="btn btn-secondary sm" type="button" id="sumRegen" data-month="<?= $e($month) ?>"><?= $ic('refresh') ?><?= $rep ? 'Újragenerálás' : 'Összefoglaló készítése' ?></button><?php endif; ?>
     </div>
   </div>
   <?php if ($rep && !empty($rep['sections'])): ?>
@@ -28,7 +28,6 @@ $when = $rep ? ($rep['updated_at'] !== '' ? $rep['updated_at'] : $rep['created_a
   <?php elseif ($rep): ?>
   <?php if ($rep['summary_rows']): ?><dl class="kv"><?php foreach ($rep['summary_rows'] as $sumRow): ?><div><dt><?= $e($sumRow['label'] ?? '') ?></dt><dd><?= $e($sumRow['value'] ?? '') ?></dd></div><?php endforeach; ?></dl><?php endif; ?>
   <?php if (!empty($rep['details'])): ?><div class="sum-text"><h3>Részletek</h3><p><?= $e($rep['details']) ?></p></div><?php endif; ?>
-  <?php if ($canRegen): ?><p class="help">Ez a korábbi formájú összefoglaló. Az <b>Újragenerálás</b> gombbal tagolt változat készül (Újdonságok, Tények, számok, Trendek), a hónap cikkeiből; néhány cent.</p><?php endif; ?>
   <?php else: ?>
   <div class="empty-state"><b>Ehhez a hónaphoz nincs összefoglaló</b><span><?= $canRegen ? 'Az Összefoglaló készítése gombbal a hónap cikkeiből elkészíthető (néhány cent).' : 'A Google Sheetből átvett hónapokhoz nem készült; az új hónapokét a havi futás írja.' ?></span></div>
   <?php endif; ?>

@@ -73,8 +73,8 @@ $cur = $access->client();
       <?php foreach (['modell_ertekeles' => 'Cikkértékelés modellje (alap: Haiku)', 'modell_poszt' => 'Összefoglaló és havi e-mail modellje (alap: Sonnet)', 'modell_linkedin' => 'LinkedIn-poszt és kép modellje (alap: Opus)', 'modell_feltoltes' => 'Weboldal-fordítás modellje (alap: Sonnet)'] as $k => $l): ?>
       <div class="field"><label for="cs-<?= $k ?>"><?= $e($l) ?></label><select class="select" id="cs-<?= $k ?>"><?php foreach ($models as $mv => $ml): ?><option value="<?= $e($mv) ?>"<?= $st[$k] === $mv ? ' selected' : '' ?>><?= $e($ml) ?></option><?php endforeach; ?></select></div>
       <?php endforeach; ?>
-      <p class="help">A feltöltés webhelye az ügyfél weboldala (a sor ⋯ menüjében szerkeszthető); a belépés a config.php „wordpress” részében van.</p>
-      <div class="acts-row"><button class="btn btn-secondary sm" type="button" id="csSave"><?= $ic('check') ?>Mentés</button></div>
+      <div class="field"><label for="cs-alap_kep">Alapértelmezett kiemelt kép <span class="opt">(WordPress médiatár-azonosító, nem kötelező)</span> <span class="tip"><button type="button" class="tip-btn" aria-label="Súgó: alapértelmezett kiemelt kép" aria-describedby="t-alapkep"><?= $ic('info', 'icon') ?></button><span class="tip-body" role="tooltip" id="t-alapkep">Akkor használja a program, ha a forráscikk képét a WordPress nem fogadja el, és átalakítani sem sikerül. Az azonosító egy szám: WordPress-admin → Média → a kép megnyitása → a böngésző címsorában az item= (vagy post=) utáni szám, pl. 1234.</span></span></label><input class="input" id="cs-alap_kep" inputmode="numeric" value="<?= $e($st['alap_kep']) ?>" placeholder="pl. 1234"></div>
+      <div class="acts-row"><button class="btn btn-secondary sm" type="button" id="csSave"><?= $ic('check') ?>Mentés</button><?= $tip('t-cs', 'ügyfélbeállítások', 'A feltöltés webhelye az ügyfél weboldala (a lista sorának ⋯ menüjében szerkeszthető); a WordPress-belépés a config.php „wordpress” részében van.') ?></div>
     </div>
     <?php endif; ?>
   </div>

@@ -169,6 +169,44 @@ final class UploadServiceTest extends DbTestCase
         $articles->remove($op, $id);
     }
 
+    public function testImageRejectedByWordpressFallsBackToConvertedImageOrDefault(): void
+    {
+        $msg = 'Featured image import failed: Sorry, you are not allowed to upload this file type. Inspect existing pair state (get_pair) before retrying a write.';
+        // 1) átalakított kép a saját címünkről
+        $im = imagecreatetruecolor(400, 300); ob_start(); imagepng($im); $png = (string) ob_get_clean();
+        $web = new FakeWeb(['https://src.test/kep-cikk' => '<meta property="og:image" content="https://cdn.test/x?f=webp">', 'https://cdn.test/x?f=webp' => $png]);
+        $dir = sys_get_temp_dir() . '/xp-kep-' . bin2hex(random_bytes(4));
+        $audit = new AuditLog($this->db);
+        $logDir = sys_get_temp_dir() . '/xp-up2-' . bin2hex(random_bytes(4)); mkdir($logDir);
+        $svc = new UploadService($this->db, new ClaudeClient($this->claude, 'k'), fn (array $c) => new WpBridgeClient($this->wp, 'https://xperion.hu', 'cikkfigyelo', 'abcd efgh'),
+            new SourceText($web), $this->mailer, $audit, new LocalLog($logDir . '/n.jsonl'), $logDir . '/l.lock', static function (int $ms): void {},
+            new \Xperion\Press\FeaturedImage($web, $dir, 'https://app.test/'));
+        $id = $this->art('https://src.test/kep-cikk');
+        $this->wp->imageFailFor['https://src.test/kep-cikk'] = $msg;
+        $r = $svc->runForClient($this->x, $this->ctx(false));
+        self::assertSame('kint', $r['items'][0]['state'], $r['items'][0]['error'] ?? '');
+        $deploys = array_values(array_filter($this->wp->calls, static fn ($c) => $c['tool'] === 'xperion_press_deploy_pair'));
+        self::assertStringStartsWith('https://app.test/kepek/', $deploys[1]['args']['featured_image_url']);
+        self::assertContains('xperion_press_get_pair', array_column($this->wp->calls, 'tool'));
+
+        // 2) átalakító nélkül: az ügyfél alapértelmezett képe
+        $id2 = $this->art('https://src.test/kep-ketto', 'mehet', 'Masodik');
+        $this->wp->imageFailFor['https://src.test/kep-ketto'] = $msg;
+        $this->db->insert('client_settings', ['client_id' => $this->x, 'name' => 'alap_kep', 'value' => '77', 'updated_at' => Database::now()]);
+        $this->svc->runForClient($this->x, $this->ctx(false));
+        self::assertSame('kint', $this->row($id2)['wp_state']);
+        $last = end($this->wp->calls);
+        self::assertSame(77, $last['args']['featured_media']);
+
+        // 3) se átalakítás, se alapkép: érthető teendő
+        $this->db->run("DELETE FROM client_settings WHERE name = 'alap_kep'");
+        $id3 = $this->art('https://src.test/kep-harom', 'mehet', 'Harmadik');
+        $this->wp->imageFailFor['https://src.test/kep-harom'] = $msg;
+        $this->svc->runForClient($this->x, $this->ctx(false));
+        self::assertSame('hiba', $this->row($id3)['wp_state']);
+        self::assertStringContainsString('alapértelmezett kiemelt képet', $this->row($id3)['upload_error']);
+    }
+
     public function testUploadPermissionForClientRoles(): void
     {
         foreach (['uzemelteto' => true, 'ugyfeladmin' => true, 'tartalom' => true, 'olvaso' => false] as $role => $ok) {

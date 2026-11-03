@@ -1,0 +1,6 @@
+# A feltöltéshez átalakított kiemelt képek (Press\FeaturedImage): csak a sha1-nevű JPEG-ek érhetők el, más semmi.
+Options -Indexes
+Require all denied
+<FilesMatch "^[0-9a-f]{40}\.jpg$">
+    Require all granted
+</FilesMatch>

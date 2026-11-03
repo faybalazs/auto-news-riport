@@ -16,6 +16,8 @@ final class FakeWpBridge implements HttpClient
     public array $pairs = [];
     /** @var array<string,string> forrás-URL → a bővítmény hibaüzenete (deploy_pair-nél) */
     public array $failFor = [];
+    /** @var array<string,string> forrás-URL → képhiba, amíg nem kap featured_image_url-t vagy featured_media-t */
+    public array $imageFailFor = [];
     public int $status = 200;
     /** A 401/403-as válasz WordPress-hibakódja (pl. incorrect_password, rest_forbidden). */
     public string $authCode = 'rest_forbidden';
@@ -54,6 +56,9 @@ final class FakeWpBridge implements HttpClient
                 'defaults' => ['hu_category' => 3, 'en_category' => 4], 'can_publish' => true, 'can_upload' => true, 'pairs' => []]),
             'xperion_press_get_pair' => $ok(['key' => $key, 'state' => $this->pairs[$key]['state'] ?? 'none', 'posts' => $this->pairs[$key]['posts'] ?? []]),
             'xperion_press_deploy_pair' => (function () use ($args, $key, $ok, $err) {
+                if (isset($this->imageFailFor[$args['source_url']]) && !isset($args['featured_image_url']) && !isset($args['featured_media'])) {
+                    return $err($this->imageFailFor[$args['source_url']]);
+                }
                 if (isset($this->failFor[$args['source_url']])) {
                     return $err($this->failFor[$args['source_url']]);
                 }

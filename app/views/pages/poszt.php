@@ -34,7 +34,6 @@ require __DIR__ . '/_head.php';
     <section id="p-szerk" role="tabpanel" aria-labelledby="tab-szerk" hidden>
       <form class="card widget" id="postForm" novalidate aria-labelledby="h-pe">
         <div class="widget-head"><div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('edit', 'icon') ?></span><div><h2 id="h-pe">A poszt szerkesztése</h2><p class="meta">Mezőnként; a kép szövegének javítása azonnal újrarajzolja a képet</p></div></div></div>
-        <p class="help">A poszt részei. A teljes szöveg ezekből áll össze (nyitó sor, kontextus, kiemelések, szemszög, zárás, hashtagek); a forráslink a szabályok szerint nem kerül bele.</p>
         <div class="grid-2">
           <div class="field full"><label for="pe-topic">Témakör</label><input class="input" id="pe-topic" maxlength="255"></div>
           <div class="field full"><label for="pe-opening">Nyitó sor</label><textarea class="input" id="pe-opening" rows="2"></textarea><span class="help">A „…több” előtt csak ez látszik.</span></div>
@@ -52,7 +51,7 @@ require __DIR__ . '/_head.php';
           <div class="field"><label for="pe-e2">Számpélda: valós <span class="opt">(nem kötelező)</span></label><input class="input" id="pe-e2" maxlength="200"></div>
           <div class="field full"><label for="pe-note">Megjegyzés <span class="opt">(belső)</span></label><textarea class="input" id="pe-note" rows="2"></textarea></div>
         </div>
-        <div class="acts-row"><button class="btn btn-primary" type="submit" id="peSave"><?= $ic('check') ?>Módosítások mentése</button><button class="btn btn-ghost" type="button" id="peReset">Elvetés</button></div>
+        <div class="acts-row"><button class="btn btn-primary" type="submit" id="peSave"><?= $ic('check') ?>Módosítások mentése</button><button class="btn btn-ghost" type="button" id="peReset">Elvetés</button><?= $tip('t-pe', 'a poszt részei', 'A teljes szöveg ezekből a részekből áll össze, ebben a sorrendben: nyitó sor, kontextus, kiemelések, szemszög, zárás, hashtagek. A forráslink a szabályok szerint nem kerül a szövegbe, az első kommentbe való.') ?></div>
       </form>
     </section>
   </div>

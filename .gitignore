@@ -11,3 +11,7 @@ config.php
 /vendor/
 /.phpunit.cache/
 /dist/
+
+# átalakított kiemelt képek (futás közben készülnek)
+/kepek/*.jpg
+/kepek/*.tmp
