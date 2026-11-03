@@ -157,6 +157,18 @@ if ($page === 'kezikonyv') {
     }
 }
 
+// ---- A vezetői összefoglaló nyomtatható nézete (PDF-be menthető) ---------------------------
+if ($page === 'osszefoglalo') {
+    try {
+        $view->render('print/osszefoglalo', ['d' => $app->summaryShare()->data($access, (string) ($_GET['honap'] ?? ''))], null);
+    } catch (\InvalidArgumentException $ex) {
+        http_response_code(404);
+        header('Content-Type: text/html; charset=utf-8');
+        echo '<!doctype html><meta charset="utf-8"><title>Vezetői összefoglaló</title><p style="font-family:sans-serif;padding:24px">' . htmlspecialchars($ex->getMessage(), ENT_QUOTES) . '</p>';
+        exit;
+    }
+}
+
 // ---- Oldalak -------------------------------------------------------------------------
 $pages = [
     'attekintes' => ['Áttekintés', null],

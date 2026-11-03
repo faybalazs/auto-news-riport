@@ -188,6 +188,11 @@ final class App
         return new \Xperion\Posts\IdeaService($this->db(), $this->audit());
     }
 
+    public function summaryShare(): \Xperion\Monthly\SummaryShare
+    {
+        return new \Xperion\Monthly\SummaryShare($this->articles(), $this->mailer(), $this->audit(), $this->baseUrl());
+    }
+
     public function posts(): \Xperion\Posts\PostService
     {
         return new \Xperion\Posts\PostService($this->db(), $this->claude(), $this->rules(), $this->mailer(), $this->audit(), $this->baseUrl(),

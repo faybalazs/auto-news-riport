@@ -345,6 +345,19 @@ $('#sumRegen')?.addEventListener('click', async e => {
   catch(err){ toast(err.message, { type:'error' }); busy(b, false); }
 });
 const SUM_IC = { 'Újdonságok':['bulb','orange'], 'Tények, számok':['chart','blue'], 'Trendek':['arrow-up','green'] };
+/* Vezetői összefoglaló küldése e-mailben (a felhasználó adja meg a címzettet; egyszer megy ki) */
+$('#sumSend')?.addEventListener('click', async e => {
+  const b = e.currentTarget;
+  const fd = await formBox({ title:'Vezetői összefoglaló küldése', confirm:'Küldés', html:`
+    <div class="field"><label for="ss-to">Címzett</label><input class="input" id="ss-to" name="to" type="text" inputmode="email" autocomplete="off" required placeholder="nev@ceg.hu (több cím vesszővel)"></div>
+    <div class="field"><label for="ss-cc">Másolat <span class="opt">(nem kötelező)</span></label><input class="input" id="ss-cc" name="cc" type="text" inputmode="email" autocomplete="off"></div>
+    <div class="field"><label for="ss-note">Kísérőszöveg <span class="opt">(nem kötelező)</span></label><textarea class="input" id="ss-note" name="note" rows="3" placeholder="pl. Kedves Kollégák! Küldöm az októberi összefoglalót."></textarea></div>
+    <p class="help">A levél az összefoglaló teljes szövegét és a hónap cikkeinek linkjét tartalmazza. Elküldés után nem vonható vissza; a Naplóban látszik.</p>` });
+  if (!fd) return;
+  busy(b, true);
+  try { const d = await api('osszefoglalokuldes', { month:b.dataset.month, to:fd.get('to'), cc:fd.get('cc'), note:fd.get('note') }); toast('Elküldve: ' + d.to.join(', ')); }
+  catch(err){ toast(err.message, { type:'error' }); } finally { busy(b, false); }
+});
 const sumHtml = sum => sum ? `${sum.details ? `<p class="sum-lead">${esc(sum.details)}</p>` : ''}${(sum.sections || []).length ? `<div class="sum-groups">${sum.sections.map(g => `<div class="sum-group"><h3>${SUM_IC[g.title] ? `<span class="ic-tile t-${SUM_IC[g.title][1]}" aria-hidden="true">${ic(SUM_IC[g.title][0],'icon')}</span>` : ''}${esc(g.title)}</h3><ul>${g.points.map(p => `<li>${esc(p)}</li>`).join('')}</ul></div>`).join('')}</div>` : ''}${(sum.rows || []).length ? `<dl class="kv">${sum.rows.map(x => `<div><dt>${esc(x.label)}</dt><dd>${esc(x.value)}</dd></div>`).join('')}</dl>` : ''}` : '';
 const recBadge = r => { const x = REC[r]; return x ? `<span class="badge ${x[0]}">${ic(x[1],'icon')}${esc(x[2])}</span>` : (r ? `<span class="badge b-neutral">${esc(r)}</span>` : '<span class="meta">–</span>'); };
 

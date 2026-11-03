@@ -13,6 +13,8 @@ $when = $rep ? ($rep['updated_at'] !== '' ? $rep['updated_at'] : $rep['created_a
     <div class="wh"><span class="ic-tile t-purple" aria-hidden="true"><?= $ic('sparkle', 'icon') ?></span><div><h2 id="w-sum">Vezetői összefoglaló</h2><p class="meta"><?= $e($monthLabel) ?><?= $when !== '' ? ' · ' . $e(\Xperion\Web\View::dateHu($when)) . ($rep['updated_at'] !== '' ? ' (újragenerálva)' : '') : '' ?></p></div></div>
     <div class="head-actions">
       <?php if ($rep): ?><span class="badge b-ai"><?= $ic('sparkle', 'icon') ?>AI által generált</span><?php endif; ?>
+      <?php if ($rep): ?><a class="btn btn-ghost sm" href="index.php?p=osszefoglalo&amp;honap=<?= $e($month) ?>" target="_blank" rel="noopener" title="Nyomtatható nézet új ablakban; onnan menthető PDF-be"><?= $ic('download') ?>PDF</a><?php endif; ?>
+      <?php if ($rep && $canRegen): ?><button class="btn btn-ghost sm" type="button" id="sumSend" data-month="<?= $e($month) ?>"><?= $ic('send') ?>Küldés</button><?php endif; ?>
       <?php if ($canRegen): ?><?= $tip('t-sumregen', 'újragenerálás', 'A Claude a hónap cikkeiből és a mostani döntésekből írja meg: rövid bevezető, majd Újdonságok, Tények, számok és Trendek, konkrét forrásokkal. A mostani szöveg felülíródik. Néhány cent, 20–40 másodperc.') ?><button class="btn btn-secondary sm" type="button" id="sumRegen" data-month="<?= $e($month) ?>"><?= $ic('refresh') ?><?= $rep ? 'Újragenerálás' : 'Összefoglaló készítése' ?></button><?php endif; ?>
     </div>
   </div>

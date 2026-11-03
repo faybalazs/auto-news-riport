@@ -213,6 +213,7 @@ try {
             return ['result' => $app->uploads()->runForAccess($access, !empty($in['dry']))->toArray()];
         })(),
         'feltoltesvissza' => $app->uploads()->revert($access, (int) $int('id'), !empty($in['force'])),
+        'osszefoglalokuldes' => ['to' => $app->summaryShare()->send($access, $str('month'), $str('to'), $str('cc'), (string) ($in['note'] ?? ''))],
         'osszefoglalo' => (function () use ($app, $access, $str) {
             session_write_close();
             @set_time_limit(180);
