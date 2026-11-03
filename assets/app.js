@@ -770,6 +770,7 @@ if (APP.page === 'vezerlo' && $('#mailCard')){
     $('#mailEmpty').hidden = !(M.months || []).length || has;
     $('#mailPrev').hidden = !has; $('#mailActs').hidden = !has || sent;
     $('#mailGen').disabled = !(M.months || []).length || sent;
+    $('#mailGen').title = !(M.months || []).length ? 'Még nincs lezárt hónap, amelyből a levél elkészülhet.' : sent ? 'Ez a levél már elment; új levél a következő hónap után készül.' : '';
     $('#mailGen').innerHTML = ic('sparkle','icon icon-sm') + (has ? 'Újragenerálás' : 'E-mail generálása');
     if (!has){ $('#mailStatus').innerHTML = ''; return; }
     const b = BADGE[email.status] || ['b-neutral','info'];

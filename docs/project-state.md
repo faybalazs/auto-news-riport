@@ -30,6 +30,7 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 | Google Sheet (havi lapok 2408–2609, LinkedIn posztok, LinkedIn szabályok) | kézzel vezetve, használatban | felhasználói közlés |
 | Feltöltő MCP-szerver (ChatGPT-vel készült, távoli, OAuth) | használatban | felhasználói közlés, nem vizsgált |
 | Xperion OAuth Bridge WordPress-plugin (PHP 7.4) az xperion.hu-n | 0.6.0 átadva (forrás és API-leírás: docs/integracio/); a telepítés és próbája a felhasználóra vár; a 0.6.0 új részei a bővítmény saját jelentése szerint még nem futottak PHP alatt | átadócsomag, 2026-11-02 |
+| auris-admin-sablon skill (claude.ai) | v1.6.0 átadva 2026-11-03 (az app elemei bekerültek: futásállapot, folyamatnapló, teendő-csempe, lépéslista, választókártya, javítós hibabanner, tabos részletkártya; új alkalmazás-ellenőrző szkript); a feltöltés a felhasználóra vár | a skill-csomag (zip) |
 | xperion-linkedin skill (claude.ai) | használatban, a szabályokat a Sheetből olvassa | felhasználói közlés |
 
 ## Kockázatok
