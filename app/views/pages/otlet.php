@@ -31,5 +31,5 @@ $genOk = $idea && $idea['status'] !== 'elvetve' && $idea['post_code'] === '';
       <?php endif; ?>
     </div>
     <?php if ($idea && $idea['pending']): ?><div class="banner bn-info" role="status"><?= $ic('clock', 'icon') ?><div class="b-body"><span>Generálásra vár: az előző próba nem sikerült, az óránkénti futás újrapróbálja.</span></div></div><?php endif; ?>
-    <p class="help" id="genHint"<?= $genOk ? '' : ' hidden' ?>>A generálás fél–egy percig tart (Claude Opus, kb. 15–25 cent). A poszt Tervezet állapotba kerül; az ügyfél csak a kiküldés után látja jóváhagyásra.</p>
+    <p class="help" id="genHint"<?= $genOk ? '' : ' hidden' ?>>A generálás fél–egy percig tart (Claude Opus, kb. 15–25 cent). A kész poszt magától jóváhagyásra kerül (Ügyfélnél állapot), és az ügyfél-adminisztrátor e-mailt kap róla.</p>
   </form>
