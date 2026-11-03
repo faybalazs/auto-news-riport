@@ -1,0 +1,125 @@
+# Telepítés az éles tárhelyre (sunserver.hu), FTPS-en át.
+# Csak kézzel indul: GitHub → Actions → „Telepítés élesbe” → Run workflow (a „Use workflow from” mezőben választható az ág).
+# Előbb lefutnak a tesztek; csak ha zöldek, akkor tölt fel. Csak a megváltozott fájlokat tölti fel;
+# a config.php-t és a storage mappát soha nem érinti. A feltöltés után ellenőrzi, hogy a lábléc az új verziót mutatja-e.
+#
+# Szükséges beállítások (GitHub → Settings → Secrets and variables → Actions):
+#   Secrets:   FTP_SERVER, FTP_USERNAME, FTP_PASSWORD
+#   Variables: FTP_SERVER_DIR  (a tárhelyen az alkalmazás mappája az FTP-fiókhoz képest, perjellel a végén, pl. /public_html/xperion/ vagy ./)
+#              APP_URL         (az alkalmazás webcíme, pl. https://sajto.pelda.hu/xperion/)
+#              FTP_PROTOCOL    (nem kötelező: ftps – alapértelmezés –, ftp vagy ftps-legacy)
+name: Telepítés élesbe
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: telepites-eles
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  tesztek:
+    name: Tesztek
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: xp_test
+          MARIADB_USER: xp
+          MARIADB_PASSWORD: xp
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      XP_TEST_DB_HOST: 127.0.0.1
+      XP_TEST_DB_USER: xp
+      XP_TEST_DB_PASS: xp
+      XP_TEST_DB_NAME: xp_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: curl, json, openssl, pdo_mysql, mbstring
+          coverage: none
+      - name: Szintaxis-ellenőrzés
+        run: find . -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l > /dev/null
+      - name: Fejlesztői függőségek
+        run: composer install --no-interaction --no-progress
+      - name: PHPUnit
+        run: vendor/bin/phpunit
+
+  telepites:
+    name: Feltöltés a tárhelyre
+    needs: tesztek
+    runs-on: ubuntu-latest
+    environment:
+      name: eles
+      url: ${{ vars.APP_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verzió kiolvasása
+        id: ver
+        run: echo "version=$(sed -n "s/.*define('XPERION_VERSION', '\([^']*\)').*/\1/p" app/bootstrap.php)" >> "$GITHUB_OUTPUT"
+      - name: Beállítások ellenőrzése
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_SERVER_DIR: ${{ vars.FTP_SERVER_DIR }}
+        run: |
+          missing=""
+          [ -z "$FTP_SERVER" ] && missing="$missing FTP_SERVER(secret)"
+          [ -z "$FTP_USERNAME" ] && missing="$missing FTP_USERNAME(secret)"
+          [ -z "$FTP_PASSWORD" ] && missing="$missing FTP_PASSWORD(secret)"
+          [ -z "$FTP_SERVER_DIR" ] && missing="$missing FTP_SERVER_DIR(variable)"
+          if [ -n "$missing" ]; then echo "::error::Hiányzó beállítás:$missing"; exit 1; fi
+          case "$FTP_SERVER_DIR" in */) ;; *) echo "::error::Az FTP_SERVER_DIR perjellel végződjön (pl. /public_html/xperion/)"; exit 1;; esac
+          echo "Telepítendő verzió: ${{ steps.ver.outputs.version }} (ág: ${{ github.ref_name }})"
+      - name: Feltöltés (csak a változott fájlok)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ${{ vars.FTP_PROTOCOL || 'ftps' }}
+          server-dir: ${{ vars.FTP_SERVER_DIR }}
+          exclude: |
+            **/.git*
+            **/.git*/**
+            .github/**
+            config.php
+            storage/**
+            logs/**
+            vendor/**
+            tests/**
+            tools/**
+            docs/**
+            .phpunit.cache/**
+            phpunit.xml
+            composer.json
+            composer.lock
+            AGENTS.md
+            CLAUDE.md
+            README.md
+            CHANGELOG.md
+      - name: Ellenőrzés a weboldalon (lábléc verziója)
+        if: ${{ vars.APP_URL != '' }}
+        run: |
+          url="${{ vars.APP_URL }}"
+          url="${url%/}/index.php?p=belepes"
+          for i in 1 2 3; do
+            body=$(curl -fsSL --max-time 30 "$url" || true)
+            if echo "$body" | grep -q "Sajtófigyelés ${{ steps.ver.outputs.version }}"; then
+              echo "Rendben: a weboldal a ${{ steps.ver.outputs.version }} verziót mutatja."; exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::A weboldal nem a ${{ steps.ver.outputs.version }} verziót mutatja ($url). Nézze meg a láblécet, és a tárhely PHP-hibanaplóját."
+          exit 1

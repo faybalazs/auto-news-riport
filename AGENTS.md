@@ -26,7 +26,7 @@ PHP-alkalmazás saját felülettel és MySQL-adatbázissal (több ügyfélre): h
 - Mielőtt sok kódot írsz, rövid tervet kérj jóvá. Kis pull requestekben dolgozz, rövid magyar összefoglalóval.
 - Titkok (`config.php`, API-kulcsok, tokenek, szolgáltatásfiók JSON, `.env`) soha nem kerülnek a repóba; csak `config.example.php` a változónevekkel.
 - Ügyfélnek e-mail csak a felhasználó jóváhagyása után megy, piszkozat nélkül. Cikk élesbe csak „Mehet” jelölés után kerül.
-- Éles szerverre nem telepítesz. A kiadást a felhasználó tölti fel (ZIP a tárhely fájlkezelőjével, vagy általa jóváhagyott GitHub Actions).
+- Éles szerverre nem telepítesz. A kiadást a felhasználó indítja: GitHub → Actions → **Telepítés élesbe** (`.github/workflows/telepites.yml`, kézi), vagy ZIP a tárhely fájlkezelőjével. A munkafolyamatot te nem futtatod.
 
 ## Ellenőrzés
 - Tesztek: `vendor/bin/phpunit` (az adatbázistesztekhez fusson a MariaDB: `service mariadb start`). Felület: a `tools/felulet/` forrásait szerkeszd, utána építs (`tools/felulet/README.md`), és futtasd az auris-admin-sablon skill `scripts/app-ellenorzes.js` felületellenőrzőjét. Élesben a szárazfuttatás a Vezérlőpulton.

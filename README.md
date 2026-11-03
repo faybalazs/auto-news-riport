@@ -16,6 +16,8 @@ A tárhely vezérlőpultjában hozz létre egy MySQL-adatbázist és hozzá egy 
 1. A GitHubon nyisd meg a repót, válaszd ki a kiadási ágat, majd **Code → Download ZIP**.
 2. A tárhely fájlkezelőjében töltsd fel és csomagold ki (pl. `public_html/xperion/`). A ZIP egy almappát tartalmaz: annak a *tartalma* kerüljön a célmappába. Frissítéskor a `config.php`-t és a `storage` mappát ne írd felül.
 
+**Automatikus telepítés (javasolt):** GitHub → **Actions → Telepítés élesbe → Run workflow**. Előbb lefutnak a tesztek, utána csak a megváltozott fájlok kerülnek fel FTPS-en át; a `config.php` és a `storage` mappa érintetlen marad; a végén a lábléc verziójából ellenőrzi az eredményt. Beállítása egyszer: lásd a `.github/workflows/telepites.yml` fejlécét (FTP-adatok a GitHub Secrets, mappa és webcím a Variables alatt).
+
 ### 3. `config.php`
 Másold le a `config.example.php`-t `config.php` néven, és töltsd ki:
 - `admin_key`: beállítókulcs, legalább 16 karakteres véletlen szöveg. Csak az első belépéshez kell.
