@@ -15,3 +15,5 @@ python3 -I <auris-felhasznaloi-kezikonyv skill>/scripts/build.py docs/kezikonyv 
 ```
 
 Frissíteni kell, ha a felület feliratai, a szerepkörök jogai vagy a folyamat változik (a lábléc a kézikönyv és az alkalmazás verzióját és a dátumot mutatja: `UI.footerMeta`).
+
+Képek: legfeljebb 1200 px szélesek, WebP 72-es minőséggel; így a kész kézikönyv kb. 1,7 MB marad (a nagyobb képekkel 2,8 MB lett, és a teljes csomag nehezen volt feltölthető).

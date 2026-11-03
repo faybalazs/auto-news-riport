@@ -56,11 +56,11 @@ const UI = {
   stuck: T('Ha elakad', 'If you get stuck'),
   enlarge: T('Kép megnyitása teljes méretben', 'Open full-size image'),
   copyright: T('© 2026 Auris Dynamics Zrt. Minden jog fenntartva.', '© 2026 Auris Dynamics Zrt. All rights reserved.'),
-  footerMeta: T('Felhasználói kézikönyv 1.2 · Sajtófigyelés 0.18.0 · 2026. 11. 03.', 'User manual 1.1'),
+  footerMeta: T('Felhasználói kézikönyv 1.2 · Sajtófigyelés 0.18.1 · 2026. 11. 03.', 'User manual 1.1'),
 };
 
 const SHOT = 'Képernyőkép';
-const IMG_SIZES = [[1600,1000],[1600,1000],[880,1120],[1600,1000],[1600,1000],[1600,1083],[880,1412],[1600,693],[1600,1000],[880,580],[1600,1000],[1600,1000],[880,628],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[880,412],[780,1688],[1600,1000],[1600,1000],[1600,1000]];
+const IMG_SIZES = [[1200,750],[1200,750],[880,1120],[1200,750],[1200,750],[1200,812],[880,1412],[1200,520],[1200,750],[880,580],[1200,750],[1200,750],[880,628],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[880,412],[780,1688],[1200,750],[1200,750],[1200,750]];
 let FIGN = 0;
 const fig = (caption, opts = {}) => { const n = ++FIGN; const [w, h] = IMG_SIZES[n - 1]; return { type: 'figure', label: SHOT, caption, src: `img/${String(n).padStart(2, '0')}.webp`, w, h, ...opts }; };
 const who = text => ({ type: 'tip', label: 'Kinek szól?', text });

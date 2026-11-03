@@ -16,7 +16,7 @@ if (PHP_VERSION_ID < 80100) {
 }
 
 define('XPERION_ROOT', dirname(__DIR__));
-define('XPERION_VERSION', '0.18.0');
+define('XPERION_VERSION', '0.18.1');
 /** A kiadás dátuma (a lábléc mutatja): a CHANGELOG.md adott sorával egyezik. */
 define('XPERION_RELEASE', '2026-11-03');
 
