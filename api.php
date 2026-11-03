@@ -14,6 +14,29 @@ use Xperion\Web\Session;
 
 /** @var \Xperion\App $app */
 $app = require __DIR__ . '/app/bootstrap.php';
+// A válasz mindig JSON legyen: a PHP-figyelmeztetések nem kerülnek a kimenetre, végzetes hibánál (pl. időtúllépés,
+// hiányzó vagy régi fájl) is érthető üzenet megy vissza, nem üres 500-as oldal.
+@ini_set('display_errors', '0');
+ob_start();
+register_shutdown_function(static function (): void {
+    $err = error_get_last();
+    if ($err === null || !in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR], true)) {
+        return;
+    }
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    if (!headers_sent()) {
+        http_response_code(500);
+        header('Content-Type: application/json; charset=utf-8');
+    }
+    $msg = (string) $err['message'];
+    $why = str_contains($msg, 'Maximum execution time')
+        ? 'A művelet túllépte a tárhely futási időkorlátját. Próbálja újra; ha ismét előfordul, a weboldal lassan válaszol.'
+        : 'A szerver hibával leállt: ' . mb_substr($msg, 0, 300) . ' (' . basename((string) $err['file']) . ', ' . $err['line'] . '. sor). Ha a hiba egy fájlnevet említ, valószínűleg az a fájl hiányzik vagy régi a tárhelyen: töltse fel újra a teljes kiadást.';
+    error_log('Xperion API végzetes hiba: ' . $msg . ' @ ' . $err['file'] . ':' . $err['line']);
+    echo json_encode(['error' => $why], JSON_UNESCAPED_UNICODE);
+});
 Http::securityHeaders();
 if (!$app->dbConfigured()) {
     Http::json(['error' => 'Nincs beállítva az adatbázis.'], 503);
@@ -177,7 +200,11 @@ try {
             $app->posts()->delete($access, $str('code'));
             return ['ok' => true];
         })(),
-        'wpellenorzes' => ['wp' => $app->uploads()->check($access)],
+        'wpellenorzes' => (function () use ($app, $access) {
+            session_write_close();
+            @set_time_limit(180);
+            return ['wp' => $app->uploads()->check($access)];
+        })(),
         'feltoltes' => (function () use ($app, $access, $in) {
             $access->require('ops');
             session_write_close();
@@ -222,6 +249,8 @@ try {
 } catch (\InvalidArgumentException | \Xperion\Mail\MailException | \Xperion\Claude\ClaudeException | \Xperion\Press\WpException $e) {
     Http::json(['error' => $e->getMessage()], 422);
 } catch (\Throwable $e) {
-    error_log('Xperion API: ' . $e->getMessage());
-    Http::json(['error' => 'Váratlan hiba történt. A részletek a szerver naplójában vannak.'], 500);
+    error_log('Xperion API: ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine());
+    // az üzemeltető lássa az okot (a tárhely naplójához nehéz hozzáférni), más csak általános üzenetet kap
+    $detail = $access->isOperator() ? ' Részletek: ' . mb_substr($e->getMessage(), 0, 300) . ' (' . basename($e->getFile()) . ', ' . $e->getLine() . '. sor). Ha egy fájl vagy osztály hiányzik, töltse fel újra a teljes kiadást.' : ' A részletek a szerver naplójában vannak.';
+    Http::json(['error' => 'Váratlan hiba történt.' . $detail], 500);
 }

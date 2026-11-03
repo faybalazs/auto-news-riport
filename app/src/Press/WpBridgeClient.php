@@ -78,7 +78,7 @@ final class WpBridgeClient
         } catch (HttpException $e) {
             return $fail('transport', 'A webhely nem érhető el (' . $e->getMessage() . ').');
         }
-        $final = self::origin($idx->url);
+        $final = self::origin((string) ($idx->url ?? ''));
         if ($final !== '' && $final !== self::origin($this->baseUrl)) {
             return $fail('redirect', 'A(z) ' . $this->baseUrl . ' cím átirányít ide: ' . $final . '. Átirányításkor a belépési adat elveszik, ezért a WordPress nem lát belépést. '
                 . 'Írja a config.php wordpress részébe, a felhasználó és az alkalmazásjelszó mellé ezt a sort, majd próbálja újra:' . "\n```\n'base_url' => '" . $final . "',\n```");
