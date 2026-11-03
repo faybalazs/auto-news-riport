@@ -98,7 +98,14 @@ final class MonthlyServiceTest extends DbTestCase
         self::assertSame('Magyar leírás: How a bank cut wait times', $rows[0]['description']);
         self::assertSame(1, (int) $rows[2]['from_new_source']);
         $rep = (new ArticleService($this->db, new AuditLog($this->db)))->report($this->op(), '2610');
-        self::assertSame('Cikkek száma', $rep['summary_rows'][0]['label']);
+        // tagolt összefoglaló: rögzített sorrend, csoportonként legfeljebb 3 pont, ismeretlen csoport és üres pont nélkül
+        self::assertSame('Októberben a várakozás mérése volt a fő téma.', $rep['details']);
+        self::assertSame(['Újdonságok', 'Tények, számok', 'Trendek'], array_column($rep['sections'], 'title'));
+        self::assertCount(3, $rep['sections'][1]['points']);
+        self::assertSame(['A bankok mérik a várakozást.'], $rep['sections'][2]['points']);
+        self::assertSame([], $rep['summary_rows']);
+        // a Claude a cikkek leírását is megkapja, statisztikát nem kér
+        self::assertStringContainsString('Magyar leírás: How a bank cut wait times', $this->claude->lastSummaryInput);
 
         $calls = count($this->claude->requests);
         $r2 = $this->svc->runForAccess($this->op(), '2610', false);
@@ -189,5 +196,24 @@ final class MonthlyServiceTest extends DbTestCase
         $this->users->setPasswordWithToken((string) $emi['token'], TokenService::INVITE, 'emi-jelszava-1');
         $this->expectException(AccessDenied::class);
         $art->decide(Access::forUser($this->db, $emi['user_id'], null), [['id' => $ids[0], 'decision' => '']]);
+    }
+
+    public function testSummaryCanBeRegeneratedFromSavedArticles(): void
+    {
+        $this->svc->runForAccess($this->op(), '2610', false);
+        $this->db->run("UPDATE month_reports SET sections = NULL, details = 'Régi.', summary_rows = '[{\"label\":\"Cikkek száma\",\"value\":\"3\"}]' WHERE client_id = ?", [$this->x]);
+        $this->db->run("UPDATE articles SET decision = 'mehet' WHERE client_id = ? AND no = 1", [$this->x]);
+        $rep = $this->svc->regenerateSummary($this->op(), '2610');
+        self::assertSame('Októberben a várakozás mérése volt a fő téma.', $rep['details']);
+        self::assertCount(3, $rep['sections']);
+        self::assertNotSame('', $rep['updated_at']);
+        self::assertStringContainsString('"decision": "mehet"', $this->claude->lastSummaryInput, 'a mostani döntéseket is megkapja');
+        self::assertSame(1, (int) $this->db->value("SELECT COUNT(*) FROM audit_log WHERE action = 'Vezetői összefoglaló újragenerálva'"));
+        // a Sheetből átvett, összefoglaló nélküli hónaphoz is elkészíthető
+        $this->db->run('DELETE FROM month_reports WHERE client_id = ?', [$this->x]);
+        self::assertCount(3, $this->svc->regenerateSummary($this->op(), '2610')['sections']);
+        // üres hónap: érthető hiba
+        $this->expectException(\InvalidArgumentException::class);
+        $this->svc->regenerateSummary($this->op(), '2601');
     }
 }

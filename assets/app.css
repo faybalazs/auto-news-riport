@@ -830,6 +830,12 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 @media (pointer:coarse){ .up-text > summary{ min-height:44px; } }
 .up-text > summary:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; border-radius:4px; }
 .up-text .cell-title{ margin-top:6px; padding-top:6px; border-top:1px solid var(--border); }
+/* Vezetői összefoglaló: bevezető + tagolt csoportok */
+.sum-lead{ font-size:var(--fs-md, 15px); color:var(--text); max-width:80ch; line-height:1.55; }
+.sum-groups{ display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap:16px 24px; margin-top:8px; }
+.sum-group h3{ font-size:var(--fs-sm); font-weight:600; margin-bottom:6px; }
+.sum-group ul{ margin:0; padding-left:18px; display:flex; flex-direction:column; gap:6px; }
+.sum-group li{ font-size:var(--fs-sm); color:var(--text-2); line-height:1.5; }
 
 /* ================= 18. TÖRÉSPONTOK (mindig a CSS végén) ================= */
 @media (max-width:1279px){ .layout{ grid-template-columns:minmax(0,1fr); } .w-8, .w-4{ grid-column:span 12; } }

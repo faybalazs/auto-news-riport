@@ -13,16 +13,7 @@ $rep = $data['report'] ?? null;
 <?php if (!$months): ?>
 <section class="card widget"><div class="empty-state"><b>Még nincs havi lista</b><span>Az első havi futás (minden hónap 1-jén, vagy a Vezérlőpultról kézzel) után itt jelennek meg a hónap cikkei a javaslatokkal. A Google Sheetből átvett korábbi hónapok is itt látszanak.</span></div></section>
 <?php else: ?>
-<?php if ($rep): ?>
-<section class="card widget" aria-labelledby="w-sum">
-  <div class="widget-head">
-    <div class="wh"><span class="ic-tile t-purple" aria-hidden="true"><?= $ic('sparkle', 'icon') ?></span><div><h2 id="w-sum">Vezetői összefoglaló</h2><p class="meta"><?= $e($label($month)) ?> · <?= $e(\Xperion\Web\View::dateHu($rep['created_at'])) ?></p></div></div>
-    <div class="head-actions"><span class="badge b-ai"><?= $ic('sparkle', 'icon') ?>AI által generált</span></div>
-  </div>
-  <dl class="kv"><?php foreach ($rep['summary_rows'] as $r): ?><div><dt><?= $e($r['label'] ?? '') ?></dt><dd><?= $e($r['value'] ?? '') ?></dd></div><?php endforeach; ?></dl>
-  <?php if (!empty($rep['details'])): ?><div class="sum-text"><h3>Részletek</h3><p><?= $e($rep['details']) ?></p></div><?php endif; ?>
-</section>
-<?php endif; ?>
+<?php $monthLabel = $label($month); require __DIR__ . '/_osszefoglalo.php'; ?>
 <?php if (isset($data['upWait'])): $wpReady = !empty($data['wpReady']); $why = $wpReady ? '' : ' disabled title="A weboldal-kapcsolat még nincs beállítva; az üzemeltető állítja be."'; ?>
 <section class="card widget" aria-labelledby="w-up" id="artUpload">
   <div class="widget-head">

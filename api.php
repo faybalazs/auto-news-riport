@@ -213,6 +213,11 @@ try {
             return ['result' => $app->uploads()->runForAccess($access, !empty($in['dry']))->toArray()];
         })(),
         'feltoltesvissza' => $app->uploads()->revert($access, (int) $int('id'), !empty($in['force'])),
+        'osszefoglalo' => (function () use ($app, $access, $str) {
+            session_write_close();
+            @set_time_limit(180);
+            return ['report' => $app->monthly()->regenerateSummary($access, $str('month'))];
+        })(),
         'cikktorles' => (function () use ($app, $access, $int) {
             $app->articles()->remove($access, (int) $int('id'));
             return ['ok' => true];

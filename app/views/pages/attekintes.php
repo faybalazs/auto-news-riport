@@ -87,18 +87,7 @@ require __DIR__ . '/_head.php';
   <div class="empty-state"><b>Még nincs havi adat</b><span>Az adatátvétel vagy az első havi futás után itt jelenik meg a hónap összefoglalója, alatta a számok, a döntések megoszlása és a cikkek forrásonként.</span></div>
 </section>
 <?php else: ?>
-<section class="card widget" aria-labelledby="w-sum">
-  <div class="widget-head">
-    <div class="wh"><span class="ic-tile t-purple" aria-hidden="true"><?= $ic('sparkle', 'icon') ?></span><div><h2 id="w-sum">Vezetői összefoglaló</h2><p class="meta"><?= $e($label($month)) ?><?= $rep ? ' · ' . $e(View::dateHu($rep['created_at'])) : '' ?></p></div></div>
-    <?php if ($rep): ?><div class="head-actions"><span class="badge b-ai"><?= $ic('sparkle', 'icon') ?>AI által generált</span></div><?php endif; ?>
-  </div>
-  <?php if ($rep): ?>
-  <dl class="kv"><?php foreach ($rep['summary_rows'] as $r): ?><div><dt><?= $e($r['label'] ?? '') ?></dt><dd><?= $e($r['value'] ?? '') ?></dd></div><?php endforeach; ?></dl>
-  <?php if (!empty($rep['details'])): ?><div class="sum-text"><h3>Részletek</h3><p><?= $e($rep['details']) ?></p></div><?php endif; ?>
-  <?php else: ?>
-  <div class="empty-state"><b>Ehhez a hónaphoz nincs összefoglaló</b><span>A Google Sheetből átvett hónapokhoz nem készül; az új hónapokét a havi futás írja.</span></div>
-  <?php endif; ?>
-</section>
+<?php $monthLabel = $label($month); require __DIR__ . '/_osszefoglalo.php'; ?>
 
 <div class="kpis" aria-label="A hónap számai">
   <?php foreach ($kpis as [$k, $kl, $kic, $kc]):

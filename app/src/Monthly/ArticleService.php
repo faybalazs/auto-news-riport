@@ -46,12 +46,14 @@ final class ArticleService
     /** @return array<string,mixed>|null */
     public function report(Access $a, string $month): ?array
     {
-        $r = $a->clientId() === null ? null : $this->db->one('SELECT summary_rows, details, stats, model, created_at FROM month_reports WHERE client_id = ? AND month = ?', [$a->clientId(), $month]);
+        $r = $a->clientId() === null ? null : $this->db->one('SELECT summary_rows, details, sections, stats, model, created_at, updated_at FROM month_reports WHERE client_id = ? AND month = ?', [$a->clientId(), $month]);
         if ($r === null) {
             return null;
         }
         $r['summary_rows'] = json_decode((string) $r['summary_rows'], true) ?: [];
         $r['stats'] = json_decode((string) $r['stats'], true) ?: [];
+        $r['sections'] = Summarizer::cleanSections(json_decode((string) ($r['sections'] ?? ''), true));
+        $r['updated_at'] = (string) ($r['updated_at'] ?? '');
         return $r;
     }
 

@@ -321,6 +321,15 @@ async function uploadRun(live, { lock = [], onDone } = {}){
   } catch(e){ toast(e.message, { type:'error' }); }
   finally { busy(b, false); others.forEach(s => { if ($(s)) $(s).disabled = false; }); }
 }
+/* Vezetői összefoglaló újragenerálása (Havi cikkek, Áttekintés) */
+$('#sumRegen')?.addEventListener('click', async e => {
+  const b = e.currentTarget, again = /Újra/.test(b.textContent);
+  if (!await confirmBox({ title: again ? 'Újragenerálja a vezetői összefoglalót?' : 'Elkészíti a vezetői összefoglalót?', body:`A Claude a hónap cikkeiből és a mostani döntésekből írja meg: rövid bevezető, majd Újdonságok, Tények, számok és Trendek, konkrét forrásokkal. ${again ? 'A mostani szöveg felülíródik. ' : ''}Néhány cent, 20–40 másodperc.`, confirm: again ? 'Újragenerálás' : 'Összefoglaló készítése', danger:false })) return;
+  busy(b, true); announce('Az összefoglaló készül, 20–40 másodperc…');
+  try { await api('osszefoglalo', { month:b.dataset.month }); toast('Az összefoglaló elkészült.'); setTimeout(() => location.reload(), 600); }
+  catch(err){ toast(err.message, { type:'error' }); busy(b, false); }
+});
+const sumHtml = sum => sum ? `${sum.details ? `<p class="sum-lead">${esc(sum.details)}</p>` : ''}${(sum.sections || []).length ? `<div class="sum-groups">${sum.sections.map(g => `<div class="sum-group"><h3>${esc(g.title)}</h3><ul>${g.points.map(p => `<li>${esc(p)}</li>`).join('')}</ul></div>`).join('')}</div>` : ''}${(sum.rows || []).length ? `<dl class="kv">${sum.rows.map(x => `<div><dt>${esc(x.label)}</dt><dd>${esc(x.value)}</dd></div>`).join('')}</dl>` : ''}` : '';
 const recBadge = r => { const x = REC[r]; return x ? `<span class="badge ${x[0]}">${ic(x[1],'icon')}${esc(x[2])}</span>` : (r ? `<span class="badge b-neutral">${esc(r)}</span>` : '<span class="meta">–</span>'); };
 
 /* ==================================================================
@@ -629,7 +638,7 @@ if (APP.page === 'vezerlo'){
       $('#colSources').innerHTML = d.sources.length ? `<table><caption class="sr-only">Források</caption><thead><tr><th scope="col">Forrás</th><th scope="col">Mód</th><th scope="col" class="num">Talált</th><th scope="col" class="num">A hónapban</th><th scope="col" class="num">Duplikátum</th><th scope="col" class="num">Kizárt</th><th scope="col" class="num">Marad</th><th scope="col">Megjegyzés</th></tr></thead><tbody>${d.sources.map(s => `<tr><td>${esc(s.name || s.url)}</td><td>${esc(s.method)}</td><td class="num">${s.found}</td><td class="num">${s.in_month}</td><td class="num">${s.duplicate}</td><td class="num">${s.excluded}</td><td class="num"><b>${s.kept}</b></td><td>${s.error ? `<span class="badge b-warning">${ic('alert','icon')}${esc(s.error)}</span>` : (s.undated ? `<span class="meta">${s.undated} dátum nélkül</span>` : '')}</td></tr>`).join('')}</tbody></table>` : `<div class="empty-state"><b>Nincs aktív forrás</b><span>${esc(r.lines.map(l => l.text).join(' '))}</span></div>`;
       colRows.splice(0, colRows.length, ...d.items.map((x, i) => ({ ...x, id:String(i) }))); colTable.render();
       const sum = d.summary;
-      $('#monSum').innerHTML = sum ? `<div class="widget-head" style="margin-top:16px"><div><h3 class="sub-h" style="margin:0">Vezetői összefoglaló${live ? '' : ' (szárazon, nem mentve)'}</h3></div><span class="badge b-ai">${ic('sparkle','icon')}AI által generált</span></div><dl class="kv">${(sum.rows || []).map(x => `<div><dt>${esc(x.label)}</dt><dd>${esc(x.value)}</dd></div>`).join('')}</dl><p class="help" style="margin-top:8px">${esc(sum.details || '')}</p>` : (d.exists ? `<div class="empty-state" style="margin-top:12px"><b>Ehhez a hónaphoz már van lista</b><span>A Havi cikkek oldalon látható.</span></div>` : '');
+      $('#monSum').innerHTML = sum ? `<div class="widget-head" style="margin-top:16px"><div><h3 class="sub-h" style="margin:0">Vezetői összefoglaló${live ? '' : ' (szárazon, nem mentve)'}</h3></div><span class="badge b-ai">${ic('sparkle','icon')}AI által generált</span></div><div class="sum-text">${sumHtml(sum)}</div>` : (d.exists ? `<div class="empty-state" style="margin-top:12px"><b>Ehhez a hónaphoz már van lista</b><span>A Havi cikkek oldalon látható.</span></div>` : '');
       $('#monSum').hidden = !$('#monSum').innerHTML;
       if (!d.sources) d.sources = [];
       $('#colOut').hidden = false;

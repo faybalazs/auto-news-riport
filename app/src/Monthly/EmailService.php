@@ -124,7 +124,7 @@ final class EmailService
             throw new \Xperion\Claude\ClaudeException('Nincs beállítva a Claude API-kulcs (config.php: claude_api_key).');
         }
         $client = $this->db->one('SELECT id, name FROM clients WHERE id = ?', [$cid]) ?? throw new \InvalidArgumentException('Nincs ilyen ügyfél.');
-        $report = $this->db->one('SELECT summary_rows, details FROM month_reports WHERE client_id = ? AND month = ?', [$cid, $month]);
+        $report = $this->db->one('SELECT summary_rows, details, sections FROM month_reports WHERE client_id = ? AND month = ?', [$cid, $month]);
         $arts = $this->db->all('SELECT source_name, title, recommendation, from_new_source, decision, uploaded FROM articles WHERE client_id = ? AND month = ? ORDER BY COALESCE(no, 9999), id', [$cid, $month]);
         if ($report === null && !$arts) {
             throw new \InvalidArgumentException('Ehhez a hónaphoz még nincs havi lista. Előbb futtassa a havi futást.');
@@ -145,7 +145,7 @@ final class EmailService
             'hónap' => $label,
             'havi_cikkek_link' => $link !== '' ? $link : '(nincs link; hagyd ki)',
             'megszólított' => $recipientName !== '' ? $recipientName . ' (magyar névsorrend: a keresztnév az utolsó szó)' : '(ismeretlen; általános megszólítás)',
-            'vezetői_összefoglaló' => $report ? ['sorok' => json_decode((string) $report['summary_rows'], true) ?: [], 'részletek' => (string) $report['details']] : null,
+            'vezetői_összefoglaló' => $report ? array_filter(['sorok' => json_decode((string) $report['summary_rows'], true) ?: [], 'bevezető' => (string) $report['details'], 'csoportok' => Summarizer::cleanSections(json_decode((string) ($report['sections'] ?? ''), true))]) : null,
             'számok' => ['cikkek' => count($arts), 'javaslatok' => $by, 'források' => array_slice($src, 0, 8, true)],
             'új_forrásból' => array_values(array_map(static fn ($r) => $r['source_name'] . ': ' . $r['title'], array_filter($arts, static fn ($r) => (int) $r['from_new_source'] === 1))),
             'erősen_javasolt' => array_slice(array_values(array_map(static fn ($r) => $r['source_name'] . ': ' . $r['title'], array_filter($arts, static fn ($r) => $r['recommendation'] === 'Erősen javasolt'))), 0, 8),

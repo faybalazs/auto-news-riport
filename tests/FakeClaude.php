@@ -13,6 +13,8 @@ use Xperion\Http\HttpResponse;
  */
 final class FakeClaude implements HttpClient
 {
+    /** Az utolsó összefoglaló-kérés felhasználói üzenete (a tesztek ellenőrzik, mit kap a Claude). */
+    public string $lastSummaryInput = '';
     /** @var list<array{headers:array<string,string>, body:array<string,mixed>}> */
     public array $requests = [];
     public ?string $stopReason = null;
@@ -52,6 +54,14 @@ final class FakeClaude implements HttpClient
         } elseif (isset($props['hu'])) {
             preg_match('/^Cím: (.*)$/m', $b['messages'][0]['content'], $m);
             $text = json_encode(['hu' => ['title' => 'HU: ' . ($m[1] ?? ''), 'summary' => 'Magyar ajánló.'], 'en' => ['title' => 'EN: ' . ($m[1] ?? ''), 'summary' => 'English teaser.']], JSON_UNESCAPED_UNICODE);
+        } elseif (isset($props['sections'])) {
+            $this->lastSummaryInput = (string) $b['messages'][0]['content'];
+            $text = json_encode(['lead' => 'Októberben a várakozás mérése volt a fő téma.', 'sections' => [
+                ['title' => 'Trendek', 'points' => ['A bankok mérik a várakozást.', '']],
+                ['title' => 'Újdonságok', 'points' => ['A Qmatic új szolgáltatást vezetett be.']],
+                ['title' => 'Kitalált csoport', 'points' => ['Nem jelenhet meg.']],
+                ['title' => 'Tények, számok', 'points' => ['A Deloitte felmérése szerint a vásárlók 38%-a online kezd.', 'Kettő.', 'Három.', 'Negyedik, levágandó.']],
+            ]], JSON_UNESCAPED_UNICODE);
         } elseif (isset($props['subject'])) {
             $text = json_encode(['subject' => 'Sajtófigyelés – 2026. október', 'body' => "Kedves Attila!\n\nElkészült az októberi lista:\nhttps://app.test/index.php?p=cikkek&honap=2610\n\n- Új forrás: Acrelec, egy cikkel.\n- Cikkek: 3\n\nÜdvözlettel: az Auris Dynamics csapata"], JSON_UNESCAPED_UNICODE);
         } else {

@@ -50,6 +50,6 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 - Frissített ütemterv: [roadmap.md](roadmap.md).
 
 ## Következő lépések
-1. Felhasználó: feltöltés (0.10.1); a config.php-ban az ismétlődő `smtp` rész törlése (a Vezérlőpult kiírja); egy poszt képének újrakészítése (**Új kép**) és a minta szerinti minőség ellenőrzése; Ügyfelek → Beállítási lépések végigjárása az Xperionnál; Források átnézése; Napló kipróbálása (Attilával is).
-2. Éles próbák a még nem ellenőrzött részekre: havi futás valódi forrásokon és Claude-dal, havi e-mail valódi SMTP-vel, élő feltöltés az xperion.hu-ra, posztgenerálás és képtervezés.
+1. Felhasználó: a 0.13.0 feltöltése (teljes csere); a Havi cikkeken a **Feltöltés a weboldalra** kártya kipróbálása egy új cikkel (szövegek szárazon, majd élesen), a teszt-feltöltés visszavonása (⋯ → Feltöltés visszavonása); a vezetői összefoglaló **Újragenerálás**a az októberi hónapra, és a szöveg minőségének átnézése.
+2. Éles próbák a még nem ellenőrzött részekre: havi futás valódi forrásokon és Claude-dal, havi e-mail valódi SMTP-vel, posztgenerálás és képtervezés.
 3. A pull request átnézése és összevonása (merge) a fő ágba, ha az éles próbák rendben vannak; utána a 3. ütem (e-mailes válaszok feldolgozása) tervezése, ha kell.
