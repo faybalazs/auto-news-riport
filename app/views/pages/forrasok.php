@@ -6,10 +6,15 @@ require __DIR__ . '/_head.php';
 <div class="tabs" role="tablist" aria-label="Források és kulcsszavak">
   <button class="tab" role="tab" id="tab-src" aria-selected="true" aria-controls="p-src" tabindex="0"><?= $ic('globe') ?>Források <span class="count" id="srcCount">0</span></button>
   <button class="tab" role="tab" id="tab-kw" aria-selected="false" aria-controls="p-kw" tabindex="-1"><?= $ic('search') ?>Kulcsszavak <span class="count" id="kwCount">0</span></button>
+  <button class="tab" role="tab" id="tab-sug" aria-selected="false" aria-controls="p-sug" tabindex="-1"><?= $ic('sparkle') ?>Javasolt források <span class="count" id="sugCount">0</span></button>
 </div>
 <div class="card table-card" id="p-src" role="tabpanel" aria-labelledby="tab-src">
   <div class="toolbar" role="search" aria-label="Források szűrése"><div class="search"><?= $ic('search', 'icon') ?><label class="sr-only" for="srcQ">Keresés a források között</label><input class="input" id="srcQ" type="search" placeholder="Név, cím, téma…" autocomplete="off"></div><span class="spacer"></span><button class="btn btn-primary sm" type="button" id="srcAdd"><?= $ic('plus') ?>Új forrás</button></div>
   <div class="table-wrap" id="srcTable"></div>
+</div>
+<div class="card table-card" id="p-sug" role="tabpanel" aria-labelledby="tab-sug" hidden>
+  <div class="toolbar"><b>Új-forrás-figyelő</b><?= $tip('t-sug', 'új-forrás-figyelő', 'A Claude a kulcsszavak és a figyelt források témái alapján a weben olyan hírforrásokat keres, amelyek még nincsenek a listában. Mindegyiket próbagyűjtéssel ellenőrizzük; csak a működők kerülnek ide. <b>Felvétel:</b> aktív, „új forrás” jelöléssel figyelt forrás lesz. <b>Elvetés:</b> a figyelő többé nem javasolja. Keresésenként kb. 5–15 cent, 1–3 perc.') ?><span class="spacer"></span><button class="btn btn-primary sm" type="button" id="sugSearch"><?= $ic('search') ?>Új források keresése</button></div>
+  <div class="table-wrap" id="sugTable"></div>
 </div>
 <div class="card table-card" id="p-kw" role="tabpanel" aria-labelledby="tab-kw" hidden>
   <div class="toolbar" role="search" aria-label="Kulcsszavak szűrése"><div class="search"><?= $ic('search', 'icon') ?><label class="sr-only" for="kwQ">Keresés a kulcsszavak között</label><input class="input" id="kwQ" type="search" placeholder="Kulcsszó, téma…" autocomplete="off"></div><span class="spacer"></span><button class="btn btn-primary sm" type="button" id="kwAdd"><?= $ic('plus') ?>Új kulcsszó</button></div>

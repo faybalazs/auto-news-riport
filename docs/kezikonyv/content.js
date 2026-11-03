@@ -1,5 +1,5 @@
 // Sajtófigyelés – felhasználói kézikönyv az ügyféloldali felhasználóknak (ügyfél-adminisztrátor, tartalomkezelő).
-// Forrás: az alkalmazás kódja (0.13.1) és a helyi próbafelület, kitalált tesztadatokkal.
+// Forrás: az alkalmazás kódja (0.17.0) és a helyi próbafelület, kitalált tesztadatokkal.
 // Építés: python3 <auris-felhasznaloi-kezikonyv skill>/scripts/build.py docs/kezikonyv docs/kezikonyv/kezikonyv.html
 const BRAND = {
   key: 'sajtofigyeles',
@@ -56,11 +56,11 @@ const UI = {
   stuck: T('Ha elakad', 'If you get stuck'),
   enlarge: T('Kép megnyitása teljes méretben', 'Open full-size image'),
   copyright: T('© 2026 Auris Dynamics Zrt. Minden jog fenntartva.', '© 2026 Auris Dynamics Zrt. All rights reserved.'),
-  footerMeta: T('Felhasználói kézikönyv 1.1 · Sajtófigyelés 0.13.3 · 2026. 11. 03.', 'User manual 1.1'),
+  footerMeta: T('Felhasználói kézikönyv 1.2 · Sajtófigyelés 0.17.0 · 2026. 11. 03.', 'User manual 1.1'),
 };
 
 const SHOT = 'Képernyőkép';
-const IMG_SIZES = [[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,990],[1600,972],[1600,1000],[880,580],[1600,1000],[1600,1000],[880,628],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[880,412],[780,1688],[1600,1000],[1600,1000],[1600,1000]];
+const IMG_SIZES = [[1600,1000],[1600,1000],[880,1120],[1600,1000],[1600,1000],[1600,988],[880,1412],[1600,693],[1600,1000],[880,580],[1600,1000],[1600,1000],[880,628],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[880,412],[780,1688],[1600,1000],[1600,1000],[1600,1000]];
 let FIGN = 0;
 const fig = (caption, opts = {}) => { const n = ++FIGN; const [w, h] = IMG_SIZES[n - 1]; return { type: 'figure', label: SHOT, caption, src: `img/${String(n).padStart(2, '0')}.webp`, w, h, ...opts }; };
 const who = text => ({ type: 'tip', label: 'Kinek szól?', text });
@@ -139,6 +139,7 @@ const SURFACES = {
         { t: 'Döntés:', d: 'az ügyfél választása cikkenként: Mehet (a weboldalra), LinkedIn poszt (poszt készül belőle), Nem kell.' },
         { t: 'Publikálva:', d: 'a cikk magyar és angol ajánlója kint van a weboldalon. A Mehet döntés önmagában még nem Publikálva.' },
         { t: 'Szárazfuttatás:', d: 'próbafuttatás, amely elkészíti a szövegeket, de a weboldalra nem ír semmit.' },
+        { t: '(i) súgó:', d: 'a gombok és mezők melletti kis (i) jel. Rámutatva vagy megérintve megmutatja, mit csinál a gomb, mennyi ideig tart és mennyibe kerül.' },
         { t: 'Poszt állapotai:', d: 'Tervezet, Ügyfélnél (jóváhagyásra vár), Jóváhagyva, Megjelent.' },
         { t: 'Szerepkörök:', d: 'ügyfél-adminisztrátor (dönt, jóváhagy, feltölt, felhasználókat hív meg), tartalomkezelő (posztötletek, szabályok, feltöltés, közzététel), olvasó (mindent lát, de nem módosít). Az üzemeltető (Auris Dynamics Zrt.) a futásokat és a beállításokat kezeli.' },
       ] },
@@ -171,9 +172,16 @@ const SURFACES = {
         ] },
         { type: 'warning', text: 'Az újragenerálás felülírja a korábbi összefoglalót. A régi szöveg nem állítható vissza.' },
         { type: 'p', text: 'Ha egy hónaphoz még nincs összefoglaló (például a Google Sheetből átvett hónapoknál), az Összefoglaló készítése gombbal elkészíthető.' },
+        { type: 'h3', id: 'a-ov-share', text: 'Mentés PDF-be és küldés e-mailben' },
+        { type: 'steps', items: [
+          { t: 'Mentés PDF-be.', d: 'Az összefoglaló kártyájának PDF gombja új ablakban nyomtatható nézetet nyit. Ott a Nyomtatás / mentés PDF-be gomb után a nyomtatóválasztóban a Mentés PDF-ként a célállomás. iPaden: Megosztás → Nyomtatás, majd a megosztás gombbal menthető a Fájlokba.' },
+          { t: 'Küldés e-mailben.', d: 'A Küldés gomb ablakában a Címzett mező kötelező (több cím vesszővel elválasztva), a Másolat és a Kísérőszöveg nem kötelező. A levél az összefoglalót és a hónap cikkeinek linkjét tartalmazza.' },
+          { t: 'Elküldés.', d: 'A Küldés gomb azonnal elküldi a levelet, egyszer. A küldés a Naplóba is bekerül (Vezetői összefoglaló elküldve).' },
+        ] },
+        fig('Vezetői összefoglaló küldése — címzett, másolat és kísérőszöveg'),
         fig('Áttekintés — a hónap számai: cikkek, erősen javasolt, Mehet és LinkedIn poszt jelölés, előző hónaphoz mérve'),
         stuck([
-          ['Nem látszik az Újragenerálás gomb?', 'A gomb csak ügyfél-adminisztrátornak és az üzemeltetőnek jelenik meg.'],
+          ['Nem látszik az Újragenerálás vagy a Küldés gomb?', 'A gombok csak ügyfél-adminisztrátornak és az üzemeltetőnek jelennek meg. A PDF mindenkinek elérhető.'],
           ['Hibaüzenet jelenik meg az újragenerálásnál?', 'Az üzenet megnevezi az okot. Ismétlődő hiba esetén az üzemeltető tud segíteni.'],
         ]),
         { type: 'next', text: 'A döntésre váró cikkek a Cikk vár döntésre csempe Döntések gombjával nyithatók meg.' },
@@ -193,7 +201,13 @@ const SURFACES = {
         fig('Havi cikkek — két kijelölt cikk és a tömeges döntés sávja'),
         { type: 'important', text: 'A Mehet döntés nem teszi ki azonnal a cikket. A feltöltést az óránkénti futás végzi, vagy kézzel a Feltöltés élesben gomb (következő fejezet).' },
         { type: 'h3', id: 'a-art-li', text: 'Poszt készítése cikkekből' },
-        { type: 'p', text: 'A LinkedIn poszt jelölésű cikkek közül a kijelöltekből a Poszt készítése a kijelöltekből gomb indít posztot. Egy cikkből egy poszt, több cikkből egy közös poszt készül. A kész poszt magától jóváhagyásra kerül.' },
+        { type: 'p', text: 'A LinkedIn poszt jelölésű cikkek közül a kijelöltekből a Poszt készítése a kijelöltekből gomb indít posztot. Egy cikkből a cikkre épülő poszt készül (a cikk linkje az első kommentbe való). Több cikkből egyetlen önálló, hírszerű poszt készül a cikkek tényeiből, forrásmegjelölés és link nélkül.' },
+        { type: 'steps', items: [
+          { t: 'Cikkek kijelölése.', d: 'A LinkedIn poszt nézetben a sorok elején jelölje ki a cikkeket (legfeljebb 6), majd a sávban a Poszt készítése a kijelöltekből gomb.' },
+          { t: 'Utasítás megadása.', d: 'Az ablakban az Utasítás a szöveghez (például: „A bankfiókok vezetőinek szóljon.”) és az Utasítás a képhez (például: „Kulcsszám elrendezés a 38%-os adattal.”) nem kötelező. A Posztszabályok és a cikkek tényei mindig érvényesek; az utasítás ezeken belül irányít.' },
+          { t: 'Poszt készítése.', d: 'A Poszt készítése gomb után 1–2 perc a készítés. A kész poszt magától jóváhagyásra kerül, az utasítások a poszt adatlapján látszanak, és újragenerálásnál is érvényesek maradnak.' },
+        ] },
+        fig('Poszt készítése — a kijelölt cikkek, utasítás a szöveghez és a képhez'),
         { type: 'h3', id: 'a-art-delete', text: 'Törlés a listából' },
         { type: 'p', text: 'A sor ⋯ menüjének Törlés a listából pontja eltünteti a cikket a havi listából. A megjelenő értesítés Visszavonás gombja visszaállítja. A törlés a Naplóba is bekerül. Publikált cikk nem törölhető, csak a feltöltés visszavonása után.' },
         stuck([
@@ -283,11 +297,21 @@ const SURFACES = {
           { t: 'Próbagyűjtés és mentés.', d: 'A Próbagyűjtés megmutatja, hány cikket talál a forrás, és melyik a legutóbbi néhány; nem ment semmit. A Mentés rögzíti a forrást.' },
         ] },
         fig('Források — figyelt oldalak típussal, állapottal és cikkszámmal'),
+        { type: 'h3', id: 'a-src-find', text: 'Új források keresése (új-forrás-figyelő)' },
+        { type: 'p', text: 'A Javasolt források fülön a Claude a kulcsszavak és a figyelt források témái alapján a weben olyan hírforrásokat keres, amelyek még nincsenek a listában. Minden találat próbagyűjtésen megy át; csak a működő forrás kerül a javaslatok közé. Forrás csak az Ön döntésével kerül be.' },
+        { type: 'steps', items: [
+          { t: 'Keresés indítása.', d: 'A Javasolt források fül Új források keresése gombja megkérdezi, hány új forrást keressen (1–10; a szám megmarad a következő keresésre). A Keresés indítása után 1–3 perc a keresés, költsége kb. 5–15 cent.' },
+          { t: 'Javaslatok átnézése.', d: 'Soronként: a forrás neve és címe, miért javasolt, típus és témák, valamint a próbagyűjtés eredménye (hány cikket talált, és a legutóbbi néhány cím).' },
+          { t: 'Felvétel.', d: 'A Felvétel gomb aktív, „új forrás” jelölésű figyelt forrásként veszi fel; a következő havi gyűjtés már figyeli, a cikkei a Havi cikkek Új források nézetében külön látszanak.' },
+          { t: 'Elvetés.', d: 'Az Elvetés gomb eltünteti a javaslatot, és a figyelő ezt a forrást többé nem javasolja.' },
+        ] },
+        fig('Javasolt források — próbagyűjtéssel ellenőrzött javaslatok, Felvétel és Elvetés'),
         { type: 'h3', id: 'a-src-kw', text: 'Kulcsszavak' },
         { type: 'p', text: 'A Kulcsszavak fülön az Új kulcsszó gomb nyitja meg az űrlapot: Kulcsszó (kötelező), Téma, Nyelv (mindegy, magyar, angol) és a Kizáró kulcsszó jelölés. A kizáró kulcsszó témájába tartozó cikk kimarad a havi listából.' },
         stuck([
           ['A próbagyűjtés nem talál cikket?', 'A webcím nem hírlistára vagy RSS-re mutat, vagy az oldal nem érhető el. Érdemes a hírlista vagy az RSS pontos címét megadni.'],
           ['Szünetel egy forrás?', 'Az Aktív jelölés nélküli forrást a havi gyűjtés nem figyeli. A korábbi cikkei megmaradnak.'],
+          ['Nem talált új forrást a keresés?', 'Ritkább témánál kevés működő, még nem figyelt forrás akad. Érdemes több kulcsszót és témát megadni, vagy később újra keresni.'],
         ]),
         { type: 'next', text: 'A következő havi futás már az új forrásokkal és kulcsszavakkal gyűjt.' },
       ] },
@@ -431,7 +455,7 @@ const SURFACES = {
           { t: 'Mentés.', d: 'A Módosítások mentése gomb rögzíti a változást, az Elvetés visszaállítja a mentett állapotot.' },
         ] },
         fig('Poszt szerkesztése — a poszt részei mezőnként'),
-        { type: 'p', text: 'A ⋯ menü Újragenerálás a szabályok szerint pontja az egész posztot újraírja; a kézi módosítások ekkor felülíródnak. Az Új kép készítése… új képet készíttet.' },
+        { type: 'p', text: 'A ⋯ menü Újragenerálás a szabályok szerint pontja az egész posztot újraírja; a kézi módosítások ekkor felülíródnak. Az ablakban az utasítás a szöveghez és a képhez módosítható. Az Új kép készítése… új képet készíttet.' },
         { type: 'next', text: 'A javított poszt az ügyfél-adminisztrátor jóváhagyására vár.' },
       ] },
       { id: 't-ideas', title: 'Posztötletek', summary: 'Saját ötletek rögzítése és generálása.', heading: 'Posztötletek', blocks: [

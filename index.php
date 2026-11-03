@@ -221,7 +221,9 @@ if ($perm !== null && !$access->can($perm)) {
         $data = ['mail' => ['months' => array_map(static fn ($m) => ['month' => $m, 'label' => \Xperion\Monthly\EmailService::monthLabel($m)], $mm), 'email' => $mm ? $em->get($access, $mm[0]) : null,
             'settings' => $em->settings((int) $access->clientId()), 'ready' => $em->mailerReady(), 'problem' => $em->mailerProblem() . (in_array('smtp', $app->config->duplicateKeys(), true) ? '. Ok: a config.php-ban kétszer szerepel az „smtp” rész, és PHP-ban az alsó érvényes (valószínűleg a minta üres része maradt ott) – töröld az üreset' : ''), 'claude' => $app->config->has('claude_api_key')]];
     } elseif ($page === 'forrasok') {
-        $data = $app->sources()->all($access);
+        $sd = $app->sourceDiscovery();
+        $data = $app->sources()->all($access) + ['suggestions' => $sd->pending($access), 'suggestCount' => $access->clientId() !== null ? $sd->count((int) $access->clientId()) : \Xperion\Collect\SourceDiscovery::DEFAULT_COUNT,
+            'claude' => $app->config->has('claude_api_key'), 'canSearch' => $access->can('sources')];
     } elseif ($page === 'posztok') {
         $cl = $access->client();
         $data = ['posts' => $app->posts()->all($access), 'openMonths' => $app->posts()->openMonths($access), 'jobs' => $app->posts()->pendingJobs($access),

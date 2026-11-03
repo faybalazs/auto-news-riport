@@ -1214,7 +1214,14 @@ if (APP.page === 'naplo'){
    12/N. FORRÁSOK ÉS KULCSSZAVAK
    ================================================================== */
 if (APP.page === 'forrasok' && $('#srcTable')){
-  let D = { sources:APP.data.sources || [], keywords:APP.data.keywords || [] }, editS = null, editK = null;
+  let D = { sources:APP.data.sources || [], keywords:APP.data.keywords || [] }, editS = null, editK = null, SUG = APP.data.suggestions || [], sugN = APP.data.suggestCount || 3;
+  const canSearch = APP.data.canSearch !== false, hasClaude = APP.data.claude !== false;
+  const renderSug = () => {
+    $('#sugCount').textContent = SUG.length;
+    $('#sugSearch').hidden = !canSearch;
+    $('#sugTable').innerHTML = SUG.length ? `<table><caption class="sr-only">Javasolt források</caption><thead><tr><th scope="col">Javasolt forrás</th><th scope="col">Próbagyűjtés</th><th scope="col"><span class="sr-only">Műveletek</span></th></tr></thead><tbody>${SUG.map(r => `<tr><td><div class="cell-title sug-src"><b>${esc(r.name)}</b><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.url)}</a><p class="sug-why">${esc(r.reason || '')}</p><span>${esc([r.type, r.topics].filter(Boolean).join(' · '))}</span></div></td><td><div class="sug-test"><span class="badge b-success">${ic('check','icon')}${r.count} cikk · ${esc(r.method)}</span>${(r.sample || []).map(i => `<span class="sug-item" title="${esc(i.title)}">${esc(i.date || '–')} · ${esc(i.title)}</span>`).join('')}</div></td><td class="sug-acts">${canSearch ? `<button class="btn btn-primary sm" type="button" data-sacc="${r.id}">${ic('plus')}Felvétel</button><button class="btn btn-ghost sm" type="button" data-sdis="${r.id}" aria-label="${esc(r.name)} elvetése">${ic('x')}Elvetés</button>` : ''}</td></tr>`).join('')}</tbody></table>`
+      : `<div class="empty-state"><b>Nincs döntésre váró javaslat</b><span>${canSearch ? 'Az „Új források keresése” gombbal a Claude új, működő hírforrásokat keres a kulcsszavak és a témák alapján.' : 'Új forrást az ügyfél-adminisztrátor kereshet.'}</span></div>`;
+  };
   const render = () => {
     $('#srcCount').textContent = D.sources.length; $('#kwCount').textContent = D.keywords.length;
     const q = norm($('#srcQ').value.trim()), list = D.sources.filter(r => !q || norm(`${r.name} ${r.url} ${r.topics} ${r.type}`).includes(q));
@@ -1228,6 +1235,15 @@ if (APP.page === 'forrasok' && $('#srcTable')){
   const openK = r => { editK = r; $('#kwDlgTitle').textContent = r ? 'Kulcsszó szerkesztése' : 'Új kulcsszó'; $('#k-word').value = r?.keyword || ''; $('#k-topic').value = r?.topic || ''; $('#k-lang').value = r?.language || ''; $('#k-exclude').checked = !!r?.is_exclude; $('#kwErr').hidden = true; $('#kwDlg').showModal(); $('#k-word').focus(); };
   const srcBody = r => ({ url:$('#s-url').value, name:$('#s-name').value, type:$('#s-type').value, topics:$('#s-topics').value, active:$('#s-active').checked, is_new:$('#s-new').checked, note:$('#s-note').value, ...r });
   $('#srcAdd').addEventListener('click', () => openS(null)); $('#kwAdd').addEventListener('click', () => openK(null));
+  $('#sugSearch').addEventListener('click', async () => {
+    if (!hasClaude){ toast('Nincs beállítva a Claude API-kulcs (config.php: claude_api_key). Szóljon az üzemeltetőnek.', { type:'error' }); return; }
+    const fd = await formBox({ title:'Új források keresése', confirm:'Keresés indítása', html:`<p class="dlg-intro">A Claude a weben keres a kulcsszavak és a témák alapján, majd minden találatot próbagyűjtéssel ellenőrzünk. 1–3 perc, kb. 5–15 cent. A javaslatok csak az Ön „Felvétel” döntésével lesznek figyelt források.</p>
+      <div class="field"><label for="g-count">Hány új forrást keressen?</label><input class="input" id="g-count" name="count" type="number" min="1" max="10" step="1" required value="${sugN}" inputmode="numeric" style="max-width:8rem"><p class="help">1–10; a beállítás megmarad a következő keresésre.</p></div>` });
+    if (!fd) return;
+    const b = $('#sugSearch'); busy(b, true); announce('Új források keresése folyamatban, ez 1–3 percig tart…');
+    try { const r = await api('forraskereses', { count:+fd.get('count') || 3 }); SUG = r.pending; sugN = r.count; renderSug();
+      toast(r.found ? `${r.found} új forrás javaslat (${r.checked} ellenőrizve).` : `Nem találtam új, működő forrást${r.checked ? ` (${r.checked} ellenőrizve, egyik sem adott cikket)` : ''}.`, r.found ? {} : { type:'warning' }); }
+    catch(err){ toast(err.message, { type:'error' }); } finally { busy(b, false); } });
   $('#srcCancel').addEventListener('click', () => $('#srcDlg').close()); $('#kwCancel').addEventListener('click', () => $('#kwDlg').close());
   $('#srcForm').addEventListener('submit', async e => { e.preventDefault(); const b = $('#srcSubmit'); busy(b, true);
     try { D = (await api('forras', { id:editS?.id ?? null, source:srcBody() })).data; $('#srcDlg').close(); render(); toast('A forrás mentve. A következő havi gyűjtés már figyeli.'); }
@@ -1240,6 +1256,12 @@ if (APP.page === 'forrasok' && $('#srcTable')){
     try { D = (await api('kulcsszo', { id:editK?.id ?? null, keyword:{ keyword:$('#k-word').value, topic:$('#k-topic').value, language:$('#k-lang').value, is_exclude:$('#k-exclude').checked } })).data; $('#kwDlg').close(); render(); toast('A kulcsszó mentve.'); }
     catch(err){ $('#kwErr').textContent = err.message; $('#kwErr').hidden = false; } finally { busy(b, false); } });
   document.addEventListener('click', async e => {
+    const sa = e.target.closest('[data-sacc]'), sx = e.target.closest('[data-sdis]');
+    if (sa || sx){ const b = sa || sx; busy(b, true);
+      try { if (sa){ const r = await api('javaslatfelvetel', { id:+sa.dataset.sacc }); D = r.data; SUG = r.pending; render(); renderSug(); toast('A forrás felvéve „új forrás” jelöléssel. A következő havi gyűjtés már figyeli.'); }
+        else { SUG = (await api('javaslatelvetes', { id:+sx.dataset.sdis })).pending; renderSug(); toast('A javaslat elvetve; a figyelő többé nem javasolja.'); } }
+      catch(err){ toast(err.message, { type:'error' }); busy(b, false); }
+      return; }
     const se = e.target.closest('[data-sedit]'), sd = e.target.closest('[data-sdel]'), st = e.target.closest('[data-stog]'), ke = e.target.closest('[data-kedit]'), kd = e.target.closest('[data-kdel]');
     try {
       if (se) openS(D.sources.find(r => r.id === +se.dataset.sedit));
@@ -1252,8 +1274,9 @@ if (APP.page === 'forrasok' && $('#srcTable')){
   $('#srcQ').addEventListener('input', render); $('#kwQ').addEventListener('input', render);
   const tabs = $$('[role=tab]');
   const sel = t => tabs.forEach(x => { const on = x === t; x.setAttribute('aria-selected', on); x.tabIndex = on ? 0 : -1; $('#' + x.getAttribute('aria-controls')).hidden = !on; });
-  tabs.forEach(t => { t.addEventListener('click', () => sel(t)); t.addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft'){ const o = tabs.find(x => x !== t); sel(o); o.focus(); } }); });
-  render();
+  tabs.forEach(t => { t.addEventListener('click', () => sel(t)); t.addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft'){ const i = tabs.indexOf(t), o = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length]; sel(o); o.focus(); } }); });
+  if (location.hash === '#javaslatok') sel($('#tab-sug'));
+  render(); renderSug();
 }
 
 /* ==================================================================

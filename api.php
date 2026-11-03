@@ -153,6 +153,21 @@ try {
             @set_time_limit(120);
             return ['test' => $app->sources()->test($access, $str('url'), $str('type'))];
         })(),
+        'forraskereses' => (function () use ($app, $access, $int) {
+            session_write_close();
+            ignore_user_abort(true);
+            @set_time_limit(600);
+            try {
+                return $app->sourceDiscovery()->search($access, (int) ($int('count') ?? 0));
+            } catch (\Xperion\Claude\ClaudeException $e) {
+                throw new \InvalidArgumentException('A keresés nem sikerült: ' . $e->getMessage());
+            }
+        })(),
+        'javaslatfelvetel' => ['data' => $app->sourceDiscovery()->accept($access, (int) $int('id'), $app->sources()), 'pending' => $app->sourceDiscovery()->pending($access)],
+        'javaslatelvetes' => (function () use ($app, $access, $int) {
+            $app->sourceDiscovery()->dismiss($access, (int) $int('id'));
+            return ['pending' => $app->sourceDiscovery()->pending($access)];
+        })(),
         'kulcsszo' => ['data' => $app->sources()->saveKeyword($access, $int('id'), (array) ($in['keyword'] ?? []))],
         'kulcsszotorles' => ['data' => $app->sources()->deleteKeyword($access, (int) $int('id'))],
         'ugyfelbeallitas' => ['settings' => $app->clients()->saveSettings($access, (array) ($in['settings'] ?? []))],

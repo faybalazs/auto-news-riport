@@ -863,6 +863,15 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 .tip.tip-end .tip-body::after{ left:auto; right:12px; margin-left:0; }
 @media (pointer:coarse){ .tip-btn{ width:44px; height:44px; } }
 
+/* Javasolt források (új-forrás-figyelő) */
+.sug-src{ max-width:520px; }
+.sug-why{ margin:2px 0; color:var(--text); font-size:var(--fs-sm); line-height:1.4; }
+.sug-test{ display:flex; flex-direction:column; align-items:flex-start; gap:4px; min-width:220px; max-width:340px; white-space:normal; }
+.sug-item{ display:block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text-2); font-size:var(--fs-xs); }
+.sug-acts{ white-space:nowrap; text-align:right; }
+.sug-acts .btn + .btn{ margin-left:6px; }
+@media (max-width:760px){ #sugTable thead{ display:none; } #sugTable tr{ display:block; padding:12px 16px; border-bottom:1px solid var(--border); } #sugTable td{ display:block; padding:4px 0; border:0; } .sug-acts{ text-align:left; } .sug-src, .sug-test{ max-width:none; min-width:0; } }
+
 /* ================= 18. TÖRÉSPONTOK (mindig a CSS végén) ================= */
 @media (max-width:1279px){ .layout{ grid-template-columns:minmax(0,1fr); } .w-8, .w-4{ grid-column:span 12; } }
 @media (max-width:1023px){ .files-layout{ grid-template-columns:minmax(0,1fr); } .folders{ display:none; } .folder-select{ display:block; } .w-6{ grid-column:span 12; } }

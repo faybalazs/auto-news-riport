@@ -16,8 +16,8 @@ final class ClaudeClient
     /** A szerveroldali tartalék modellt (fallbacks) elfogadó modellek. */
     private const FALLBACK_MODELS = ['claude-sonnet-5-5', 'claude-opus-5-5', 'claude-opus-5', 'claude-fable-5-1'];
 
-    /** @var array{input:int, output:int, cache_read:int} */
-    public array $usage = ['input' => 0, 'output' => 0, 'cache_read' => 0];
+    /** @var array{input:int, output:int, cache_read:int, searches:int} */
+    public array $usage = ['input' => 0, 'output' => 0, 'cache_read' => 0, 'searches' => 0];
 
     public function __construct(private HttpClient $http, private string $apiKey)
     {
@@ -87,6 +87,86 @@ final class ClaudeClient
             throw new ClaudeException('A Claude válasza nem érvényes JSON.');
         }
         return $out;
+    }
+
+    /**
+     * Kérés a Claude webkeresésével (web_search szervereszköz). A strukturált kimenet itt nem használható (a keresés
+     * hivatkozásaival nem fér össze), ezért a válasz végén lévő JSON-blokkot olvassuk ki a szövegből.
+     *
+     * @return array<string,mixed> a válasz JSON-része
+     */
+    public function webSearchJson(string $model, string $system, string $user, int $maxUses = 8, string $effort = 'medium', int $maxTokens = 16000): array
+    {
+        if ($this->apiKey === '') {
+            throw new ClaudeException('Nincs beállítva a Claude API-kulcs (config.php: claude_api_key).');
+        }
+        $headers = ['Content-Type' => 'application/json', 'x-api-key' => $this->apiKey, 'anthropic-version' => self::API_VERSION];
+        $body = [
+            'model' => $model,
+            'max_tokens' => $maxTokens,
+            'system' => [['type' => 'text', 'text' => $system, 'cache_control' => ['type' => 'ephemeral']]],
+            'messages' => [['role' => 'user', 'content' => $user]],
+            'tools' => [['type' => 'web_search_20260209', 'name' => 'web_search', 'max_uses' => max(1, min(20, $maxUses))]],
+            'output_config' => ['effort' => $effort],
+        ];
+        if (in_array($model, self::FALLBACK_MODELS, true)) {
+            $body['fallbacks'] = 'default';
+            $headers['anthropic-beta'] = 'server-side-fallback-2026-07-01';
+        }
+        $text = '';
+        for ($round = 0; $round < 4; $round++) {
+            $res = $this->http->request('POST', self::API_URL, $headers, json_encode($body, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
+            if (!$res->ok()) {
+                throw new ClaudeException('Claude API: ' . $res->errorMessage());
+            }
+            $data = $res->json();
+            $u = $data['usage'] ?? [];
+            $this->usage['input'] += (int) ($u['input_tokens'] ?? 0);
+            $this->usage['output'] += (int) ($u['output_tokens'] ?? 0);
+            $this->usage['cache_read'] += (int) ($u['cache_read_input_tokens'] ?? 0);
+            $this->usage['searches'] += (int) ($u['server_tool_use']['web_search_requests'] ?? 0);
+            foreach ($data['content'] ?? [] as $block) {
+                if (($block['type'] ?? '') === 'text') {
+                    $text .= (string) $block['text'];
+                }
+            }
+            $stop = (string) ($data['stop_reason'] ?? '');
+            if ($stop === 'pause_turn') {
+                // A szerveroldali keresés szünetet tartott: a részválasszal folytatjuk.
+                $body['messages'] = [['role' => 'user', 'content' => $user], ['role' => 'assistant', 'content' => $data['content'] ?? []]];
+                continue;
+            }
+            if ($stop === 'refusal') {
+                throw new ClaudeException('A Claude elutasította a kérést.');
+            }
+            if ($stop === 'max_tokens') {
+                throw new ClaudeException('A válasz túl hosszú lett, és megszakadt (max_tokens).');
+            }
+            break;
+        }
+        $out = self::jsonFromText($text);
+        if ($out === null) {
+            throw new ClaudeException('A Claude válaszában nincs értelmezhető JSON.');
+        }
+        return $out;
+    }
+
+    /** A szöveg utolsó ```json blokkja, vagy az utolsó kapcsos zárójeles része, tömbként. */
+    public static function jsonFromText(string $text): ?array
+    {
+        if (preg_match_all('/```(?:json)?\s*(\{.*?\})\s*```/s', $text, $m) && $m[1]) {
+            $out = json_decode((string) end($m[1]), true);
+            if (is_array($out)) {
+                return $out;
+            }
+        }
+        $start = strpos($text, '{');
+        $end = strrpos($text, '}');
+        if ($start === false || $end === false || $end < $start) {
+            return null;
+        }
+        $out = json_decode(substr($text, $start, $end - $start + 1), true);
+        return is_array($out) ? $out : null;
     }
 
     /** Becsült költség USD-ben a választott modell díjával (tájékoztató). */

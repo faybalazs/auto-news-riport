@@ -22,12 +22,25 @@ final class FakeClaude implements HttpClient
     public ?string $svg = null;
     /** @var array<string,mixed>|null */
     public ?array $imageSpec = null;
+    /** @var list<array<string,string>> a webkereséses forrásjavaslatok */
+    public array $discovered = [];
+    public bool $pauseOnce = false;
 
     public function request(string $method, string $url, array $headers = [], ?string $body = null): HttpResponse
     {
         $b = json_decode((string) $body, true);
         $this->requests[] = ['headers' => $headers, 'body' => $b];
         $props = $b['output_config']['format']['schema']['properties'] ?? [];
+        if (isset($b['tools'])) {
+            // webkeresés (új-forrás-figyelő): az első körben szünet (pause_turn), ha kérték; a JSON a szöveg végén
+            if ($this->pauseOnce) {
+                $this->pauseOnce = false;
+                return new HttpResponse(200, (string) json_encode(['content' => [['type' => 'server_tool_use', 'id' => 'srv_1', 'name' => 'web_search', 'input' => ['query' => 'x']]],
+                    'stop_reason' => 'pause_turn', 'usage' => ['input_tokens' => 500, 'output_tokens' => 50, 'server_tool_use' => ['web_search_requests' => 1]]]));
+            }
+            return new HttpResponse(200, (string) json_encode(['content' => [['type' => 'text', 'text' => "Átnéztem a találatokat.\n\n```json\n" . json_encode(['sources' => $this->discovered], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n```"]],
+                'stop_reason' => 'end_turn', 'usage' => ['input_tokens' => 2000, 'output_tokens' => 300, 'server_tool_use' => ['web_search_requests' => 3]]], JSON_UNESCAPED_UNICODE));
+        }
         if (isset($props['items']) && !isset($props['layout'])) {
             preg_match('/\[.*\]/s', $b['messages'][0]['content'], $m);
             $items = json_decode($m[0], true);
