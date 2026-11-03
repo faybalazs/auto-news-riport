@@ -3,17 +3,20 @@
 $p = $data['post'];
 $stCls = ['tervezet' => 'b-neutral', 'ugyfelnel' => 'b-warning', 'jovahagyva' => 'b-success', 'megjelent' => 'b-info'][$p['status']] ?? 'b-neutral';
 $badge = ' <span class="badge ' . $stCls . '" id="postStatus">' . $e($p['status_label']) . '</span>' . ($p['model'] !== '' ? ' <span class="badge b-ai">' . $ic('sparkle', 'icon') . 'AI által generált</span>' : '');
-$sub = $e($p['topic']) . ($p['status_hu'] !== '' ? ' · ' . $e($p['status_label']) . ': ' . $e($p['status_hu']) : '');
+$sub = $p['status_hu'] !== '' ? $e($p['status_label']) . ': ' . $e($p['status_hu']) : '';
 $actions = '<a class="btn btn-ghost" href="index.php?p=posztok">' . $ic('chev-left') . 'Posztok</a><span id="postActs" class="acts-row"></span>'
     . '<button class="icon-btn" type="button" id="postMore" aria-haspopup="menu" aria-expanded="false" aria-label="További műveletek">' . $ic('more') . '</button>';
 require __DIR__ . '/_head.php';
 ?>
+<div class="banner bn-info work-banner" role="status" id="workBanner" hidden><span class="spinner" aria-hidden="true"></span><div class="b-body"><b id="workTitle">Generálás folyamatban…</b><span id="workText"></span></div></div>
 <div class="banner bn-info" role="status" id="crBanner" hidden><?= $ic('msg', 'icon') ?><div class="b-body"><b>Módosítási kérés</b><span id="crText"></span></div></div>
 <div class="layout post-layout">
   <div class="stack">
     <div class="tabs" role="tablist" aria-label="Nézetek">
       <button class="tab" role="tab" id="tab-elo" aria-selected="true" aria-controls="p-elo" tabindex="0"><?= $ic('eye') ?>Előnézet</button>
       <button class="tab" role="tab" id="tab-szerk" aria-selected="false" aria-controls="p-szerk" tabindex="-1"><?= $ic('edit') ?>Szerkesztés</button>
+      <button class="tab" role="tab" id="tab-adat" aria-selected="false" aria-controls="p-adat" tabindex="-1"><?= $ic('file') ?>Adatok</button>
+      <button class="tab" role="tab" id="tab-hist" aria-selected="false" aria-controls="p-hist" tabindex="-1"><?= $ic('clock') ?>Előzmények <span class="count" id="histCount">0</span></button>
     </div>
     <section id="p-elo" role="tabpanel" aria-labelledby="tab-elo" class="stack">
       <div class="seg" role="group" aria-label="Előnézet módja" id="liMode"><button type="button" data-m="closed" aria-pressed="true">Zárt nézet</button><button type="button" data-m="open" aria-pressed="false">Kibontott nézet</button></div>
@@ -24,12 +27,14 @@ require __DIR__ . '/_head.php';
         <canvas id="postCanvas" width="1200" height="1200" role="img" aria-label="A poszt képe (sablon)"></canvas>
         <div class="li-react" aria-hidden="true"><span><?= $ic('thumb') ?>Tetszik</span><span><?= $ic('msg') ?>Hozzászólás</span><span><?= $ic('repeat') ?>Megosztás</span><span><?= $ic('send') ?>Küldés</span></div>
       </article>
-      <div class="acts-row">
-        <button class="btn btn-secondary" type="button" id="copyText"><?= $ic('copy') ?>Szöveg másolása</button>
-        <button class="btn btn-secondary" type="button" id="dlImage"><?= $ic('download') ?>Kép letöltése (PNG)</button>
-        <button class="btn btn-secondary" type="button" id="newImage" hidden><?= $ic('image') ?>Új kép</button>
-        <button class="btn btn-ghost" type="button" id="copyLink" hidden><?= $ic('copy') ?>Forráslink (első komment)</button>
-      </div>
+    </section>
+    <section id="p-adat" role="tabpanel" aria-labelledby="tab-adat" class="card widget" hidden>
+      <div class="widget-head"><div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('file', 'icon') ?></span><div><h2 id="h-src">Adatok</h2><p class="meta">A poszt adatlapja</p></div></div></div>
+      <dl class="kv" id="postKv"></dl>
+    </section>
+    <section id="p-hist" role="tabpanel" aria-labelledby="tab-hist" class="card widget" hidden>
+      <div class="widget-head"><div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('clock', 'icon') ?></span><div><h2 id="h-hist">Előzmények</h2><p class="meta">Ki, mit, mikor</p></div></div></div>
+      <ol class="timeline" id="postHist"></ol>
     </section>
     <section id="p-szerk" role="tabpanel" aria-labelledby="tab-szerk" hidden>
       <form class="card widget" id="postForm" novalidate aria-labelledby="h-pe">
@@ -56,6 +61,14 @@ require __DIR__ . '/_head.php';
     </section>
   </div>
   <aside class="stack">
+    <section class="card widget" aria-labelledby="h-use">
+      <div class="widget-head"><div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('linkedin', 'icon') ?></span><div><h2 id="h-use">Közzétételhez</h2><p class="meta">Szöveg, kép és a forráslink</p></div></div></div>
+      <div class="use-acts">
+        <button class="btn btn-secondary" type="button" id="copyText"><?= $ic('copy') ?>Szöveg másolása</button>
+        <button class="btn btn-secondary" type="button" id="dlImage"><?= $ic('download') ?>Kép letöltése (PNG)</button>
+        <button class="btn btn-ghost" type="button" id="copyLink" hidden><?= $ic('copy') ?>Forráslink (első komment)</button>
+      </div>
+    </section>
     <section class="card widget" aria-labelledby="h-open">
       <div class="widget-head"><div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('msg', 'icon') ?></span><div><h2 id="h-open">Nyitó sor</h2><p class="meta">A „…több” előtt csak ez látszik</p></div></div></div>
       <fieldset class="open-choices" id="openChoices"><legend class="sr-only">Nyitó sor választása</legend></fieldset>
@@ -63,15 +76,8 @@ require __DIR__ . '/_head.php';
     <section class="card widget" aria-labelledby="h-arts" id="artsCard" hidden>
       <div class="widget-head"><div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('list', 'icon') ?></span><div><h2 id="h-arts">Forráscikkek</h2><p class="meta">Melyik cikkekből készüljön a poszt</p></div></div></div>
       <fieldset class="arts-list" id="artsList"><legend class="sr-only">Forráscikkek kiválasztása</legend></fieldset>
-      <div class="acts-row" id="artsActs"><button class="btn btn-primary sm" type="button" id="artsRegen"><?= $ic('refresh') ?>Mentés és újraírás</button><button class="btn btn-ghost sm" type="button" id="artsSave">Csak mentés</button></div>
-    </section>
-    <section class="card widget" aria-labelledby="h-src">
-      <div class="widget-head"><div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('file', 'icon') ?></span><div><h2 id="h-src">Adatok</h2><p class="meta">A poszt adatlapja</p></div></div></div>
-      <dl class="kv" id="postKv"></dl>
-    </section>
-    <section class="card widget" aria-labelledby="h-hist">
-      <div class="widget-head"><div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('clock', 'icon') ?></span><div><h2 id="h-hist">Előzmények</h2><p class="meta">Ki, mit, mikor</p></div></div></div>
-      <ol class="timeline" id="postHist"></ol>
+      <p class="meta arts-hint" id="artsHint">Jelöljön ki más cikkeket; a gombok akkor aktívak, ha a kijelölés eltér a mostanitól.</p>
+      <div class="acts-row" id="artsActs"><button class="btn btn-primary sm" type="button" id="artsRegen" aria-describedby="artsHint"><?= $ic('refresh') ?>Mentés és újraírás</button><button class="btn btn-ghost sm" type="button" id="artsSave" aria-describedby="artsHint">Csak mentés</button></div>
     </section>
   </aside>
 </div>

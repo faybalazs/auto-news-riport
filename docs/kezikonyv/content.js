@@ -1,5 +1,5 @@
 // Sajtófigyelés – felhasználói kézikönyv az ügyféloldali felhasználóknak (ügyfél-adminisztrátor, tartalomkezelő).
-// Forrás: az alkalmazás kódja (0.17.0) és a helyi próbafelület, kitalált tesztadatokkal.
+// Forrás: az alkalmazás kódja (0.18.0) és a helyi próbafelület, kitalált tesztadatokkal.
 // Építés: python3 <auris-felhasznaloi-kezikonyv skill>/scripts/build.py docs/kezikonyv docs/kezikonyv/kezikonyv.html
 const BRAND = {
   key: 'sajtofigyeles',
@@ -56,11 +56,11 @@ const UI = {
   stuck: T('Ha elakad', 'If you get stuck'),
   enlarge: T('Kép megnyitása teljes méretben', 'Open full-size image'),
   copyright: T('© 2026 Auris Dynamics Zrt. Minden jog fenntartva.', '© 2026 Auris Dynamics Zrt. All rights reserved.'),
-  footerMeta: T('Felhasználói kézikönyv 1.2 · Sajtófigyelés 0.17.0 · 2026. 11. 03.', 'User manual 1.1'),
+  footerMeta: T('Felhasználói kézikönyv 1.2 · Sajtófigyelés 0.18.0 · 2026. 11. 03.', 'User manual 1.1'),
 };
 
 const SHOT = 'Képernyőkép';
-const IMG_SIZES = [[1600,1000],[1600,1000],[880,1120],[1600,1000],[1600,1000],[1600,988],[880,1412],[1600,693],[1600,1000],[880,580],[1600,1000],[1600,1000],[880,628],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[880,412],[780,1688],[1600,1000],[1600,1000],[1600,1000]];
+const IMG_SIZES = [[1600,1000],[1600,1000],[880,1120],[1600,1000],[1600,1000],[1600,1083],[880,1412],[1600,693],[1600,1000],[880,580],[1600,1000],[1600,1000],[880,628],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[1600,1000],[880,412],[780,1688],[1600,1000],[1600,1000],[1600,1000]];
 let FIGN = 0;
 const fig = (caption, opts = {}) => { const n = ++FIGN; const [w, h] = IMG_SIZES[n - 1]; return { type: 'figure', label: SHOT, caption, src: `img/${String(n).padStart(2, '0')}.webp`, w, h, ...opts }; };
 const who = text => ({ type: 'tip', label: 'Kinek szól?', text });
@@ -250,19 +250,20 @@ const SURFACES = {
         { type: 'h3', id: 'a-post-approve', text: 'Poszt jóváhagyása' },
         { type: 'steps', items: [
           { t: 'Poszt megnyitása.', d: 'Az Ügyfélnél állapotú poszt kártyájára kattintva nyílik meg a poszt oldala. Új poszt elkészültekor az ügyfél-adminisztrátor e-mailt is kap.' },
-          { t: 'Előnézet ellenőrzése.', d: 'Az Előnézet fül LinkedIn-szerű képet mutat. A Zárt nézet a „…több” előtti részt, a Kibontott nézet a teljes szöveget mutatja.' },
+          { t: 'Előnézet ellenőrzése.', d: 'Az Előnézet fül LinkedIn-szerű képet mutat. A Zárt nézet a „…több” előtti részt, a Kibontott nézet a teljes szöveget mutatja. Az Adatok fül a poszt adatlapja (forrás, modell, utasítások), az Előzmények fül pedig azt mutatja, ki mit és mikor csinált a poszttal.' },
           { t: 'Nyitó sor választása.', d: 'A jobb oldali Nyitó sor kártyán a Jelenlegi mellett két alternatíva választható; a választott nyitó sor azonnal mentődik.' },
-          { t: 'Döntés.', d: 'A Jóváhagyom gomb jóváhagyja a posztot; a tartalomkezelő e-mailt kap a közzétételről. A Módosítást kérek gomb a kérés leírását kéri.' },
+          { t: 'Döntés.', d: 'A Jóváhagyom gomb jóváhagyja a posztot; a tartalomkezelő e-mailt kap a közzétételről. A Módosítást kérek gomb a kérés leírását kéri. A kettő között az AI-generálás menü: Tartalom újragenerálása… és Új kép készítése….' },
         ] },
-        fig('Poszt oldala — előnézet, nyitó sor, forráscikkek, valamint a Módosítást kérek és a Jóváhagyom gomb'),
+        fig('Poszt oldala — előnézet; jobbra a közzétételi gombok, a nyitó sor és a forráscikkek; fent a Módosítást kérek, az AI-generálás és a Jóváhagyom gomb'),
+        { type: 'tip', label: 'Generálás közben', text: 'Amíg a Claude dolgozik (újragenerálás, új kép, módosítás, újraírás), a lap tetején forgó jellel sáv jelzi a futást, és a gombok addig nem nyomhatók. Az oldalt ilyenkor ne zárja be.' },
         { type: 'h3', id: 'a-post-change', text: 'Módosítás kérése' },
         { type: 'p', text: 'A Módosítást kérek ablakban röviden leírható a kérés; vonatkozhat a szövegre és a képre is. A Claude a kérés szerint azonnal újraírja a posztot (1–2 perc), és a poszt újra jóváhagyásra kerül.' },
         fig('Módosítás kérése — a kérés szövege és a Módosítás kérése gomb'),
-        { type: 'h3', id: 'a-post-more', text: 'Forráscikkek, új kép, törlés' },
+        { type: 'h3', id: 'a-post-more', text: 'Forráscikkek, AI-generálás, törlés' },
         { type: 'list', items: [
-          { t: 'Forráscikkek:', d: 'a jobb oldali kártyán kijelölhető, melyik cikkekből készüljön a poszt. A Mentés és újraírás új szöveget kér, a Csak mentés csak a kijelölést rögzíti.' },
-          { t: 'Új kép:', d: 'a gomb vagy a ⋯ menü Új kép készítése… pontja új képet készíttet; kérés is megadható (pl. „kevesebb szöveg”).' },
-          { t: 'Szöveg másolása, Kép letöltése (PNG):', d: 'a közzétételhez szükséges szöveg és a 1200×1200-as kép.' },
+          { t: 'Forráscikkek:', d: 'a jobb oldali kártyán kijelölhető, melyik cikkekből készüljön a poszt. A Mentés és újraírás új szöveget kér, a Csak mentés csak a kijelölést rögzíti. A két gomb csak akkor aktív, ha a kijelölés eltér a mostanitól.' },
+          { t: 'AI-generálás:', d: 'a Tartalom újragenerálása… a Posztszabályok szerint újraírja a szöveget és a képet (utasítás adható a szöveghez és a képhez); az Új kép készítése… csak új képet készíttet, kérés is megadható (pl. „kevesebb szöveg”).' },
+          { t: 'Szöveg másolása, Kép letöltése (PNG):', d: 'a jobb oldali Közzétételhez kártyán: a közzétételhez szükséges szöveg és a 1200×1200-as kép.' },
           { t: 'Poszt törlése…:', d: 'a ⋯ menüben. A szöveg, a kép és az előzmények véglegesen törlődnek; a forráscikkek és az ötlet megmaradnak.' },
         ] },
         stuck([
@@ -283,7 +284,7 @@ const SURFACES = {
       { id: 'a-rules', title: 'Posztszabályok', summary: 'A posztgenerálás szabályai.', heading: 'Posztszabályok', blocks: [
         ...RULE_BLOCKS('a'),
         fig('Posztszabályok — megnevezés, érték és a sorműveletek'),
-        stuck([['Nem változott egy már elkészült poszt?', 'A szabály a következő generálásnál érvényes. Meglévő poszthoz a poszt ⋯ menüjének Újragenerálás a szabályok szerint pontja használható.']]),
+        stuck([['Nem változott egy már elkészült poszt?', 'A szabály a következő generálásnál érvényes. Meglévő poszthoz a poszt AI-generálás menüjének Tartalom újragenerálása… pontja használható.']]),
         { type: 'next', text: 'A következő posztgenerálás már az új szabályokkal készül.' },
       ] },
       { id: 'a-sources', title: 'Források és kulcsszavak', summary: 'Figyelt oldalak és kulcsszavak.', heading: 'Források és kulcsszavak', blocks: [
@@ -431,7 +432,7 @@ const SURFACES = {
         { type: 'h3', id: 't-pub-steps', text: 'Közzététel' },
         { type: 'steps', items: [
           { t: 'Poszt megnyitása.', d: 'A LinkedIn-posztok oldalon a Jóváhagyva szűrő mutatja a közzétehető posztokat.' },
-          { t: 'Szöveg és kép átvétele.', d: 'A Szöveg másolása gomb a teljes posztszöveget másolja. A Kép letöltése (PNG) a 1200×1200-as képet menti. Ha van forráslink, a Forráslink (első komment) gomb másolja.' },
+          { t: 'Szöveg és kép átvétele.', d: 'A jobb oldali Közzétételhez kártyán a Szöveg másolása gomb a teljes posztszöveget másolja. A Kép letöltése (PNG) a 1200×1200-as képet menti. Ha van forráslink, a Forráslink (első komment) gomb másolja.' },
           { t: 'Közzététel a LinkedInen.', d: 'A LinkedIn-oldalon új bejegyzésként a szöveg és a kép beillesztése, majd azonnali közzététel vagy időzítés. A forráslink az első kommentbe kerül.' },
           { t: 'Megjelentnek jelölés.', d: 'A felületen a Megjelent a LinkedInen gomb és a megerősítés után a poszt Megjelent állapotú lesz.' },
         ] },
@@ -455,7 +456,7 @@ const SURFACES = {
           { t: 'Mentés.', d: 'A Módosítások mentése gomb rögzíti a változást, az Elvetés visszaállítja a mentett állapotot.' },
         ] },
         fig('Poszt szerkesztése — a poszt részei mezőnként'),
-        { type: 'p', text: 'A ⋯ menü Újragenerálás a szabályok szerint pontja az egész posztot újraírja; a kézi módosítások ekkor felülíródnak. Az ablakban az utasítás a szöveghez és a képhez módosítható. Az Új kép készítése… új képet készíttet.' },
+        { type: 'p', text: 'Az AI-generálás menü Tartalom újragenerálása… pontja az egész posztot újraírja; a kézi módosítások ekkor felülíródnak. Az ablakban az utasítás a szöveghez és a képhez módosítható. Az Új kép készítése… új képet készíttet. Generálás közben a lap tetején sáv jelzi a futást.' },
         { type: 'next', text: 'A javított poszt az ügyfél-adminisztrátor jóváhagyására vár.' },
       ] },
       { id: 't-ideas', title: 'Posztötletek', summary: 'Saját ötletek rögzítése és generálása.', heading: 'Posztötletek', blocks: [

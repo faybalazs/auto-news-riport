@@ -15,4 +15,5 @@ $open = $data['openMonths'] ?? [];
   <?php foreach (\Xperion\Posts\PostService::STATUS as $k => $l): ?><button type="button" data-pf="<?= $e($k) ?>" aria-pressed="false"><?= $e($l) ?></button><?php endforeach; ?>
 </div>
 <div class="post-grid" id="postGrid"></div>
+<nav class="pager card post-pager" id="postPager" aria-label="Posztok lapozása" hidden></nav>
 <div class="empty-state card widget" id="postEmpty" hidden><b>Nincs ilyen poszt</b><span>A posztok a „LinkedIn poszt” jelölésű cikkekből és a posztötletekből készülnek.</span></div>

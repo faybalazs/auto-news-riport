@@ -727,16 +727,20 @@ if (APP.page === 'otlet' && $('#ideaForm')){
 const POST_ST = { tervezet:['b-neutral','edit'], ugyfelnel:['b-warning','clock'], jovahagyva:['b-success','check'], megjelent:['b-info','linkedin'] };
 const postBadge = p => { const x = POST_ST[p.status] || ['b-neutral','info']; return `<span class="badge ${x[0]}">${ic(x[1],'icon')}${esc(p.status_label)}</span>`; };
 if (APP.page === 'posztok' && $('#postGrid')){
-  const posts = APP.data.posts || []; let f = '';
+  const posts = APP.data.posts || []; let f = '', page = 1; const SIZE = 12;
   const render = () => {
-    const list = posts.filter(p => !f || p.status === f);
+    const all = posts.filter(p => !f || p.status === f), pages = Math.max(1, Math.ceil(all.length / SIZE)); page = Math.min(page, pages);
+    const list = all.slice((page - 1) * SIZE, page * SIZE);
     const svgSrc = s => 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(s)));
     $('#postGrid').innerHTML = list.map(p => `<a class="card post-card" href="index.php?p=poszt&amp;kod=${encodeURIComponent(p.code)}"><div class="row"><span class="id">${esc(p.code)}</span>${postBadge(p)}</div><h2>${esc(p.topic || '(téma nélkül)')}</h2>
       <div class="mini-li" aria-hidden="true"><div class="mini-head"><span class="mini-logo">${esc((APP.data.company || 'X').slice(0, 1))}</span><b>${esc(APP.data.company || '')}</b></div><p>${esc(p.opening)}</p>${p.thumb ? `<img src="${svgSrc(p.thumb)}" alt="" loading="lazy">` : '<div class="mini-noimg">kép még nincs</div>'}</div>
       <span class="meta">${esc({ cikkek:'Cikkekből', cikk:'Egy cikkből', otlet:'Ötletből' + (p.idea_code ? ': ' + p.idea_code : '') }[p.source_kind] || 'Átvett poszt')} · ${esc(p.created_hu)}</span></a>`).join('');
     $('#postEmpty').hidden = list.length > 0;
+    $('#postPager').hidden = pages < 2;
+    $('#postPager').innerHTML = `<span class="pg-info">${(page - 1) * SIZE + 1}–${Math.min(page * SIZE, all.length)} / ${all.length} poszt</span><span class="spacer"></span><button class="btn btn-ghost sm" type="button" data-pp="${page - 1}"${page < 2 ? ' disabled title="Ez az első oldal"' : ''}>${ic('chev-left','icon icon-sm')}Előző</button><span class="pg-info">${page}. oldal / ${pages}</span><button class="btn btn-ghost sm" type="button" data-pp="${page + 1}"${page >= pages ? ' disabled title="Ez az utolsó oldal"' : ''}>Következő${ic('chev-right','icon icon-sm')}</button>`;
   };
-  $$('#postFilter [data-pf]').forEach(b => b.addEventListener('click', () => { f = b.dataset.pf; $$('#postFilter [data-pf]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); render(); }));
+  $('#postPager').addEventListener('click', e => { const b = e.target.closest('[data-pp]'); if (!b || b.disabled) return; page = +b.dataset.pp; render(); $('#postGrid').scrollIntoView({ block:'start', behavior:'smooth' }); });
+  $$('#postFilter [data-pf]').forEach(b => b.addEventListener('click', () => { f = b.dataset.pf; page = 1; $$('#postFilter [data-pf]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); render(); }));
   $('#genMonthly')?.addEventListener('click', async () => {
     const b = $('#genMonthly'); busy(b, true); announce('A poszt készül, ez fél–egy percig tart…');
     try { const d = await api('posztkeres', { kind:'cikkek', ref:$('#genMonth').value }); location.href = 'index.php?p=poszt&kod=' + encodeURIComponent(d.code); }
@@ -783,6 +787,14 @@ if (APP.page === 'poszt' && $('#liText')){
     x.fillStyle = '#FFFFFF'; x.font = '600 40px Inter, Arial, sans-serif'; x.fillText(site, 96, W - 140);
     const name = C.name || ''; x.fillStyle = 'rgba(255,255,255,.6)'; x.font = '400 28px Inter, Arial, sans-serif'; x.fillText(name, W - 96 - x.measureText(name).width, W - 132);
   }
+  /* Generálás közben mindig látszik: sáv a lap tetején forgó jellel, a műveletgombok tiltva */
+  function working(on, title = '', text = ''){
+    $('#workBanner').hidden = !on; $('#workTitle').textContent = title; $('#workText').textContent = text;
+    $$('#postActs button, #postMore, #artsActs button, #copyText, #dlImage').forEach(b => { if (on){ b.dataset.wasDis = b.disabled ? '1' : ''; b.disabled = true; } else if (b.dataset.wasDis !== undefined){ b.disabled = b.dataset.wasDis === '1'; delete b.dataset.wasDis; } });
+    if (on){ announce(title + ' ' + text); window.scrollTo({ top:0, behavior:'smooth' }); }
+  }
+  const artsDirty = () => { const now = $$('#artsList input:checked').map(x => +x.value).sort().join(','), was = (P.candidates || []).filter(c => c.in).map(c => +c.id).sort().join(','); return now !== '' && now !== was; };
+  const syncArts = () => { const d = artsDirty(); $('#artsRegen').disabled = !d; $('#artsSave').disabled = !d; $('#artsHint').hidden = d; };
   function showImage(){
     const has = !!P.image_svg;
     $('#postImg').hidden = !has; $('#postCanvas').hidden = has;
@@ -794,14 +806,14 @@ if (APP.page === 'poszt' && $('#liText')){
     const canEdit = can('ideas') && (P.status === 'tervezet' || P.status === 'ugyfelnel' || (P.status === 'jovahagyva' && can('ops')));
     $('#openChoices').innerHTML = '<legend class="sr-only">Nyitó sor választása</legend>' + opts.map(([k, l], i) => `<label class="open-opt"><input type="radio" name="openopt" value="${k}"${i === 0 ? ' checked' : ''}${canEdit ? '' : ' disabled'}><span><b>${l}</b><br>${esc(P[k])}</span></label>`).join('') + (canEdit && opts.length > 1 ? '<span class="help">Másik nyitó sor választásakor a jelenlegi az alternatívák közé kerül.</span>' : '');
     $('#copyLink').hidden = !P.source_link;
-    $('#newImage').hidden = !((can('ideas') || can('approve')) && P.status !== 'megjelent');
     const cands = P.candidates || [], canArts = can('decide') && (P.status === 'tervezet' || P.status === 'ugyfelnel') && cands.length > 0;
     $('#artsCard').hidden = !(cands.length > 0);
     $('#artsList').innerHTML = '<legend class="sr-only">Forráscikkek kiválasztása</legend>' + cands.map(c => `<label class="art-opt"><input type="checkbox" value="${c.id}"${c.in ? ' checked' : ''}${canArts ? '' : ' disabled'}><span><b>${esc(c.source_name)}</b> · ${esc(c.month)}<br>${esc(c.title)}</span></label>`).join('');
-    $('#artsActs').hidden = !canArts;
+    $('#artsActs').hidden = !canArts; $('#artsHint').hidden = !canArts; syncArts();
     const srcs = P.articles && P.articles.length ? P.articles.map(a => `<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.source_name)}: ${esc(a.title)}</a>`).join('<br>') : P.idea_code ? `<a href="index.php?p=otlet&amp;kod=${encodeURIComponent(P.idea_code)}">${esc(P.idea_code)}: ${esc(P.idea_topic || '')}</a>` : esc(P.source_articles || '–');
     $('#postKv').innerHTML = [['Témakör', esc(P.topic || '–')], ['Forrás', srcs], ['Forráslink', P.source_link ? `<a href="${esc(P.source_link)}" target="_blank" rel="noopener">${esc(P.source_link)}</a>` : '–'], ['Létrehozva', esc(P.created_hu)], ['Modell', esc(P.model || 'átvett / kézi')], ['Utasítás a szöveghez', esc(P.instr_text || '–')], ['Utasítás a képhez', esc(P.instr_image || '–')], ['Megjegyzés', esc(P.note || '–')]].map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
     const ev = P.events || [];
+    $('#histCount').textContent = ev.length;
     $('#postHist').innerHTML = ev.length ? ev.map((e, i) => `<li class="tl-item${i === ev.length - 1 ? ' last' : ''}"><span class="tl-dot badge b-neutral">${ic('clock','icon')}</span><div class="tl-body"><div class="tl-title">${esc(e.action)}</div><div class="tl-desc">${esc(e.user)} · ${esc(e.time_hu)}${e.details ? ' · ' + esc(e.details) : ''}</div></div></li>`).join('') : '<li class="meta">Még nincs bejegyzés.</li>';
     $('#crBanner').hidden = !(P.change_request && P.status === 'tervezet'); $('#crText').textContent = P.change_request || '';
     const st = POST_ST[P.status] || ['b-neutral','info']; $('#postStatus').className = 'badge ' + st[0]; $('#postStatus').innerHTML = ic(st[1],'icon') + esc(P.status_label);
@@ -809,7 +821,11 @@ if (APP.page === 'poszt' && $('#liText')){
     if (P.status === 'tervezet' && can('ops')) acts.push(['kuldes', 'Küldés jóváhagyásra', 'send', 'btn-primary']);
     if (P.status === 'ugyfelnel' && can('approve')){ acts.push(['modositas', 'Módosítást kérek', 'msg', 'btn-secondary']); acts.push(['jovahagyas', 'Jóváhagyom', 'check', 'btn-primary']); }
     if (P.status === 'jovahagyva' && can('publish')) acts.push(['megjelent', 'Megjelent a LinkedInen', 'linkedin', 'btn-primary']);
-    $('#postActs').innerHTML = acts.map(([a, l, i, c]) => `<button class="btn ${c}" type="button" data-pa="${a}">${ic(i,'icon icon-sm')}${l}</button>`).join('');
+    const canAi = (can('ideas') || can('approve')) && P.status !== 'megjelent';
+    const btn = ([a, l, i, c]) => `<button class="btn ${c}" type="button" data-pa="${a}">${ic(i,'icon icon-sm')}${l}</button>`;
+    $('#postActs').innerHTML = acts.filter(x => x[3] !== 'btn-primary').map(btn).join('')
+      + (canAi ? `<button class="btn btn-secondary" type="button" id="aiBtn" aria-haspopup="menu" aria-expanded="false">${ic('sparkle','icon icon-sm')}AI-generálás${ic('chev-down','icon icon-sm')}</button>` : '')
+      + acts.filter(x => x[3] === 'btn-primary').map(btn).join('');
     $('#tab-szerk').hidden = !canEdit;
     fillForm();
   }
@@ -826,10 +842,17 @@ if (APP.page === 'poszt' && $('#liText')){
     const k = e.target.value; if (k === 'opening') return;
     const body = { opening:P[k], [k]:P.opening }; await savePost(body, 'A nyitó sor lecserélve.');
   });
-  function selectTab(t){ ['elo','szerk'].forEach(x => { $('#tab-' + x).setAttribute('aria-selected', String(x === t)); $('#tab-' + x).tabIndex = x === t ? 0 : -1; $('#p-' + x).hidden = x !== t; }); }
+  const TABS = ['elo','szerk','adat','hist'];
+  function selectTab(t){ TABS.forEach(x => { $('#tab-' + x).setAttribute('aria-selected', String(x === t)); $('#tab-' + x).tabIndex = x === t ? 0 : -1; $('#p-' + x).hidden = x !== t; }); }
   $$('.tabs [role=tab]').forEach(t => t.addEventListener('click', () => selectTab(t.id.replace('tab-', ''))));
-  $('.tabs').addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft'){ const n = $('#tab-elo').getAttribute('aria-selected') === 'true' && !$('#tab-szerk').hidden ? 'szerk' : 'elo'; selectTab(n); $('#tab-' + n).focus(); } });
+  $('.tabs').addEventListener('keydown', e => { if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return; const vis = TABS.filter(x => !$('#tab-' + x).hidden), i = vis.findIndex(x => $('#tab-' + x).getAttribute('aria-selected') === 'true'), n = vis[(i + (e.key === 'ArrowRight' ? 1 : vis.length - 1)) % vis.length]; selectTab(n); $('#tab-' + n).focus(); });
   $('#copyText').addEventListener('click', () => copyText(full(P), $('#liText')));
+  $('#artsList').addEventListener('change', syncArts);
+  async function regenText(){
+    const ins = await genDialog({ title:'Tartalom újragenerálása', confirm:'Újragenerálás', text:P.instr_text || '', image:P.instr_image || '', intro:'A Claude a Posztszabályok szerint újraírja a szöveget és a képet. A jelenlegi szöveg (a kézi módosításokkal együtt) felülíródik; a módosítási kérést figyelembe veszi. Fél–egy perc, kb. 15–25 cent.' }); if (!ins) return;
+    working(true, 'A poszt újragenerálása folyamatban…', 'A Claude írja a szöveget és tervezi a képet; ez fél–egy percig tart. Ne zárja be az oldalt.');
+    try { await api('posztkeres', { kind:'ujra', ref:P.code, ...ins }); location.reload(); } catch(err){ working(false); toast(err.message, { type:'error' }); }
+  }
   $('#copyLink').addEventListener('click', () => copyText(P.source_link));
   $('#dlImage').addEventListener('click', async () => {
     const c = $('#postCanvas');
@@ -839,40 +862,36 @@ if (APP.page === 'poszt' && $('#liText')){
     } catch(err){ toast('A PNG nem készíthető el ebben a böngészőben; tartsa nyomva a képet, és mentse el.', { type:'error' }); }
   });
   $('#postActs').addEventListener('click', async e => {
+    const ai = e.target.closest('#aiBtn');
+    if (ai){ e.stopPropagation(); openRowMenu(ai, P, { ujra:regenText, kep:newImage }, [{ k:'ujra', l:'Tartalom újragenerálása…', i:'refresh' }, { k:'kep', l:'Új kép készítése…', i:'image' }]); return; }
     const b = e.target.closest('[data-pa]'); if (!b) return; const a = b.dataset.pa; let comment = '';
     if (a === 'modositas'){ comment = await confirmBox({ title:'Mit módosítsunk?', body:'Írja le röviden (a szövegre és a képre is vonatkozhat). A Claude a kérése szerint azonnal újraírja, és a poszt újra Önhöz kerül jóváhagyásra; ez 1–2 perc.', confirm:'Módosítás kérése', danger:false, input:{ label:'Módosítási kérés' } }); if (!comment) return; announce('A poszt újraírása folyamatban, 1–2 perc…'); }
     if (a === 'kuldes' && !await confirmBox({ title:'Elküldi jóváhagyásra?', body:'Az ügyfél-adminisztrátor értesítést kap, és a felületen jóváhagyhatja vagy módosítást kérhet.', confirm:'Küldés jóváhagyásra', danger:false })) return;
     if (a === 'megjelent' && !await confirmBox({ title:'Megjelent a LinkedInen?', body:'Jelölje meg, ha a posztot közzétette vagy időzítette a LinkedIn ütemezőjében.', confirm:'Megjelentnek jelölöm', danger:false })) return;
-    busy(b, true);
-    try { P = (await api('posztlepes', { code:P.code, action:a, comment })).post; renderAll(); toast({ kuldes:'Elküldve jóváhagyásra.', jovahagyas:'Jóváhagyva. A tartalomkezelő értesítést kapott.', modositas:P.status === 'ugyfelnel' ? 'A poszt a kérése szerint újraírva; nézze át, és hagyja jóvá.' : 'A kérés rögzítve; az újraírás nem sikerült, az óránkénti futás újrapróbálja.', megjelent:'Megjelentnek jelölve.' }[a] || 'Kész.'); busy(b, false); }
-    catch(err){ toast(err.message, { type:'error' }); busy(b, false); }
+    busy(b, true); if (a === 'modositas') working(true, 'A poszt átírása folyamatban…', 'A Claude a kérése szerint újraírja a posztot; ez 1–2 percig tart. Ne zárja be az oldalt.');
+    try { P = (await api('posztlepes', { code:P.code, action:a, comment })).post; working(false); renderAll(); toast({ kuldes:'Elküldve jóváhagyásra.', jovahagyas:'Jóváhagyva. A tartalomkezelő értesítést kapott.', modositas:P.status === 'ugyfelnel' ? 'A poszt a kérése szerint újraírva; nézze át, és hagyja jóvá.' : 'A kérés rögzítve; az újraírás nem sikerült, az óránkénti futás újrapróbálja.', megjelent:'Megjelentnek jelölve.' }[a] || 'Kész.'); busy(b, false); }
+    catch(err){ working(false); toast(err.message, { type:'error' }); busy(b, false); }
   });
   async function newImage(){
     const req = await confirmBox({ title:'Új kép készüljön?', body:'A Claude új tartalmat és elrendezést választ a képhez (kb. fél perc, néhány cent). Ha van kérése (pl. „a három pontos elrendezéssel”, „kevesebb szöveg”, „más cím”), írja ide; üresen is mehet.', confirm:'Új kép', danger:false, input:{ label:'Kérés a képhez (nem kötelező)' } });
-    if (req === false) return; const b = $('#newImage'); busy(b, true); announce('A kép készül…');
-    try { P = (await api('posztkep', { code:P.code, request:typeof req === 'string' ? req : '' })).post; renderAll(); toast('Az új kép elkészült.'); } catch(err){ toast(err.message, { type:'error' }); } finally { busy(b, false); }
+    if (req === false) return; working(true, 'Új kép készül…', 'A Claude megtervezi a képet; ez kb. fél percig tart.');
+    try { P = (await api('posztkep', { code:P.code, request:typeof req === 'string' ? req : '' })).post; working(false); renderAll(); toast('Az új kép elkészült.'); } catch(err){ working(false); toast(err.message, { type:'error' }); }
   }
-  $('#newImage').addEventListener('click', newImage);
   async function saveArts(regen){
     const ids = $$('#artsList input:checked').map(x => +x.value); if (!ids.length){ toast('Legalább egy cikket jelöljön ki.', { type:'error' }); return; }
     if (regen && !await confirmBox({ title:'Újraírja a posztot a kijelölt cikkekből?', body:`${ids.length} cikk. A Claude újraírja a szöveget és a képet (1–2 perc), és a poszt újra jóváhagyásra kerül.`, confirm:'Mentés és újraírás', danger:false })) return;
-    const b = $(regen ? '#artsRegen' : '#artsSave'); busy(b, true); if (regen) announce('A poszt újraírása folyamatban…');
-    try { P = (await api('posztcikkek', { code:P.code, ids, regen })).post; renderAll(); toast(regen ? 'A poszt a kijelölt cikkekből újraírva.' : 'A forráscikkek mentve. Az újraíráshoz: Mentés és újraírás.'); }
-    catch(err){ toast(err.message, { type:'error' }); } finally { busy(b, false); }
+    const b = $(regen ? '#artsRegen' : '#artsSave'); busy(b, true); if (regen) working(true, 'A poszt újraírása folyamatban…', `${ids.length} cikkből; a Claude írja a szöveget és tervezi a képet (1–2 perc). Ne zárja be az oldalt.`);
+    try { P = (await api('posztcikkek', { code:P.code, ids, regen })).post; working(false); busy(b, false); renderAll(); toast(regen ? 'A poszt a kijelölt cikkekből újraírva.' : 'A forráscikkek mentve. Az újraíráshoz: Mentés és újraírás.'); }
+    catch(err){ working(false); busy(b, false); toast(err.message, { type:'error' }); }
   }
   $('#artsRegen').addEventListener('click', () => saveArts(true)); $('#artsSave').addEventListener('click', () => saveArts(false));
   $('#postMore').addEventListener('click', e => {
     e.stopPropagation(); // különben a dokumentum kattintásfigyelője azonnal bezárja a most nyitott menüt
     const items = [];
-    if (can('ideas') && (P.status === 'tervezet' || P.status === 'ugyfelnel')) items.push({ k:'ujra', l:'Újragenerálás a szabályok szerint', i:'refresh' });
-    if ((can('ideas') || can('approve')) && P.status !== 'megjelent') items.push({ k:'kep', l:'Új kép készítése…', i:'image' });
     if (can('ops') && P.status !== 'tervezet') items.push({ k:'vissza', l:'Vissza tervezetre', i:'repeat' });
     if (can('deletePost')) items.push({ k:'torles', l:'Poszt törlése…', i:'trash', danger:true, sep:items.length > 0 });
     if (!items.length){ toast('Ehhez a poszthoz nincs további művelet.', { type:'info' }); return; }
     openRowMenu(e.currentTarget, P, {
-      ujra: async () => { const ins = await genDialog({ title:'Újragenerálja a posztot?', confirm:'Újragenerálás', text:P.instr_text || '', image:P.instr_image || '', intro:'A jelenlegi szöveg (a kézi módosításokkal együtt) felülíródik; a módosítási kérést figyelembe veszi. Fél–egy perc, kb. 15–25 cent.' }); if (!ins) return;
-        announce('A poszt újra készül…'); try { await api('posztkeres', { kind:'ujra', ref:P.code, ...ins }); location.reload(); } catch(err){ toast(err.message, { type:'error' }); } },
-      kep: newImage,
       vissza: async () => { try { P = (await api('posztlepes', { code:P.code, action:'vissza' })).post; renderAll(); toast('Visszaállítva tervezetre.'); } catch(err){ toast(err.message, { type:'error' }); } },
       torles: async () => { if (!await confirmBox({ title:`Törli a(z) ${P.code} posztot?`, body:'A szöveg, a kép és az előzmények véglegesen törlődnek. A forráscikkek és az ötlet megmaradnak, és újra küldhetők generálásra.', confirm:'Poszt törlése' })) return;
         try { await api('poszttorles', { code:P.code }); location.href = 'index.php?p=posztok'; } catch(err){ toast(err.message, { type:'error' }); } }

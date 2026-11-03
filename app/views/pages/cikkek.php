@@ -32,17 +32,17 @@ $rep = $data['report'] ?? null;
   </div>
 </section>
 <?php endif; ?>
-<div class="seg" role="group" aria-label="Nézetek" id="artViews">
-  <button type="button" data-v="todo" aria-pressed="true">Döntésre vár <span class="cnt-badge" id="cntTodo">0</span></button>
-  <button type="button" data-v="all" aria-pressed="false">Összes</button>
-  <button type="button" data-v="mehet" aria-pressed="false">Mehet</button>
-  <button type="button" data-v="publikalva" aria-pressed="false">Publikálva</button>
-  <button type="button" data-v="linkedin" aria-pressed="false">LinkedIn poszt</button>
-  <button type="button" data-v="nemkell" aria-pressed="false">Nem kell</button>
-  <button type="button" data-v="new" aria-pressed="false">Új források</button>
-</div>
 <div class="card table-card">
-  <div class="banner bn-info" id="liHint" role="status" hidden><?= $ic('linkedin', 'icon') ?><div class="b-body"><span><b><span id="liWait">0</span> LinkedIn-cikk vár posztra.</b> Jelöljön ki egyet vagy többet (bármikor kiegészítheti a jelöléseket), majd: <b>Poszt készítése a kijelöltekből</b>. Egy cikkből egy poszt, több cikkből egy közös poszt készül, és magától jóváhagyásra kerül.</span></div></div>
+  <div class="seg card-views" role="group" aria-label="Nézetek" id="artViews">
+    <button type="button" data-v="todo" aria-pressed="true">Döntésre vár <span class="cnt-badge" id="cntTodo">0</span></button>
+    <button type="button" data-v="all" aria-pressed="false">Összes</button>
+    <button type="button" data-v="mehet" aria-pressed="false">Mehet</button>
+    <button type="button" data-v="publikalva" aria-pressed="false">Publikálva</button>
+    <button type="button" data-v="linkedin" aria-pressed="false">LinkedIn poszt</button>
+    <button type="button" data-v="nemkell" aria-pressed="false">Nem kell</button>
+    <button type="button" data-v="new" aria-pressed="false">Új források</button>
+  </div>
+  <div class="banner bn-info" id="liHint" role="status" hidden><?= $ic('linkedin', 'icon') ?><div class="b-body"><span><b><span id="liWait">0</span> LinkedIn-cikk vár posztra.</b> Jelöljön ki egyet vagy többet (bármikor kiegészítheti a jelöléseket), majd: <b>Poszt készítése a kijelöltekből</b>. Egy cikkből egy poszt, több cikkből egyetlen önálló, hírszerű poszt készül, és magától jóváhagyásra kerül.</span></div></div>
   <div class="bulkbar" id="bulk" hidden>
     <b id="bulkCount">0 kiválasztva</b>
     <button type="button" class="btn btn-secondary sm" data-bulk="mehet"><?= $ic('upload') ?>Mehet</button>

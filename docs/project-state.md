@@ -1,6 +1,6 @@
 # Projektállapot
 
-- **Frissítve:** 2026-11-03 (kiadás: 0.17.0)
+- **Frissítve:** 2026-11-03 (kiadás: 0.18.0)
 - **Forrás:** felhasználói közlés (claude.ai chat), a jóváhagyott specifikáció ([product.md](product.md)) és a repó kódja.
 
 ## Cél
@@ -60,7 +60,7 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 - Frissített ütemterv: [roadmap.md](roadmap.md).
 
 ## Következő lépések
-1. Felhasználó: a 0.17.0 telepítése (Actions → Telepítés élesbe); a skillcsomagok feltöltése.
+1. Felhasználó: a 0.18.0 telepítése (a 0.17.0 élesben fut, „megy”) (Actions → Telepítés élesbe); a skillcsomagok feltöltése.
 2. Éles próbák: a 2610/14 cikk újbóli feltöltése (kiemeltkép-javítás); több cikkből készült poszt utasítással; a vezetői összefoglaló PDF-je és küldése; **Új források keresése** 3-as darabszámmal, a javaslatok átnézése.
 3. Az első havi e-mail az ügyfélnek (jóváhagyás után); a pull request összevonása a fő ágba, ha az éles próbák rendben vannak.
 3. A pull request átnézése és összevonása (merge) a fő ágba, ha az éles próbák rendben vannak.
