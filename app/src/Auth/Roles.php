@@ -23,8 +23,8 @@ final class Roles
 
     public const DESCRIPTIONS = [
         self::OPERATOR => 'Minden ügyfél: futások, havi e-mail, ügyfelek és felhasználók kezelése',
-        self::CLIENT_ADMIN => 'Dönt a cikkekről, jóváhagyja a posztokat, meghívja a saját munkatársait',
-        self::CONTENT => 'Posztötletek és -szabályok, posztok közzététele a LinkedInen',
+        self::CLIENT_ADMIN => 'Dönt a cikkekről, feltölti őket a weboldalra, jóváhagyja a posztokat, meghívja a saját munkatársait',
+        self::CONTENT => 'Posztötletek és -szabályok, posztok közzététele a LinkedInen, cikkek feltöltése a weboldalra',
         self::READER => 'Mindent lát az ügyfélnél, de nem módosít',
     ];
 
@@ -38,13 +38,14 @@ final class Roles
         'users' => 'Felhasználók meghívása (saját ügyfél)',
         'sources' => 'Figyelt források és kulcsszavak szerkesztése',
         'log' => 'Műveleti napló (saját ügyfél)',
+        'upload' => 'Cikkek feltöltése a weboldalra (szövegek elkészítése, élesítés), feltöltés visszavonása',
         'ops' => 'Futások, havi e-mail, ügyfelek, napló',
     ];
 
     public const GRANTS = [
-        self::OPERATOR => ['decide', 'approve', 'ideas', 'rules', 'publish', 'deletePost', 'users', 'sources', 'log', 'ops'],
-        self::CLIENT_ADMIN => ['decide', 'approve', 'ideas', 'rules', 'deletePost', 'users', 'sources', 'log'],
-        self::CONTENT => ['ideas', 'rules', 'publish'],
+        self::OPERATOR => ['decide', 'approve', 'ideas', 'rules', 'publish', 'deletePost', 'users', 'sources', 'log', 'upload', 'ops'],
+        self::CLIENT_ADMIN => ['decide', 'approve', 'ideas', 'rules', 'deletePost', 'users', 'sources', 'log', 'upload'],
+        self::CONTENT => ['ideas', 'rules', 'publish', 'upload'],
         self::READER => [],
     ];
 

@@ -128,6 +128,54 @@ final class UploadServiceTest extends DbTestCase
         self::assertCount($claudeCalls, $this->claude->requests, 'kint lévő párnál nincs fordítás');
     }
 
+    public function testRevertUploadAndDeleteRestoreArticle(): void
+    {
+        $op = Access::forUser($this->db, $this->op, $this->x);
+        $id = $this->art('https://src.test/bank');
+        $this->svc->runForClient($this->x, $this->ctx(false));
+        self::assertSame(1, (int) $this->row($id)['uploaded']);
+
+        // a WordPress szerint még kint van: megerősítést kér, és nem módosít
+        $r = $this->svc->revert($op, $id, false);
+        self::assertTrue($r['needsConfirm']);
+        self::assertStringContainsString('Végleges törlés', $r['message']);
+        self::assertSame(1, (int) $this->row($id)['uploaded']);
+        // a bejegyzéseket törölték a WordPressben: visszavonható; a kész fordítás megmarad
+        $this->wp->pairs = [];
+        self::assertTrue($this->svc->revert($op, $id, false)['ok']);
+        $row = $this->row($id);
+        self::assertSame([0, '', '', ''], [(int) $row['uploaded'], $row['decision'], $row['wp_state'], $row['url_hu']]);
+        self::assertSame('Magyar ajánló.', $row['hu_summary']);
+        self::assertSame(1, (int) $this->db->value("SELECT COUNT(*) FROM audit_log WHERE action = 'Feltöltés visszavonva'"));
+        try {
+            $this->svc->revert($op, $id, true);
+            self::fail('nem feltöltött cikknél hiba várt');
+        } catch (\InvalidArgumentException $e) {
+            self::assertStringContainsString('nincs feltöltve', $e->getMessage());
+        }
+
+        // törlés a listából és visszaállítás ugyanazzal az azonosítóval
+        $articles = new \Xperion\Monthly\ArticleService($this->db, new AuditLog($this->db));
+        $articles->remove($op, $id);
+        self::assertNull($this->db->one('SELECT id FROM articles WHERE id = ?', [$id]));
+        self::assertCount(0, $articles->list($op, '2610'));
+        $back = $articles->restore($op, $id);
+        self::assertSame($id, $back['id']);
+        self::assertSame('Magyar ajánló.', $back['hu_summary']);
+        self::assertSame(0, (int) $this->db->value('SELECT COUNT(*) FROM deleted_articles'));
+        // publikált cikk nem törölhető
+        $this->db->run('UPDATE articles SET uploaded = 1 WHERE id = ?', [$id]);
+        $this->expectException(\InvalidArgumentException::class);
+        $articles->remove($op, $id);
+    }
+
+    public function testUploadPermissionForClientRoles(): void
+    {
+        foreach (['uzemelteto' => true, 'ugyfeladmin' => true, 'tartalom' => true, 'olvaso' => false] as $role => $ok) {
+            self::assertSame($ok, \Xperion\Auth\Roles::grants($role, 'upload'), $role);
+        }
+    }
+
     public function testErrorClassesFollowPluginTable(): void
     {
         $dup = $this->art('https://src.test/dup', 'mehet', 'Dup');

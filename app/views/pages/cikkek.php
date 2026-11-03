@@ -23,10 +23,29 @@ $rep = $data['report'] ?? null;
   <?php if (!empty($rep['details'])): ?><div class="sum-text"><h3>Részletek</h3><p><?= $e($rep['details']) ?></p></div><?php endif; ?>
 </section>
 <?php endif; ?>
+<?php if (isset($data['upWait'])): $wpReady = !empty($data['wpReady']); $why = $wpReady ? '' : ' disabled title="A weboldal-kapcsolat még nincs beállítva; az üzemeltető állítja be."'; ?>
+<section class="card widget" aria-labelledby="w-up" id="artUpload">
+  <div class="widget-head">
+    <div class="wh"><span class="ic-tile t-green" aria-hidden="true"><?= $ic('upload', 'icon') ?></span><div><h2 id="w-up">Feltöltés a weboldalra</h2><p class="meta"><span id="upWait"><?= (int) $data['upWait'] ?></span> Mehet cikk vár feltöltésre (minden hónapból) · futásonként legfeljebb <?= \Xperion\Press\UploadService::PER_RUN ?> cikk · az óránkénti futás magától is feltölti</p></div></div>
+  </div>
+  <?php if (!$wpReady): ?><div class="banner bn-info" role="status"><?= $ic('info', 'icon') ?><div class="b-body"><span>A weboldal-kapcsolat még nincs beállítva ennél az ügyfélnél. Az üzemeltető állítja be; addig a Mehet cikkek várakoznak.</span></div></div><?php endif; ?>
+  <div class="acts-row">
+    <button class="btn btn-secondary" type="button" id="upDry"<?= $why ?>><?= $ic('flask') ?>Szövegek elkészítése (szárazon)</button>
+    <button class="btn btn-primary" type="button" id="upLive"<?= $why ?>><?= $ic('upload') ?>Feltöltés élesben</button>
+  </div>
+  <p class="help"><b>Szövegek elkészítése:</b> a Claude megírja a Mehet cikkek magyar és angol címét és ajánlóját (cikkenként 2–3 cent); a weboldalra nem kerül semmi, a szöveg a cikk sorában átnézhető. <b>Feltöltés élesben:</b> a Mehet cikkek magyarul és angolul kikerülnek a weboldalra (a kész szöveggel, újra nem fizet érte), és „Publikálva” állapotba kerülnek.</p>
+  <div id="upOut" hidden>
+    <div class="result-meta" id="upMeta"></div>
+    <ol class="run-lines" id="upLines"></ol>
+    <div class="table-wrap mini-table" id="upItems" style="border:1px solid var(--border);border-radius:var(--r-lg);margin-top:12px"></div>
+  </div>
+</section>
+<?php endif; ?>
 <div class="seg" role="group" aria-label="Nézetek" id="artViews">
   <button type="button" data-v="todo" aria-pressed="true">Döntésre vár <span class="cnt-badge" id="cntTodo">0</span></button>
   <button type="button" data-v="all" aria-pressed="false">Összes</button>
   <button type="button" data-v="mehet" aria-pressed="false">Mehet</button>
+  <button type="button" data-v="publikalva" aria-pressed="false">Publikálva</button>
   <button type="button" data-v="linkedin" aria-pressed="false">LinkedIn poszt</button>
   <button type="button" data-v="nemkell" aria-pressed="false">Nem kell</button>
   <button type="button" data-v="new" aria-pressed="false">Új források</button>

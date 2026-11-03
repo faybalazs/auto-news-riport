@@ -24,7 +24,7 @@ final class UploadService
 {
     public const MAX_ATTEMPTS = 3;
     public const PER_RUN = 10;
-    public const STATES = ['' => 'Feltöltésre vár', 'kint' => 'Kint', 'duplikatum' => 'Már fent volt', 'hiba' => 'Hiba', 'zarolt' => 'Folyamatban', 'reszben' => 'Részben kint'];
+    public const STATES = ['' => 'Feltöltésre vár', 'kint' => 'Publikálva', 'duplikatum' => 'Már fent volt', 'hiba' => 'Hiba', 'zarolt' => 'Folyamatban', 'reszben' => 'Részben kint'];
 
     /** @var callable(array<string,mixed>):WpBridgeClient */
     private $wpFor;
@@ -88,7 +88,7 @@ final class UploadService
     /** Kézi futtatás a Vezérlőpultról, az aktuális ügyfélre. */
     public function runForAccess(Access $a, bool $dry): RunResult
     {
-        $a->require('ops');
+        $a->require('upload');
         $client = $a->client();
         $label = 'Feltöltés: ' . ($client['name'] ?? '–');
         $start = hrtime(true);
@@ -308,13 +308,48 @@ final class UploadService
     /** Elakadt cikk újrapróbálásának engedélyezése (a próbálkozások nullázása). */
     public function retry(Access $a, int $articleId): void
     {
-        $a->require('ops');
+        $a->require('upload');
         $cid = $a->clientId() ?? throw new \InvalidArgumentException('Nincs kiválasztott ügyfél.');
         $n = $this->db->run("UPDATE articles SET upload_attempts = 0, wp_state = IF(wp_state = 'duplikatum', 'duplikatum', ''), upload_error = '' WHERE id = ? AND client_id = ? AND uploaded = 0 AND decision = 'mehet'", [$articleId, $cid])->rowCount();
         if ($n !== 1) {
             throw new \InvalidArgumentException('Ez a cikk nem próbálható újra (nincs Mehet jelölése, vagy már kint van).');
         }
         $this->audit->add($cid, $a->userId(), 'Feltöltés újrapróbálása', '#' . $articleId);
+    }
+
+    /**
+     * Feltöltés visszavonása: a cikk újra „Döntésre vár” lesz. A weboldalról NEM töröl (a bővítménynek nincs törlő
+     * művelete): a bejegyzéseket a WordPressben kell törölni. Ha a WordPress szerint a pár még kint van, megerősítést kér.
+     *
+     * @return array{ok:bool, needsConfirm?:bool, message?:string}
+     */
+    public function revert(Access $a, int $articleId, bool $force): array
+    {
+        $a->require('upload');
+        $client = $a->client() ?? throw new \InvalidArgumentException('Nincs kiválasztott ügyfél.');
+        $cid = (int) $client['id'];
+        $row = $this->db->one('SELECT id, month, no, title, uploaded, press_key, url_hu, url_en FROM articles WHERE id = ? AND client_id = ?', [$articleId, $cid])
+            ?? throw new \InvalidArgumentException('Nincs ilyen cikk.');
+        if ((int) $row['uploaded'] !== 1) {
+            throw new \InvalidArgumentException('Ez a cikk nincs feltöltve, nincs mit visszavonni.');
+        }
+        if (!$force && (string) $row['press_key'] !== '') {
+            try {
+                $pair = ($this->wpFor)($client)->getPair((string) $row['press_key']);
+                $state = (string) ($pair['state'] ?? '');
+                if (in_array($state, ['published', 'partial', 'draft'], true)) {
+                    $urls = array_filter([(string) $row['url_hu'], (string) $row['url_en']]);
+                    return ['ok' => false, 'needsConfirm' => true, 'message' => 'A WordPress szerint ez a cikk még megvan a weboldalon' . ($state === 'published' ? '' : ' (' . $state . ')') . ($urls ? ': ' . implode(' · ', $urls) : '') . '. '
+                        . 'A program a weboldalról nem töröl. Ha még nem tette, a WordPress-adminban a Bejegyzések listában törölje a két bejegyzést (magyart és angolt), majd a Lomtár fülön a „Végleges törlés” gombbal is, különben egy későbbi feltöltésnél a program kint lévőnek látja. Ha már törölte, a visszavonás folytatható.'];
+                }
+            } catch (\Throwable $e) {
+                return ['ok' => false, 'needsConfirm' => true, 'message' => 'A weboldal állapotát most nem tudom ellenőrizni (' . $e->getMessage() . '). A program a weboldalról nem töröl: ha a bejegyzések még kint vannak, előbb a WordPressben törölje őket (Bejegyzések, majd Lomtár → Végleges törlés). Folytatja a visszavonást?'];
+            }
+        }
+        $this->db->run("UPDATE articles SET uploaded = 0, decision = '', upload_status = '', wp_state = '', url_hu = '', url_en = '', wp_hu_id = NULL, wp_en_id = NULL,
+            published_at = NULL, upload_error = '', upload_attempts = 0, updated_at = ? WHERE id = ? AND client_id = ?", [Database::now(), $articleId, $cid]);
+        $this->audit->add($cid, $a->userId(), 'Feltöltés visszavonva', $row['month'] . '/' . ($row['no'] ?? $row['id']) . ' · ' . mb_substr((string) $row['title'], 0, 120) . ' (újra döntésre vár)');
+        return ['ok' => true];
     }
 
     /** @param list<string> $errors */

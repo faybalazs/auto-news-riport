@@ -186,6 +186,10 @@ if ($perm !== null && !$access->can($perm)) {
         $months = $app->articles()->months($access);
         $month = preg_match('/^\d{4}$/', (string) ($_GET['honap'] ?? '')) ? (string) $_GET['honap'] : ($months[0]['month'] ?? '');
         $data = ['months' => $months, 'month' => $month, 'articles' => $month !== '' ? $app->articles()->list($access, $month) : [], 'report' => $month !== '' ? $app->articles()->report($access, $month) : null];
+        if ($access->can('upload') && ($cl = $access->client()) !== null) {
+            $data['upWait'] = (int) $app->db()->value("SELECT COUNT(*) FROM articles WHERE client_id = ? AND decision = 'mehet' AND uploaded = 0", [$cl['id']]);
+            $data['wpReady'] = $app->config->wordpressSite((string) $cl['website']) !== null;
+        }
     } elseif ($page === 'vezerlo' && $access->client() !== null) {
         $em = $app->emails();
         $mm = $em->months($access);

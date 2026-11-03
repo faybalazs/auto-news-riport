@@ -822,8 +822,14 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 /* Sablon 1.5.0 kiegészítés: LinkedIn-színű ikoncsempe, posztkártya, érintőképernyős célterület */
 .t-li{ --tc:var(--li); }
 .todo-w .tw-body .btn{ margin-left:auto; }
-@media (pointer:coarse){ .btn.sm, .th-sort, .ws-btn, #wsBtn, .icon-btn, .seg button{ min-height:44px; } .icon-btn{ min-width:44px; } .linklike{ padding:12px 6px; margin:-12px -6px; } }
+@media (pointer:coarse){ .btn.sm, .select.sm, .input.sm, .th-sort, .ws-btn, #wsBtn, .icon-btn, .seg button{ min-height:44px; } .icon-btn{ min-width:44px; } .linklike{ padding:12px 6px; margin:-12px -6px; } }
 .pre-line{ white-space:pre-line; }
+/* Havi cikkek: az elkészült HU/EN szöveg a sorban, összecsukva */
+.up-text{ margin-top:6px; font-size:var(--fs-sm); }
+.up-text > summary{ cursor:pointer; color:var(--accent-text); font-weight:600; min-height:24px; display:inline-flex; align-items:center; }
+@media (pointer:coarse){ .up-text > summary{ min-height:44px; } }
+.up-text > summary:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; border-radius:4px; }
+.up-text .cell-title{ margin-top:6px; padding-top:6px; border-top:1px solid var(--border); }
 
 /* ================= 18. TÖRÉSPONTOK (mindig a CSS végén) ================= */
 @media (max-width:1279px){ .layout{ grid-template-columns:minmax(0,1fr); } .w-8, .w-4{ grid-column:span 12; } }

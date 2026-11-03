@@ -39,7 +39,7 @@ final class ArticleService
                 $r[$k] = $r[$k] === null ? null : (int) $r[$k];
             }
             return $r;
-        }, $this->db->all('SELECT id, no, source_name, published_on, title, description, url, recommendation, reason, decision, uploaded, upload_status, url_hu, url_en, post_code, from_new_source, wp_state, upload_error, upload_attempts
+        }, $this->db->all('SELECT id, no, source_name, published_on, title, description, url, recommendation, reason, decision, uploaded, upload_status, url_hu, url_en, post_code, from_new_source, wp_state, upload_error, upload_attempts, hu_title, hu_summary, en_title, en_summary
             FROM articles WHERE client_id = ? AND month = ? ORDER BY from_new_source, COALESCE(no, 9999), published_on, id', [$cid, $month]));
     }
 
@@ -53,6 +53,50 @@ final class ArticleService
         $r['summary_rows'] = json_decode((string) $r['summary_rows'], true) ?: [];
         $r['stats'] = json_decode((string) $r['stats'], true) ?: [];
         return $r;
+    }
+
+    /**
+     * Cikk törlése a listából, visszaállíthatóan (a sor a deleted_articles táblába kerül). Feltöltött cikk nem törölhető.
+     */
+    public function remove(Access $a, int $id): void
+    {
+        $a->require('decide');
+        $cid = $a->clientId() ?? throw new \InvalidArgumentException('Nincs kiválasztott ügyfél.');
+        $this->db->transaction(function () use ($a, $cid, $id): void {
+            $row = $this->db->one('SELECT * FROM articles WHERE id = ? AND client_id = ?', [$id, $cid]) ?? throw new \InvalidArgumentException('Nincs ilyen cikk.');
+            if ((int) $row['uploaded'] === 1) {
+                throw new \InvalidArgumentException('Publikált cikk nem törölhető. Előbb vonja vissza a feltöltést (a sor ⋯ menüje → Feltöltés visszavonása).');
+            }
+            $this->db->run('DELETE FROM deleted_articles WHERE id = ?', [$id]);
+            $this->db->insert('deleted_articles', ['id' => $id, 'client_id' => $cid, 'month' => (string) $row['month'], 'data' => json_encode($row, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), 'deleted_by' => $a->userId(), 'deleted_at' => Database::now()]);
+            $this->db->run('DELETE FROM articles WHERE id = ? AND client_id = ?', [$id, $cid]);
+            $this->audit->add($cid, $a->userId(), 'Cikk törölve', $row['month'] . '/' . ($row['no'] ?? $row['id']) . ' · ' . mb_substr((string) $row['title'], 0, 120));
+        });
+    }
+
+    /** Törölt cikk visszaállítása ugyanazzal az azonosítóval. @return array<string,mixed> a cikk listabeli alakja */
+    public function restore(Access $a, int $id): array
+    {
+        $a->require('decide');
+        $cid = $a->clientId() ?? throw new \InvalidArgumentException('Nincs kiválasztott ügyfél.');
+        $this->db->transaction(function () use ($a, $cid, $id): void {
+            $d = $this->db->one('SELECT data FROM deleted_articles WHERE id = ? AND client_id = ?', [$id, $cid]) ?? throw new \InvalidArgumentException('Ez a cikk nem állítható vissza.');
+            $row = json_decode((string) $d['data'], true, 512, JSON_THROW_ON_ERROR);
+            try {
+                $this->db->insert('articles', $row);
+            } catch (\PDOException $e) {
+                throw new \InvalidArgumentException('A cikk nem állítható vissza: közben újra bekerült a listába (ugyanazzal a címmel).');
+            }
+            $this->db->run('DELETE FROM deleted_articles WHERE id = ?', [$id]);
+            $this->audit->add($cid, $a->userId(), 'Cikk visszaállítva', $row['month'] . '/' . ($row['no'] ?? $row['id']) . ' · ' . mb_substr((string) $row['title'], 0, 120));
+        });
+        $month = (string) $this->db->value('SELECT month FROM articles WHERE id = ?', [$id]);
+        foreach ($this->list($a, $month) as $r) {
+            if ($r['id'] === $id) {
+                return $r;
+            }
+        }
+        return [];
     }
 
     /**

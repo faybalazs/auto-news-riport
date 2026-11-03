@@ -206,12 +206,18 @@ try {
             return ['wp' => $app->uploads()->check($access)];
         })(),
         'feltoltes' => (function () use ($app, $access, $in) {
-            $access->require('ops');
+            $access->require('upload');
             session_write_close();
             ignore_user_abort(true);
             @set_time_limit(1200);
             return ['result' => $app->uploads()->runForAccess($access, !empty($in['dry']))->toArray()];
         })(),
+        'feltoltesvissza' => $app->uploads()->revert($access, (int) $int('id'), !empty($in['force'])),
+        'cikktorles' => (function () use ($app, $access, $int) {
+            $app->articles()->remove($access, (int) $int('id'));
+            return ['ok' => true];
+        })(),
+        'cikkvissza' => ['article' => $app->articles()->restore($access, (int) $int('id'))],
         'feltoltesujra' => (function () use ($app, $access, $int) {
             $app->uploads()->retry($access, (int) $int('id'));
             return ['ok' => true];
