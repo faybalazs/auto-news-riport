@@ -158,7 +158,13 @@ final class App
     {
         $site = $this->config->wordpressSite((string) ($client['website'] ?? ''));
         if ($site === null) {
-            throw new \InvalidArgumentException('Nincs WordPress-beállítás ehhez az ügyfélhez (' . (($client['website'] ?? '') !== '' ? $client['website'] : 'nincs megadva weboldal') . '). A config.php „wordpress” részébe kell, az ügyfél weboldala szerint (pl. \'xperion.hu\' => [\'user\' => …, \'app_password\' => …]).');
+            $name = (string) ($client['name'] ?? '');
+            $web = trim((string) ($client['website'] ?? ''));
+            if ($web === '') {
+                throw new \InvalidArgumentException("A(z) {$name} ügyfélnél nincs megadva a weboldal, ezért nem tudom, melyik WordPresshez kell kapcsolódni. Az Ügyfelek oldalon a(z) {$name} sorának ⋯ menüjében válassza a Szerkesztést, és a Weboldal mezőbe írja be (pl. xperion.hu). Ha nem ez az ügyfél kell, a bal felső ügyfélváltóval váltson.");
+            }
+            $sites = $this->config->wordpressSites();
+            throw new \InvalidArgumentException("A(z) {$name} ügyfél weboldalához ({$web}) nincs WordPress-belépés a config.php „wordpress” részében" . ($sites ? ' (beállítva: ' . implode(', ', $sites) . ')' : '') . ". A kulcs a weboldal neve legyen, pl. '" . Config::siteHost($web) . "' => ['user' => …, 'app_password' => …].");
         }
         // A WordPress-hívás nem ismételhető vakon: újrapróbálás nélküli kliens.
         return new \Xperion\Press\WpBridgeClient(new CurlHttpClient(0, 90), $site['base_url'], $site['user'], $site['app_password']);

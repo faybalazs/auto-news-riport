@@ -51,7 +51,7 @@ for ($i = 1; $i <= 6; $i++) {
     <div class="wh"><span class="ic-tile t-green" aria-hidden="true"><?= $ic('upload', 'icon') ?></span><div><h2 id="h-up">Feltöltés a weboldalra</h2><p class="meta"><?= $e($access->client()['name']) ?> · <?= $wpSite ? $e($wpSite['base_url']) : 'nincs WordPress-beállítás' ?> · <?= $waitUp ?> Mehet cikk vár · az óránkénti futás automatikusan feltölti</p></div></div>
   </div>
   <?php if (!$wpSite): ?>
-  <div class="banner bn-info" role="status"><?= $ic('info', 'icon') ?><div class="b-body"><span><b>Nincs WordPress-beállítás ehhez az ügyfélhez.</b> A config.php <code>wordpress</code> részébe kell az ügyfél weboldala (<?= $e(($access->client()['website'] ?? '') !== '' ? $access->client()['website'] : 'az Ügyfelek oldalon adható meg') ?>) szerint: felhasználó és alkalmazásjelszó.</span></div></div>
+  <div class="banner bn-info" role="status"><?= $ic('info', 'icon') ?><div class="b-body"><span><?php if (trim((string) ($access->client()['website'] ?? '')) === ''): ?><b>A(z) <?= $e($access->client()['name'] ?? '') ?> ügyfélnél nincs megadva a weboldal.</b> Az <a href="index.php?p=ugyfelek">Ügyfelek</a> oldalon a sor ⋯ menüjében válassza a Szerkesztést, és írja be a weboldalt (pl. xperion.hu). Ha nem ez az ügyfél kell, a bal felső ügyfélváltóval váltson.<?php else: ?><b>Nincs WordPress-beállítás ehhez az ügyfélhez.</b> A config.php <code>wordpress</code> részébe kell az ügyfél weboldala (<?= $e($access->client()['website']) ?>) szerint: felhasználó és alkalmazásjelszó.<?php endif; ?></span></div></div>
   <?php endif; ?>
   <div class="collect-bar">
     <button class="btn btn-secondary" type="button" id="wpCheck"><?= $ic('globe') ?>Kapcsolat ellenőrzése</button>
