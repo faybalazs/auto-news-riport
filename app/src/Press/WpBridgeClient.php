@@ -71,9 +71,11 @@ final class WpBridgeClient
         $fail = fn (string $code, string $hint, string $msg = '') => ['ok' => false, 'user' => '', 'roles' => [], 'code' => $code, 'message' => $msg, 'hint' => $hint];
         // 1. Átirányít-e a webhely (pl. www nélkül → www-vel, http → https)? Átirányításkor a belépési adat elveszik.
         try {
-            $idx = $this->http->request('GET', $this->baseUrl . '/wp-json/', ['Accept' => 'application/json']);
+            // gyorsítótár-kerülő paraméterrel: egy gyorsítótárazó bővítmény ne régi indexet adjon
+            $nc = 'xp=' . time();
+            $idx = $this->http->request('GET', $this->baseUrl . '/wp-json/?' . $nc, ['Accept' => 'application/json', 'Cache-Control' => 'no-cache']);
             if ($idx->status === 404) {
-                $idx = $this->http->request('GET', $this->baseUrl . '/?rest_route=/', ['Accept' => 'application/json']);
+                $idx = $this->http->request('GET', $this->baseUrl . '/?rest_route=/&' . $nc, ['Accept' => 'application/json', 'Cache-Control' => 'no-cache']);
             }
         } catch (HttpException $e) {
             return $fail('transport', 'A webhely nem érhető el (' . $e->getMessage() . ').');
@@ -110,7 +112,11 @@ final class WpBridgeClient
             ? ($helper
                 ? 'A belépési kiegészítő (xperion-auth-fejlec.php) telepítve van, mégsem ér el a belépési adat a WordPressig: a tárhely valószínűleg a tartalék fejlécet is kiszűri, vagy egy biztonsági bővítmény (pl. Wordfence) blokkolja a REST-belépést. Nézze meg a biztonsági bővítmény naplóját, vagy kérje a tárhely ügyfélszolgálatától az Authorization fejléc továbbítását a PHP felé.'
                 : 'A webhely nem irányít át, és az alkalmazásjelszavak elérhetők, mégsem ér el a belépési adat a WordPressig: a tárhely kiszűri az „Authorization” fejlécet.' . "\n"
-                    . 'Megoldás .htaccess nélkül: töltse fel a WordPressbe a belépési kiegészítőt (xperion-auth-fejlec.php; a Vezérlőpult Feltöltés kártyáján, a Kapcsolat ellenőrzése alatt megjelenő gombbal letölthető). A tárhely fájlkezelőjében a WordPress gyökérmappájában nyissa meg a wp-content mappát, hozzon létre benne egy mu-plugins mappát (ha még nincs), és töltse fel ide a fájlt. Bekapcsolni nem kell, magától működik. Utána próbálja újra a Kapcsolat ellenőrzését.')
+                    . 'Megoldás .htaccess nélkül: a belépési kiegészítő (xperion-auth-fejlec.php; az alábbi gombbal letölthető). A webhelyen most nem látszik, vagyis a WordPress nem tölti be. Ellenőrizze:' . "\n"
+                    . '1. A WordPress-adminban a Bővítmények oldal tetején megjelenik-e a „Kötelezően használt” (Must-Use) fül, és abban az „Xperion – belépés…” sor. Ha igen, a kiegészítő fut.' . "\n"
+                    . '2. Ha nem: a fájl pontos helye <WordPress gyökérmappa>/wp-content/mu-plugins/xperion-auth-fejlec.php. A mappanevek kisbetűsek (wp-content, nem Wp-content), a fájl közvetlenül a mu-plugins mappában legyen (nem egy almappában), a neve .php-ra végződjön (nem .txt vagy „(1)” a végén).' . "\n"
+                    . '3. A WordPress gyökérmappája az, amelyikben a wp-config.php is van (ha a tárhelyen több webhely van, az xperion.hu-é).' . "\n"
+                    . 'Utána próbálja újra a Kapcsolat ellenőrzését.')
             : self::authMessage($r->status, $code, (string) ($d['message'] ?? ''));
         return $fail($code, $hint, (string) ($d['message'] ?? ''));
     }
