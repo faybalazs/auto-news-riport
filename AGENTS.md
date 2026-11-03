@@ -10,6 +10,7 @@ PHP-alkalmazás saját felülettel és MySQL-adatbázissal (több ügyfélre): h
    - [docs/decisions.md](docs/decisions.md): érvényes döntések
    - [docs/terminology.md](docs/terminology.md): a magyar szakkifejezések és jelentésük
 3. [docs/architecture.md](docs/architecture.md): modulok, belépési pontok, adatbázis.
+4. Ha kell: `tools/felulet/` (a felület forrásai és építése), `docs/kezikonyv/` (felhasználói kézikönyv forrása; kimenet `app/resources/kezikonyv.html`), `wordpress/mu-plugins/` (a WordPressbe kerülő belépési kiegészítő), `docs/integracio/` (WordPress-bővítmény API).
 
 ## Mérvadó források
 - **Követelmények:** docs/product.md. Ha a kód vagy egy kérés ellentmond neki, jelezd, ne dönts helyette.
@@ -37,6 +38,7 @@ PHP-alkalmazás saját felülettel és MySQL-adatbázissal (több ügyfélre): h
 - docs/decisions.md: csak új érdemi döntés.
 - CHANGELOG.md: kiadásnál verzió, dátum, csomag, módosult fájlok, ellenőrzöttség. Ebből látja a felhasználó, mit kell feltöltenie.
 - docs/architecture.md: modul- vagy belépésipont-változásnál.
+- Kiadásnál `app/bootstrap.php` (`XPERION_VERSION`, `XPERION_RELEASE`) és a CHANGELOG együtt. Felületváltozásnál a kézikönyv (`docs/kezikonyv/`) érintett fejezete és képe is frissül.
 - **Napzárás:** csak kérésre („nap vége”, „zárjuk a napot”, „frissítsd a projektet”), a fenti lépésekkel; a végén egy mondatban, mi frissült.
 
 ## Állapotok

@@ -52,11 +52,11 @@ Másold le a `config.example.php`-t `config.php` néven, és töltsd ki:
 
 ### 8. Élő feltöltés az xperion.hu-ra
 1. **WordPress-admin → Bővítmények → Új hozzáadása → Bővítmény feltöltése:** az Xperion OAuth Bridge 0.6.0 ZIP-je, „Csere a feltöltöttre”. Utána a bővítmény saját próbája (a csomag `docs/TEST_REPORT.md` leírása).
-2. **Felhasználók → Új felhasználó:** egy külön felhasználó (pl. `cikkfigyelo`) **Szerző** szerepkörrel. A profiljában **Alkalmazásjelszavak**: új jelszó (pl. „Sajtófigyelés”), és másold ki.
-3. **Beállítások → Xperion sajtószemle:** a magyar és az angol alapkategória.
+2. **Felhasználók → Új felhasználó:** egy külön felhasználó (pl. `cikkfigyelo`) **Szerző** szerepkörrel. A profilja alján **Alkalmazásjelszavak**: név (pl. „Sajtófigyelés”) → **Új alkalmazásjelszó hozzáadása**, és másold ki a megjelenő jelszót. Ez **nem a belépési jelszó**: 24 betű és szám, négyes csoportokban szóközzel (pl. `abcd EFGH 1234 ijkl MNOP 5678`), a szóközökkel együtt kerül a `config.php`-ba.
+3. **Beállítások → Xperion sajtószemle:** a magyar és az angol alapkategória. Előtte a felső sáv Polylang-választójában **Az összes nyelv megjelenítése** legyen kiválasztva, különben csak az egyik nyelv kategóriái látszanak (a bővítmény hibája).
 4. A `config.php` `wordpress` részébe az ügyfél weboldala szerint: `'xperion.hu' => ['user' => 'cikkfigyelo', 'app_password' => '<a kimásolt alkalmazásjelszó>']`. Az Ügyfelek oldalon az ügyfél weboldala legyen `xperion.hu`.
-5. **Vezérlőpult → Feltöltés a weboldalra → Kapcsolat ellenőrzése:** minden sor legyen zöld (bővítmény 0.6.x, publikálhat, képet tölthet fel, két alapkategória).
-6. **Feltöltés szárazon:** megmutatja a magyar és angol címet és ajánlót, semmit nem ír. Ha rendben van: **Feltöltés élesben** (vagy megvárod az óránkénti futást).
+5. **Vezérlőpult → Feltöltés a weboldalra → Kapcsolat ellenőrzése:** minden sor legyen zöld (bővítmény 0.6.x, publikálhat, képet tölthet fel, két alapkategória). Ha a belépés nem jut el a WordPressig, a hibasáv megmondja az okát; ha a tárhely kiszűri a belépési fejlécet, a **belépési kiegészítő** kell: a hibasáv gombjával letölthető `xperion-auth-fejlec.php` a WordPress `wp-content/mu-plugins` mappájába (kisbetűs mappanevek, ne almappába; a WordPress-admin **Bővítmények → Kötelezően használt** fülén látszik, ha fut).
+6. **Feltöltés szárazon** (a Vezérlőpulton, vagy a Havi cikkek oldal **Feltöltés a weboldalra** kártyáján **Szövegek elkészítése**; az ügyfél-adminisztrátor és a tartalomkezelő is): megmutatja a magyar és angol címet és ajánlót, semmit nem ír. Ha rendben van: **Feltöltés élesben** (vagy megvárod az óránkénti futást).
 
 A „Mehet” cikk a következő óránkénti futással kikerül magyarul és angolul, a forráscikk képével és linkjével. A Havi cikkek oldalon látszik az állapota és a két link; hiba esetén az oka. Ami már kint van, nem kerül fel újra.
 
@@ -81,6 +81,12 @@ A tárhely vezérlőpultjában két időzített feladat kell; a pontos címeket 
 
 Ha a vezérlőpult csak parancsot fogad el, az URL-t egy `wget -q -O - "<cím>"` parancsba kell tenni; ezt a vezérlőpult súgója szokta mutatni.
 
+### 12. Felhasználói kézikönyv
+Az ügyfél-adminisztrátornak és a tartalomkezelőnek: a menü alján a **Felhasználói kézikönyv** pont új ablakban nyitja meg (`app/resources/kezikonyv.html`, belépéshez kötve). E-mailben is elküldhető, böngészőben és iPaden megnyílik. Forrása és frissítése: `docs/kezikonyv/README.md`.
+
+### Ellenőrzés feltöltés után
+Minden oldal láblécének jobb oldala mutatja a feltöltött verziót és a kiadás dátumát (pl. „Sajtófigyelés 0.13.3 · 2026. 11. 03.”); egyezzen a `CHANGELOG.md` legfelső sorával.
+
 ### Elfelejtett jelszó
 A jelszólink e-mailben még nem megy ki; az adminisztrátor ad új linket: **Felhasználók → sor ⋯ menüje → Jelszó-visszaállító link** (24 óráig érvényes).
 
@@ -89,3 +95,7 @@ A `config.php` és minden kulcs a repón kívül marad; a repóban csak a `confi
 
 ## Fejlesztés
 `composer install`, majd `vendor/bin/phpunit`. Az adatbázistesztek valódi MySQL/MariaDB-t használnak (`XP_TEST_DB_HOST`, `XP_TEST_DB_USER`, `XP_TEST_DB_PASS`, `XP_TEST_DB_NAME`; alapértelmezés: localhost, xp/xp, xp_test); ha nincs adatbázis, kimaradnak. A külső szolgáltatások (Google, Claude, SMTP) helyettesítővel futnak.
+
+- **Felület:** az `assets/app.css` és `assets/app.js` generált fájl; a forrás és az építés a `tools/felulet/` mappában (`tools/felulet/README.md`). Ellenőrzés: az auris-admin-sablon skill `scripts/app-ellenorzes.js` felületellenőrzője.
+- **Kézikönyv:** forrás `docs/kezikonyv/`, kimenet `app/resources/kezikonyv.html` (auris-felhasznaloi-kezikonyv skill `scripts/build.py`).
+- **Verzió:** `app/bootstrap.php` (`XPERION_VERSION`, `XPERION_RELEASE`) és a `CHANGELOG.md` együtt változik.
