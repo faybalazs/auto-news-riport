@@ -91,7 +91,7 @@ final class WpBridgeClient
                 . '2. A WordPress nem érzékeli a HTTPS-t (a tárhely proxyn vagy CDN-en át szolgál ki). Ekkor a WordPress gyökérmappájában lévő wp-config.php-ba, a „That\'s all, stop editing” sor elé írja be:' . "\n```\n" . 'if (($_SERVER[\'HTTP_X_FORWARDED_PROTO\'] ?? \'\') === \'https\') { $_SERVER[\'HTTPS\'] = \'on\'; }' . "\n```");
         }
         // 3. Belépés próbája (csak olvas).
-        $h = ['Authorization' => 'Basic ' . base64_encode($this->user . ':' . $this->appPassword), 'Accept' => 'application/json'];
+        $h = $this->authHeaders() + ['Accept' => 'application/json'];
         try {
             $r = $this->http->request('GET', $this->baseUrl . '/wp-json/wp/v2/users/me?context=edit', $h);
             if ($r->status === 404) {
@@ -105,13 +105,25 @@ final class WpBridgeClient
             return ['ok' => true, 'user' => (string) ($d['name'] ?? $d['slug'] ?? ''), 'roles' => array_values(array_map('strval', (array) ($d['roles'] ?? []))), 'code' => '', 'message' => '', 'hint' => ''];
         }
         $code = (string) ($d['code'] ?? '');
+        $helper = is_array($index) && isset($index['xperion_auth_header']);
         $hint = $r->status === 401 && in_array($code, ['rest_not_logged_in', 'rest_forbidden', ''], true)
-            ? 'A webhely nem irányít át, és az alkalmazásjelszavak elérhetők, mégsem ér el a belépési adat a WordPressig: a tárhely kiszűri az „Authorization” fejlécet.' . "\n"
-                . 'Ellenőrizze: a .htaccess az, amelyik a WordPress gyökérmappájában, a wp-config.php mellett van (nem a sajtófigyelő mappájában), és a sorok a „# BEGIN WordPress” sor FÖLÖTT vannak. Ezt a három sort írja be (a harmadik egyes tárhelyeken kell):'
-                . "\n```\n" . 'RewriteEngine On' . "\n" . 'RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]' . "\n" . 'SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1' . "\n```\n"
-                . 'Ha így sem megy, kérje a tárhely ügyfélszolgálatától az Authorization fejléc továbbítását a PHP felé (LiteSpeed vagy nginx szervernél a .htaccess ezt nem mindig tudja).'
+            ? ($helper
+                ? 'A belépési kiegészítő (xperion-auth-fejlec.php) telepítve van, mégsem ér el a belépési adat a WordPressig: a tárhely valószínűleg a tartalék fejlécet is kiszűri, vagy egy biztonsági bővítmény (pl. Wordfence) blokkolja a REST-belépést. Nézze meg a biztonsági bővítmény naplóját, vagy kérje a tárhely ügyfélszolgálatától az Authorization fejléc továbbítását a PHP felé.'
+                : 'A webhely nem irányít át, és az alkalmazásjelszavak elérhetők, mégsem ér el a belépési adat a WordPressig: a tárhely kiszűri az „Authorization” fejlécet.' . "\n"
+                    . 'Megoldás .htaccess nélkül: töltse fel a WordPressbe a belépési kiegészítőt (xperion-auth-fejlec.php; a Vezérlőpult Feltöltés kártyáján, a Kapcsolat ellenőrzése alatt megjelenő gombbal letölthető). A tárhely fájlkezelőjében a WordPress gyökérmappájában nyissa meg a wp-content mappát, hozzon létre benne egy mu-plugins mappát (ha még nincs), és töltse fel ide a fájlt. Bekapcsolni nem kell, magától működik. Utána próbálja újra a Kapcsolat ellenőrzését.')
             : self::authMessage($r->status, $code, (string) ($d['message'] ?? ''));
         return $fail($code, $hint, (string) ($d['message'] ?? ''));
+    }
+
+    /**
+     * A belépés fejlécei: a szabványos Authorization mellett ugyanaz az X-Xperion-Auth fejlécben is, mert sok tárhely
+     * kiszűri az Authorization fejlécet; a WordPress-oldali kiegészítő (wordpress/mu-plugins/xperion-auth-fejlec.php) teszi vissza.
+     * @return array<string,string>
+     */
+    private function authHeaders(): array
+    {
+        $basic = 'Basic ' . base64_encode($this->user . ':' . $this->appPassword);
+        return ['Authorization' => $basic, 'X-Xperion-Auth' => $basic];
     }
 
     /** séma://gép a címből (kisbetűvel, port nélkül, ha alapértelmezett); üres, ha nem értelmezhető */
@@ -131,7 +143,7 @@ final class WpBridgeClient
     public function call(string $tool, array $args): array
     {
         $body = json_encode(['jsonrpc' => '2.0', 'id' => bin2hex(random_bytes(8)), 'method' => 'tools/call', 'params' => ['name' => $tool, 'arguments' => (object) $args]], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
-        $headers = ['Authorization' => 'Basic ' . base64_encode($this->user . ':' . $this->appPassword), 'Content-Type' => 'application/json', 'Accept' => 'application/json'];
+        $headers = $this->authHeaders() + ['Content-Type' => 'application/json', 'Accept' => 'application/json'];
         try {
             $r = $this->http->request('POST', $this->baseUrl . '/wp-json/xperion-bridge/v1/press', $headers, $body);
             if ($r->status === 404) {

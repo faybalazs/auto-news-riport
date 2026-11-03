@@ -35,13 +35,13 @@ final class FakeWpBridge implements HttpClient
             return new HttpResponse(200, (string) json_encode($this->index ?? ['name' => 'Xperion', 'authentication' => ['application-passwords' => ['endpoints' => []]]]), $this->finalUrl !== '' ? $this->finalUrl : $url);
         }
         if ($method === 'GET' && str_contains($url, 'users/me')) {
-            $this->calls[] = ['tool' => 'users/me', 'args' => [], 'auth' => (string) ($headers['Authorization'] ?? ''), 'url' => $url];
+            $this->calls[] = ['tool' => 'users/me', 'args' => [], 'auth' => (string) ($headers['Authorization'] ?? ''), 'alt' => (string) ($headers['X-Xperion-Auth'] ?? ''), 'url' => $url];
             return new HttpResponse($this->me[0], (string) json_encode($this->me[1]));
         }
         $b = json_decode((string) $body, true);
         $tool = (string) ($b['params']['name'] ?? '');
         $args = (array) ($b['params']['arguments'] ?? []);
-        $this->calls[] = ['tool' => $tool, 'args' => $args, 'auth' => (string) ($headers['Authorization'] ?? ''), 'url' => $url];
+        $this->calls[] = ['tool' => $tool, 'args' => $args, 'auth' => (string) ($headers['Authorization'] ?? ''), 'alt' => (string) ($headers['X-Xperion-Auth'] ?? ''), 'url' => $url];
         if ($this->status !== 200) {
             return new HttpResponse($this->status, (string) json_encode(['code' => $this->authCode, 'message' => 'WordPress message', 'data' => ['status' => $this->status]]));
         }

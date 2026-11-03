@@ -636,6 +636,7 @@ if (APP.page === 'vezerlo'){
       // a szerver a másolandó részt ``` jelek közé teszi: azt másolható dobozba emeljük
       const m = e.message.match(/\n```\n([\s\S]*?)\n```\n?/);
       $('#wpKv').hidden = true; $('#wpErrText').textContent = m ? e.message.replace(m[0], '\n').trim() : e.message; $('#wpErr').hidden = false;
+      $('#wpErrHelper').hidden = !e.message.includes('xperion-auth-fejlec.php') || e.message.includes('telepítve van');
       $('#wpErrCopy').innerHTML = m ? `<div class="copy-box"><code style="white-space:pre-wrap;overflow-wrap:anywhere">${esc(m[1])}</code><button class="btn btn-ghost sm" type="button" data-copy="${esc(m[1])}">${ic('copy')}Másolás</button></div>` : '';
       toast('A WordPress-kapcsolat nem működik; az ok és a teendő a kártyán.', { type:'error' });
     }

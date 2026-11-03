@@ -132,6 +132,18 @@ if ($page === 'ugyfelvaltas' && $post) {
     Http::redirect('index.php?p=' . $back);
 }
 
+// ---- A WordPress-oldali belépési kiegészítő letöltése (üzemeltetőnek) --------------------
+if ($page === 'wpkiegeszito' && $access->can('ops')) {
+    $f = __DIR__ . '/wordpress/mu-plugins/xperion-auth-fejlec.php';
+    if (is_file($f)) {
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename="xperion-auth-fejlec.php"');
+        header('Content-Length: ' . filesize($f));
+        readfile($f);
+        exit;
+    }
+}
+
 // ---- Oldalak -------------------------------------------------------------------------
 $pages = [
     'attekintes' => ['Áttekintés', null],

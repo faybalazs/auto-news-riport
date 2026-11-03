@@ -191,9 +191,22 @@ final class UploadServiceTest extends DbTestCase
             $this->svc->check($op);
             self::fail('hiba várt');
         } catch (\Xperion\Press\WpException $e) {
-            self::assertStringContainsString('RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]', $e->getMessage());
-            self::assertStringContainsString('.htaccess', $e->getMessage());
+            self::assertStringContainsString('xperion-auth-fejlec.php', $e->getMessage());
+            self::assertStringContainsString('mu-plugins', $e->getMessage());
         }
+        // a tartalék fejléc is megy, ugyanazzal a belépéssel
+        $last = end($this->wp->calls);
+        self::assertSame($last['auth'], $last['alt']);
+        self::assertStringStartsWith('Basic ', $last['alt']);
+        // a kiegészítő telepítve van, mégsem megy: más ok
+        $this->wp->index = ['name' => 'Xperion', 'authentication' => ['application-passwords' => []], 'xperion_auth_header' => '1.0.0'];
+        try {
+            $this->svc->check($op);
+            self::fail('hiba várt');
+        } catch (\Xperion\Press\WpException $e) {
+            self::assertStringContainsString('telepítve van', $e->getMessage());
+        }
+        $this->wp->index = null;
         // a webhely átirányít (pl. www-re): a belépési adat elveszik
         $this->wp->finalUrl = 'https://www.xperion.hu/wp-json/';
         try {
