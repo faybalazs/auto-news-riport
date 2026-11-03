@@ -305,6 +305,18 @@ const REC_ORDER = ['Erősen javasolt','Javasolt','Nem javasolt','Nem javasolt (m
 /* (i) súgó: Esc rejti a nyitott buborékot (WCAG 1.4.13), érintésnél a második koppintás bezárja */
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.activeElement?.classList.contains('tip-btn')) document.activeElement.blur(); });
 document.addEventListener('click', e => { const b = e.target.closest('.tip-btn'); if (b && b.dataset.open === '1'){ b.blur(); b.dataset.open = ''; } else if (b) b.dataset.open = '1'; });
+/* formBox segédei (a sablon űrlapellenőrzése nélkül): kötelező mezők */
+function validatables(form){ return $$('[required]', form); }
+function validate(el){ const ok = String(el.value || '').trim() !== ''; el.setAttribute('aria-invalid', String(!ok)); return ok; }
+/* Posztgenerálás utasításokkal: a szöveghez és a képhez külön (a szabályokat és a tényeket nem írhatják felül) */
+async function genDialog({ title, intro = '', confirm, text = '', image = '' }){
+  const fd = await formBox({ title, confirm, html:`${intro ? `<p class="dlg-intro">${intro}</p>` : ''}
+    <div class="field"><label for="g-text">Utasítás a szöveghez <span class="opt">(nem kötelező)</span></label><textarea class="input" id="g-text" name="instr_text" rows="3" placeholder="pl. A bankfiókok vezetőinek szóljon; emelje ki a várakozási idő csökkenését; rövidebb legyen.">${esc(text)}</textarea></div>
+    <div class="field"><label for="g-image">Utasítás a képhez <span class="opt">(nem kötelező)</span></label><textarea class="input" id="g-image" name="instr_image" rows="2" placeholder="pl. Kulcsszám elrendezés a 38%-os adattal; kevesebb szöveg.">${esc(image)}</textarea></div>
+    <p class="help">A Posztszabályok és a cikkek tényei mindig érvényesek; az utasítás ezeken belül irányít. A poszthoz mentődik, és újragenerálásnál is érvényes marad.</p>` });
+  return fd ? { instr_text:String(fd.get('instr_text') || ''), instr_image:String(fd.get('instr_image') || '') } : null;
+}
+
 /* Feltöltés a weboldalra: közös futtató a Vezérlőpultnak és a Havi cikkeknek */
 const UP_LEVEL = { ok:['check','Kész'], info:['chev-right','Információ'], warn:['alert','Figyelmeztetés'], error:['x-circle','Hiba'], dry:['info','Szárazfuttatás'] };
 const UPST = { kint:['b-success','check','Publikálva'], szaraz:['b-info','flask','Szöveg kész'], duplikatum:['b-neutral','archive','Már fent volt'], hiba:['b-danger','x-circle','Hiba'], zarolt:['b-info','clock','Folyamatban'], reszben:['b-info','clock','Részben kint'], '':['b-danger','x-circle','Hiba'] };
@@ -733,9 +745,11 @@ if (APP.page === 'cikkek' && $('#artTable')){
   $('#bulkPost').addEventListener('click', async () => {
     const list = postable(); if (!list.length){ toast('A kijelöltek között nincs posztra váró „LinkedIn poszt” cikk.', { type:'info' }); return; }
     const skipped = table.selected.length - list.length;
-    if (!await confirmBox({ title: list.length > 1 ? `Egy közös poszt készüljön ${list.length} cikkből?` : 'Poszt készüljön ebből a cikkből?', body:`${list.map(r => '• ' + r.title).join('\n')}${skipped ? `\n\n${skipped} kijelölt cikk kimarad (nincs „LinkedIn poszt” jelölése, vagy már van posztja).` : ''}\n\nA Claude a Posztszabályok szerint megírja a szöveget és megtervezi a képet (1–2 perc), és a poszt jóváhagyásra kerül.`, confirm:'Poszt készítése', danger:false })) return;
+    const ins = await genDialog({ title: list.length > 1 ? `Egy önálló poszt ${list.length} cikkből` : 'Poszt ebből a cikkből', confirm:'Poszt készítése',
+      intro:`${list.map(r => '• ' + esc(r.title)).join('<br>')}${skipped ? `<br><br>${skipped} kijelölt cikk kimarad (nincs „LinkedIn poszt” jelölése, vagy már van posztja).` : ''}<br><br>${list.length > 1 ? 'A cikkek tényeiből egyetlen önálló, hírszerű poszt készül, forrásmegjelölés és link nélkül.' : 'A poszt a cikkből készül; a cikk linkje az első kommentbe való.'} A Claude a Posztszabályok szerint megírja a szöveget és megtervezi a képet (1–2 perc), és a poszt jóváhagyásra kerül.` });
+    if (!ins) return;
     const b = $('#bulkPost'); busy(b, true); announce('A poszt és a kép készül, ez 1–2 percig tart…');
-    try { const d = await api('posztkeres', { kind:'cikkek', ref:list.map(r => r.id).join(',') }); location.href = 'index.php?p=poszt&kod=' + encodeURIComponent(d.code); }
+    try { const d = await api('posztkeres', { kind:'cikkek', ref:list.map(r => r.id).join(','), ...ins }); location.href = 'index.php?p=poszt&kod=' + encodeURIComponent(d.code); }
     catch(err){ toast(err.message, { type:'error' }); busy(b, false); }
   });
   const pred = () => {
@@ -959,8 +973,10 @@ if (APP.page === 'otlet' && $('#ideaForm')){
     catch(err){ toast(err.message, { type:'error' }); } finally { busy(b, false); }
   });
   $('#ideaGen')?.addEventListener('click', async () => {
+    const ins = await genDialog({ title:'Poszt készítése az ötletből', confirm:'Küldés posztgenerálásra', intro:'A generálás fél–egy percig tart (Claude Opus, kb. 15–25 cent). A kész poszt magától jóváhagyásra kerül.' });
+    if (!ins) return;
     const b = $('#ideaGen'); busy(b, true); announce('A poszt készül, ez fél–egy percig tart…');
-    try { if (!await save()) return; const d = await api('posztkeres', { kind:'otlet', ref:code() }); location.href = 'index.php?p=poszt&kod=' + encodeURIComponent(d.code); }
+    try { if (!await save()) return; const d = await api('posztkeres', { kind:'otlet', ref:code(), ...ins }); location.href = 'index.php?p=poszt&kod=' + encodeURIComponent(d.code); }
     catch(err){ toast(err.message, { type:'error' }); busy(b, false); }
   });
   $('#ideaReject')?.addEventListener('click', async () => {
@@ -1052,7 +1068,7 @@ if (APP.page === 'poszt' && $('#liText')){
     $('#artsList').innerHTML = '<legend class="sr-only">Forráscikkek kiválasztása</legend>' + cands.map(c => `<label class="art-opt"><input type="checkbox" value="${c.id}"${c.in ? ' checked' : ''}${canArts ? '' : ' disabled'}><span><b>${esc(c.source_name)}</b> · ${esc(c.month)}<br>${esc(c.title)}</span></label>`).join('');
     $('#artsActs').hidden = !canArts;
     const srcs = P.articles && P.articles.length ? P.articles.map(a => `<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.source_name)}: ${esc(a.title)}</a>`).join('<br>') : P.idea_code ? `<a href="index.php?p=otlet&amp;kod=${encodeURIComponent(P.idea_code)}">${esc(P.idea_code)}: ${esc(P.idea_topic || '')}</a>` : esc(P.source_articles || '–');
-    $('#postKv').innerHTML = [['Témakör', esc(P.topic || '–')], ['Forrás', srcs], ['Forráslink', P.source_link ? `<a href="${esc(P.source_link)}" target="_blank" rel="noopener">${esc(P.source_link)}</a>` : '–'], ['Létrehozva', esc(P.created_hu)], ['Modell', esc(P.model || 'átvett / kézi')], ['Megjegyzés', esc(P.note || '–')]].map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+    $('#postKv').innerHTML = [['Témakör', esc(P.topic || '–')], ['Forrás', srcs], ['Forráslink', P.source_link ? `<a href="${esc(P.source_link)}" target="_blank" rel="noopener">${esc(P.source_link)}</a>` : '–'], ['Létrehozva', esc(P.created_hu)], ['Modell', esc(P.model || 'átvett / kézi')], ['Utasítás a szöveghez', esc(P.instr_text || '–')], ['Utasítás a képhez', esc(P.instr_image || '–')], ['Megjegyzés', esc(P.note || '–')]].map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
     const ev = P.events || [];
     $('#postHist').innerHTML = ev.length ? ev.map((e, i) => `<li class="tl-item${i === ev.length - 1 ? ' last' : ''}"><span class="tl-dot badge b-neutral">${ic('clock','icon')}</span><div class="tl-body"><div class="tl-title">${esc(e.action)}</div><div class="tl-desc">${esc(e.user)} · ${esc(e.time_hu)}${e.details ? ' · ' + esc(e.details) : ''}</div></div></li>`).join('') : '<li class="meta">Még nincs bejegyzés.</li>';
     $('#crBanner').hidden = !(P.change_request && P.status === 'tervezet'); $('#crText').textContent = P.change_request || '';
@@ -1114,6 +1130,7 @@ if (APP.page === 'poszt' && $('#liText')){
   }
   $('#artsRegen').addEventListener('click', () => saveArts(true)); $('#artsSave').addEventListener('click', () => saveArts(false));
   $('#postMore').addEventListener('click', e => {
+    e.stopPropagation(); // különben a dokumentum kattintásfigyelője azonnal bezárja a most nyitott menüt
     const items = [];
     if (can('ideas') && (P.status === 'tervezet' || P.status === 'ugyfelnel')) items.push({ k:'ujra', l:'Újragenerálás a szabályok szerint', i:'refresh' });
     if ((can('ideas') || can('approve')) && P.status !== 'megjelent') items.push({ k:'kep', l:'Új kép készítése…', i:'image' });
@@ -1121,8 +1138,8 @@ if (APP.page === 'poszt' && $('#liText')){
     if (can('deletePost')) items.push({ k:'torles', l:'Poszt törlése…', i:'trash', danger:true, sep:items.length > 0 });
     if (!items.length){ toast('Ehhez a poszthoz nincs további művelet.', { type:'info' }); return; }
     openRowMenu(e.currentTarget, P, {
-      ujra: async () => { if (!await confirmBox({ title:'Újragenerálja a posztot?', body:'A jelenlegi szöveg (a kézi módosításokkal együtt) felülíródik; a módosítási kérést figyelembe veszi. Fél–egy perc, kb. 15–25 cent.', confirm:'Újragenerálás', danger:false })) return;
-        announce('A poszt újra készül…'); try { await api('posztkeres', { kind:'ujra', ref:P.code }); location.reload(); } catch(err){ toast(err.message, { type:'error' }); } },
+      ujra: async () => { const ins = await genDialog({ title:'Újragenerálja a posztot?', confirm:'Újragenerálás', text:P.instr_text || '', image:P.instr_image || '', intro:'A jelenlegi szöveg (a kézi módosításokkal együtt) felülíródik; a módosítási kérést figyelembe veszi. Fél–egy perc, kb. 15–25 cent.' }); if (!ins) return;
+        announce('A poszt újra készül…'); try { await api('posztkeres', { kind:'ujra', ref:P.code, ...ins }); location.reload(); } catch(err){ toast(err.message, { type:'error' }); } },
       kep: newImage,
       vissza: async () => { try { P = (await api('posztlepes', { code:P.code, action:'vissza' })).post; renderAll(); toast('Visszaállítva tervezetre.'); } catch(err){ toast(err.message, { type:'error' }); } },
       torles: async () => { if (!await confirmBox({ title:`Törli a(z) ${P.code} posztot?`, body:'A szöveg, a kép és az előzmények véglegesen törlődnek. A forráscikkek és az ötlet megmaradnak, és újra küldhetők generálásra.', confirm:'Poszt törlése' })) return;

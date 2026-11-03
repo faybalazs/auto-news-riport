@@ -190,7 +190,8 @@ final class App
 
     public function posts(): \Xperion\Posts\PostService
     {
-        return new \Xperion\Posts\PostService($this->db(), $this->claude(), $this->rules(), $this->mailer(), $this->audit(), $this->baseUrl());
+        return new \Xperion\Posts\PostService($this->db(), $this->claude(), $this->rules(), $this->mailer(), $this->audit(), $this->baseUrl(),
+            new \Xperion\Press\SourceText(new CurlHttpClient(1, 20, null, 'Mozilla/5.0 (compatible; XperionSajtofigyelo/0.15; +https://xperion.hu)')));
     }
 
     public function mailer(): \Xperion\Mail\Mailer

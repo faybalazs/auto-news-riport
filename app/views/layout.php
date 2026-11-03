@@ -101,6 +101,12 @@ $ini = implode('', array_map(static fn ($w) => mb_substr($w, 0, 1), array_slice(
   <div class="dlg-body"><h2 id="dlgTitle"></h2><p id="dlgDesc"></p><div class="field" id="dlgField" hidden><label for="dlgInput" id="dlgLabel"></label><input class="input" id="dlgInput" type="text" autocomplete="off"></div></div>
   <div class="dlg-foot"><button class="btn btn-secondary" type="button" id="dlgCancel">Mégse</button><button class="btn btn-danger" type="button" id="dlgConfirm"></button></div>
 </dialog>
+<dialog id="fDlg" aria-labelledby="fDlgTitle">
+  <form id="fDlgForm" novalidate>
+    <div class="dlg-body"><h2 id="fDlgTitle"></h2><div class="stack" id="fDlgBody" style="gap:16px;margin-top:12px"></div></div>
+    <div class="dlg-foot"><button class="btn btn-secondary" type="button" id="fDlgCancel">Mégse</button><button class="btn btn-primary" type="submit" id="fDlgOk"></button></div>
+  </form>
+</dialog>
 <div class="sr-only" id="liveStatus" role="status"></div>
 <div class="sr-only" id="liveAlert" role="alert"></div>
 <div class="toasts" id="toasts"></div>

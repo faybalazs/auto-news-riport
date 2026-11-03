@@ -30,6 +30,7 @@ final class PostService
         private Mailer $mailer,
         private AuditLog $audit,
         private string $baseUrl,
+        private ?\Xperion\Press\SourceText $texts = null,
     ) {
     }
 
@@ -87,7 +88,11 @@ final class PostService
      * Generálási kérés gombra: azonnal lefut. Siker esetén a poszt kódját adja; hibánál a kérés megmarad
      * (az óránkénti futás újrapróbálja), és kivételt dob a hiba okával.
      */
-    public function request(Access $a, string $kind, string $ref): string
+    /**
+     * @param string $instrText a felhasználó külön utasítása a szöveghez (pl. hangsúly, célközönség)
+     * @param string $instrImage a felhasználó külön utasítása a képhez
+     */
+    public function request(Access $a, string $kind, string $ref, string $instrText = '', string $instrImage = ''): string
     {
         $cid = $a->clientId() ?? throw new \InvalidArgumentException('Nincs kiválasztott ügyfél.');
         $kind = $kind === 'cikk' ? 'cikkek' : $kind;
@@ -102,14 +107,16 @@ final class PostService
             $ref = self::idList($ref);
         }
         $this->validateRequest($cid, $kind, $ref);
-        return $this->runJob($this->job($cid, $kind, $ref, $a->userId()));
+        return $this->runJob($this->job($cid, $kind, $ref, $a->userId(), $instrText, $instrImage));
     }
 
     /** @return array<string,mixed> a (létrehozott vagy újraindított) kérés */
-    private function job(int $cid, string $kind, string $ref, ?int $userId): array
+    private function job(int $cid, string $kind, string $ref, ?int $userId, string $instrText = '', string $instrImage = ''): array
     {
-        $this->db->run('INSERT INTO post_jobs (client_id, kind, ref, ref_hash, requested_by, attempts, last_error, created_at) VALUES (?, ?, ?, ?, ?, 0, \'\', ?)
-            ON DUPLICATE KEY UPDATE requested_by = VALUES(requested_by), attempts = 0, last_error = \'\'', [$cid, $kind, $ref, sha1($ref), $userId, Database::now()]);
+        $instrText = mb_substr(trim($instrText), 0, 4000);
+        $instrImage = mb_substr(trim($instrImage), 0, 2000);
+        $this->db->run('INSERT INTO post_jobs (client_id, kind, ref, ref_hash, instr_text, instr_image, requested_by, attempts, last_error, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 0, \'\', ?)
+            ON DUPLICATE KEY UPDATE requested_by = VALUES(requested_by), instr_text = VALUES(instr_text), instr_image = VALUES(instr_image), attempts = 0, last_error = \'\'', [$cid, $kind, $ref, sha1($ref), $instrText, $instrImage, $userId, Database::now()]);
         return $this->db->one('SELECT * FROM post_jobs WHERE client_id = ? AND kind = ? AND ref_hash = ?', [$cid, $kind, sha1($ref)]) ?? [];
     }
 
@@ -156,7 +163,7 @@ final class PostService
     {
         $cid = (int) $job['client_id'];
         try {
-            $code = $this->generate($cid, (string) $job['kind'], (string) $job['ref'], $job['requested_by'] === null ? null : (int) $job['requested_by']);
+            $code = $this->generate($cid, (string) $job['kind'], (string) $job['ref'], $job['requested_by'] === null ? null : (int) $job['requested_by'], (string) ($job['instr_text'] ?? ''), (string) ($job['instr_image'] ?? ''));
             $this->db->run('DELETE FROM post_jobs WHERE id = ?', [$job['id']]);
             return $code;
         } catch (\InvalidArgumentException $e) {
@@ -183,7 +190,7 @@ final class PostService
     }
 
     /** A generálás magja; az új vagy frissített poszt kódját adja. */
-    private function generate(int $cid, string $kind, string $ref, ?int $userId): string
+    private function generate(int $cid, string $kind, string $ref, ?int $userId, string $instrText = '', string $instrImage = ''): string
     {
         $this->validateRequest($cid, $kind, $ref);
         $client = (string) $this->db->value('SELECT name FROM clients WHERE id = ?', [$cid]);
@@ -203,13 +210,23 @@ final class PostService
         $sample = $this->sample($cid, $existing ? (string) $existing['code'] : '');
         $recent = array_map(static fn ($r) => (string) $r['opening'], $this->db->all("SELECT opening FROM posts WHERE client_id = ? AND opening <> '' AND code <> ? ORDER BY created_at DESC LIMIT 6", [$cid, $ref]));
         $model = (string) ($this->db->value("SELECT value FROM client_settings WHERE client_id = ? AND name = 'modell_linkedin'", [$cid]) ?: PostWriter::DEFAULT_MODEL);
-        $out = (new PostWriter($this->claude))->write($client, $rules, $source, $sample, $recent, (string) ($existing['change_request'] ?? ''), $model);
+        // Újragenerálásnál új utasítás híján a poszthoz korábban mentett utasítás marad érvényben.
+        if ($existing !== null) {
+            $instrText = $instrText !== '' ? $instrText : (string) ($existing['instr_text'] ?? '');
+            $instrImage = $instrImage !== '' ? $instrImage : (string) ($existing['instr_image'] ?? '');
+        }
+        $out = (new PostWriter($this->claude))->write($client, $rules, $source, $sample, $recent, (string) ($existing['change_request'] ?? ''), $model, $instrText);
+        if (count($articleIds) > 1) {
+            $out['source_link'] = ''; // több cikkből önálló hír: nincs forrás, nincs első kommentes link
+        }
 
         $now = Database::now();
         $fields = array_intersect_key($out, array_flip(self::EDITABLE));
         $fields['image_data'] = json_encode($out['image'], JSON_UNESCAPED_UNICODE);
         $fields['source_articles'] = $source['kind'] === 'otlet' ? 'Ötlet: ' . ($source['idea']['code'] ?? '') : implode('; ', array_map(static fn ($x) => $x['source'] . ': ' . $x['title'], $source['articles'] ?? []));
         $fields['model'] = $model;
+        $fields['instr_text'] = $instrText;
+        $fields['instr_image'] = $instrImage;
         $fields['updated_at'] = $now;
         $this->db->transaction(function () use ($existing, $cid, $kind, $fields, $articleIds, $ideaId, $month, $now, $userId, &$code): void {
             if ($existing !== null) {
@@ -232,7 +249,7 @@ final class PostService
         $this->audit->add($cid, $userId, $existing ? 'Poszt újragenerálva' : 'Poszt generálva', $code . ' · ' . $out['topic']);
         // Egyedi kép: ha nem sikerül, a poszt a sablonképpel marad, és az „Új kép” paranccsal később kérhető.
         try {
-            $this->designImage($cid, $code, $existing && $existing['change_request'] ? (string) $existing['change_request'] : '', $model);
+            $this->designImage($cid, $code, trim(($existing && $existing['change_request'] ? $existing['change_request'] . "\n" : '') . $instrImage), $model);
         } catch (\Throwable $e) {
             $this->event($cid, $code, null, 'A kép nem készült el', $e->getMessage());
         }
@@ -346,9 +363,23 @@ final class PostService
         $month = (string) $rows[0]['month'];
         $label = View::monthHu(new \DateTimeImmutable(sprintf('20%s-%s-01', substr($month, 0, 2), substr($month, 2, 2))));
         $src = ['kind' => $kind, 'hónap' => $label,
-            'feladat' => count($rows) > 1 ? 'Egy közös poszt a kijelölt cikkekből, közös gondolatra építve (ha a szabályokban van visszatérő havi formátum, és a cikkek ahhoz illenek, azt használd).' : 'Egy poszt ebből a cikkből.',
-            'articles' => array_map(static fn ($r) => ['source' => $r['source_name'], 'date' => $r['published_on'], 'title' => $r['title'], 'description' => $r['description'], 'why_relevant' => $r['reason'], 'url' => $r['url']], $rows)];
+            'feladat' => count($rows) > 1
+                ? 'Egyetlen önálló szakmai poszt, mintha egy hírről vagy egy gondolatról szólna: a kijelölt cikkek tényeit, adatait és megállapításait gyúrd össze egy közös állítássá. Ne válogatás, ne cikkenkénti felsorolás vagy összefoglaló. Ne hivatkozz a forrásokra: se a nevük, se „X szerint”, se link; a source_link maradjon üres. A tények, számok csak a cikkekből jöhetnek.'
+                : 'Egy poszt ebből a cikkből.',
+            'articles' => array_map(fn ($r) => array_filter(['source' => $r['source_name'], 'date' => $r['published_on'], 'title' => $r['title'], 'description' => $r['description'], 'why_relevant' => $r['reason'], 'url' => $r['url'],
+                'text' => $this->articleText((string) $r['url'], count($rows))], static fn ($v) => $v !== '' && $v !== null), array_slice($rows, 0, 6))];
         return [$src, array_map(static fn ($r) => (int) $r['id'], $rows), null, $month];
+    }
+
+    /** A forráscikk szövege (a tényanyaghoz), cikkszám szerint rövidítve; üres, ha nem tölthető le. */
+    private function articleText(string $url, int $count): string
+    {
+        if ($this->texts === null || $url === '') {
+            return '';
+        }
+        $limit = $count > 1 ? 900 : 2000; // szó
+        $words = preg_split('/\s+/u', $this->texts->fetch($url)) ?: [];
+        return trim(implode(' ', array_slice($words, 0, $limit)));
     }
 
     /** Mintaposzt: az LI-2609-01, vagy a legutóbbi jóváhagyott/megjelent poszt. @return array<string,string>|null */
@@ -533,6 +564,7 @@ final class PostService
             'topic' => (string) $r['topic'], 'source_kind' => (string) $r['source_kind'], 'source_articles' => (string) ($r['source_articles'] ?? ''), 'idea_code' => (string) ($r['idea_code'] ?? ''),
             'opening' => (string) $r['opening'], 'created_at' => (string) $r['created_at'], 'created_hu' => View::dateHu((string) $r['created_at']), 'status_hu' => $r['status_at'] ? View::dateHu((string) $r['status_at']) : '',
             'change_request' => (string) ($r['change_request'] ?? ''), 'model' => (string) ($r['model'] ?? ''),
+            'instr_text' => (string) ($r['instr_text'] ?? ''), 'instr_image' => (string) ($r['instr_image'] ?? ''),
             'thumb' => $full ? '' : (string) ($r['image_svg'] ?? ''),
         ];
         if ($full) {

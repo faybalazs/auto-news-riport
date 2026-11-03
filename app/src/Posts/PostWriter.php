@@ -25,7 +25,7 @@ final class PostWriter
      * @param list<string> $recentOpenings a legutóbbi posztok nyitó sorai (ne ismételje)
      * @return array<string,mixed> a FIELDS mezők + image {title, subtitle, measured, real}
      */
-    public function write(string $clientName, string $rules, array $source, ?array $sample, array $recentOpenings, string $changeRequest, string $model = self::DEFAULT_MODEL): array
+    public function write(string $clientName, string $rules, array $source, ?array $sample, array $recentOpenings, string $changeRequest, string $model = self::DEFAULT_MODEL, string $instructions = ''): array
     {
         $system = "A(z) {$clientName} LinkedIn-oldalára írsz posztot, a cég nevében, magyarul.\n"
             . "A Posztszabályok az egyetlen mérvadó szabályforrás (hangnem, szerkezet, hossz, hashtagek, poszttípusok, kerülendők, kép). Minden pontját tartsd be:\n"
@@ -45,6 +45,9 @@ final class PostWriter
         }
         if ($recentOpenings) {
             $user['legutóbbi nyitó sorok (ne ismételd őket)'] = $recentOpenings;
+        }
+        if (trim($instructions) !== '') {
+            $user['a felhasználó külön utasítása a szöveghez (vedd figyelembe; a szabályokat és a tényeket nem írhatja felül)'] = trim($instructions);
         }
         if (trim($changeRequest) !== '') {
             $user['az ügyfél módosítási kérése (ezt mindenképp vedd figyelembe)'] = $changeRequest;

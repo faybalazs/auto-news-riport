@@ -169,7 +169,7 @@ try {
             ignore_user_abort(true);
             @set_time_limit(600);
             try {
-                return ['code' => $app->posts()->request($access, $str('kind'), $str('ref'))];
+                return ['code' => $app->posts()->request($access, $str('kind'), $str('ref'), $str('instr_text'), $str('instr_image'))];
             } catch (\RuntimeException $e) {
                 if ($e instanceof AccessDenied) {
                     throw $e;

@@ -170,19 +170,31 @@ final class PostsTest extends DbTestCase
         }
         self::assertSame([], $this->claude->requests, 'kijelölés közben semmi nem generálódik');
 
-        $code = $this->posts->request($attila, 'cikkek', " $a2, $a1 ");
+        $code = $this->posts->request($attila, 'cikkek', " $a2, $a1 ", 'A bankfiókok vezetőinek szóljon.', 'Kulcsszám elrendezés.');
         self::assertSame('LI-2610-01', $code);
         $content = $this->claude->requests[0]['body']['messages'][0]['content'];
         self::assertStringContainsString('Bank cuts wait', $content);
         self::assertStringContainsString('Retail traffic', $content);
-        self::assertStringContainsString('közös poszt a kijelölt cikkekből', $content);
+        // több cikk: egyetlen önálló, hírszerű poszt, forrásmegjelölés és link nélkül
+        self::assertStringContainsString('Egyetlen önálló szakmai poszt', $content);
+        self::assertStringContainsString('Ne hivatkozz a forrásokra', $content);
+        self::assertStringContainsString('A bankfiókok vezetőinek szóljon.', $content, 'a szöveg-utasítás eljut a Claude-hoz');
+        $post = $this->posts->get($this->op(), $code);
+        self::assertSame('', $post['source_link'], 'több cikkből készült posztnak nincs forráslinkje');
+        self::assertSame(['A bankfiókok vezetőinek szóljon.', 'Kulcsszám elrendezés.'], [$post['instr_text'], $post['instr_image']]);
+        $imageReq = array_values(array_filter($this->claude->requests, static fn ($r) => isset($r['body']['output_config']['format']['schema']['properties']['layout'])));
+        self::assertStringContainsString('Kulcsszám elrendezés.', $imageReq[0]['body']['messages'][0]['content'], 'a kép-utasítás eljut a képtervezőhöz');
+        // újragenerálás új utasítás nélkül: a mentett utasítás marad érvényben
+        $n = count($this->claude->requests);
+        $this->posts->request($attila, 'ujra', $code);
+        self::assertStringContainsString('A bankfiókok vezetőinek szóljon.', $this->claude->requests[$n]['body']['messages'][0]['content']);
         self::assertStringNotContainsString('Kiosk study', $content, 'a később kijelölendő cikk nem kerül bele');
         self::assertSame([$a1, $a2], array_column($this->posts->get($this->op(), $code)['articles'], 'id'));
         self::assertSame([['month' => '2610', 'label' => '2026. október', 'n' => 1]], $this->posts->openMonths($this->op()));
 
         $single = $this->posts->request($this->op(), 'cikk', (string) $a3);
         self::assertSame('LI-2610-02', $single);
-        self::assertStringContainsString('Egy poszt ebből a cikkből', end($this->claude->requests)['body']['messages'][0]['content'] . $this->claude->requests[2]['body']['messages'][0]['content']);
+        self::assertStringContainsString('Egy poszt ebből a cikkből', implode("\n", array_map(static fn ($r) => (string) $r['body']['messages'][0]['content'], $this->claude->requests)));
 
         $this->posts->delete($this->op(), $code);
         self::assertNull($this->posts->get($this->op(), $code));
