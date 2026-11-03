@@ -329,7 +329,8 @@ $('#sumRegen')?.addEventListener('click', async e => {
   try { await api('osszefoglalo', { month:b.dataset.month }); toast('Az összefoglaló elkészült.'); setTimeout(() => location.reload(), 600); }
   catch(err){ toast(err.message, { type:'error' }); busy(b, false); }
 });
-const sumHtml = sum => sum ? `${sum.details ? `<p class="sum-lead">${esc(sum.details)}</p>` : ''}${(sum.sections || []).length ? `<div class="sum-groups">${sum.sections.map(g => `<div class="sum-group"><h3>${esc(g.title)}</h3><ul>${g.points.map(p => `<li>${esc(p)}</li>`).join('')}</ul></div>`).join('')}</div>` : ''}${(sum.rows || []).length ? `<dl class="kv">${sum.rows.map(x => `<div><dt>${esc(x.label)}</dt><dd>${esc(x.value)}</dd></div>`).join('')}</dl>` : ''}` : '';
+const SUM_IC = { 'Újdonságok':['bulb','orange'], 'Tények, számok':['chart','blue'], 'Trendek':['arrow-up','green'] };
+const sumHtml = sum => sum ? `${sum.details ? `<p class="sum-lead">${esc(sum.details)}</p>` : ''}${(sum.sections || []).length ? `<div class="sum-groups">${sum.sections.map(g => `<div class="sum-group"><h3>${SUM_IC[g.title] ? `<span class="ic-tile t-${SUM_IC[g.title][1]}" aria-hidden="true">${ic(SUM_IC[g.title][0],'icon')}</span>` : ''}${esc(g.title)}</h3><ul>${g.points.map(p => `<li>${esc(p)}</li>`).join('')}</ul></div>`).join('')}</div>` : ''}${(sum.rows || []).length ? `<dl class="kv">${sum.rows.map(x => `<div><dt>${esc(x.label)}</dt><dd>${esc(x.value)}</dd></div>`).join('')}</dl>` : ''}` : '';
 const recBadge = r => { const x = REC[r]; return x ? `<span class="badge ${x[0]}">${ic(x[1],'icon')}${esc(x[2])}</span>` : (r ? `<span class="badge b-neutral">${esc(r)}</span>` : '<span class="meta">–</span>'); };
 
 /* ==================================================================
@@ -1138,11 +1139,12 @@ if (APP.page === 'naplo'){
   audit.forEach(r => r.iso = isoDay(r));
   const opts = (sel, vals) => { if (sel) sel.insertAdjacentHTML('beforeend', [...new Set(vals.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'hu')).map(v => `<option>${esc(v)}</option>`).join('')); };
   opts($('#aClient'), audit.map(r => r.client)); opts($('#aUser'), audit.map(r => r.who));
-  const CAT = { 'Döntések':['b-info','check'], 'Posztok':['b-ai','linkedin'], 'Havi e-mail':['b-warning','send'], 'Feltöltés':['b-success','upload'], 'Források':['b-neutral','globe'], 'Futások':['b-neutral','play'], 'Felhasználók':['b-neutral','users'], 'Belépés':['b-neutral','login'], 'Beállítások':['b-neutral','settings'] };
+  const CAT = { 'Döntések':['b-info','check'], 'Cikkek':['b-info','list'], 'Posztok':['b-ai','linkedin'], 'Havi e-mail':['b-warning','send'], 'Feltöltés':['b-success','upload'], 'Források':['b-neutral','globe'], 'Futások':['b-neutral','play'], 'Felhasználók':['b-neutral','users'], 'Belépés':['b-neutral','login'], 'Beállítások':['b-neutral','settings'] };
   const at = DataTable({ id:'audit', caption:'Felhasználói műveletek', rows:audit, labelKey:'action', selectable:false, table:$('#auditTable'), pager:$('#auditPager'), sort:{ key:'created_at', dir:'desc' }, pageSize:25,
     columns:[ { key:'created_at', label:'Időpont', render:r => esc(r.time_hu || dtHu(r.created_at)), sortValue:r => -r.i, firstDir:'desc' }, { key:'who', label:'Ki' },
-      { key:'action', label:'Művelet', render:r => { const k = CAT[r.category] || ['b-neutral','info']; return `<div class="cell-title"><span class="badge ${k[0]}">${ic(k[1],'icon')}${esc(r.category || '')}</span>${esc(r.action)}</div>`; } },
-      ...(APP.data.all ? [{ key:'client', label:'Ügyfél', render:r => esc(r.client || '–') }] : []), { key:'details', label:'Részletek', sortable:false } ],
+      { key:'category', label:'Kategória', render:r => { const k = CAT[r.category] || ['b-neutral','info']; return `<span class="badge ${k[0]}">${ic(k[1],'icon')}${esc(r.category || '')}</span>`; } },
+      { key:'action', label:'Művelet', render:r => `<span class="log-act">${esc(r.action)}</span>` },
+      ...(APP.data.all ? [{ key:'client', label:'Ügyfél', render:r => esc(r.client || '–') }] : []), { key:'details', label:'Részletek', sortable:false, render:r => `<span class="log-det">${esc(r.details || '')}</span>` } ],
     emptyHtml:() => audit.length ? 'Nincs a szűrésnek megfelelő művelet.' : 'Még nincs művelet.' });
   let aRows = audit;
   const aPred = () => {

@@ -113,7 +113,7 @@ final class UploadService
         $this->log->append(new LogEntry($now, 'feltoltes', $label, $dry, 'admin', $result->ok, $result->summary(), $result->durationMs));
         $this->log->saveResult($result->toArray(), $a->userId(), $client === null ? null : (int) $client['id']);
         if (!$dry && $client !== null && ($data['items'] ?? []) !== []) {
-            $this->audit->add((int) $client['id'], $a->userId(), $result->ok ? 'Feltöltés' : 'Feltöltés hibával', $result->summary());
+            $this->audit->add((int) $client['id'], $a->userId(), $result->ok ? 'Feltöltés élesben' : 'Feltöltés hibával', $result->summary());
         }
         return $result;
     }

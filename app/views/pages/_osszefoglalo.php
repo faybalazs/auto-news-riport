@@ -20,13 +20,13 @@ $when = $rep ? ($rep['updated_at'] !== '' ? $rep['updated_at'] : $rep['created_a
   <div class="sum-text">
     <?php if ($rep['details'] !== ''): ?><p class="sum-lead"><?= $e($rep['details']) ?></p><?php endif; ?>
     <div class="sum-groups">
-      <?php foreach ($rep['sections'] as $s): ?>
-      <div class="sum-group"><h3><?= $e($s['title']) ?></h3><ul><?php foreach ($s['points'] as $pt): ?><li><?= $e($pt) ?></li><?php endforeach; ?></ul></div>
+      <?php foreach ($rep['sections'] as $sumGroup): [$sumIc, $sumTone] = \Xperion\Monthly\Summarizer::ICONS[$sumGroup['title']] ?? ['info', 'blue']; ?>
+      <div class="sum-group"><h3><span class="ic-tile t-<?= $sumTone ?>" aria-hidden="true"><?= $ic($sumIc, 'icon') ?></span><?= $e($sumGroup['title']) ?></h3><ul><?php foreach ($sumGroup['points'] as $sumPoint): ?><li><?= $e($sumPoint) ?></li><?php endforeach; ?></ul></div>
       <?php endforeach; ?>
     </div>
   </div>
   <?php elseif ($rep): ?>
-  <?php if ($rep['summary_rows']): ?><dl class="kv"><?php foreach ($rep['summary_rows'] as $r): ?><div><dt><?= $e($r['label'] ?? '') ?></dt><dd><?= $e($r['value'] ?? '') ?></dd></div><?php endforeach; ?></dl><?php endif; ?>
+  <?php if ($rep['summary_rows']): ?><dl class="kv"><?php foreach ($rep['summary_rows'] as $sumRow): ?><div><dt><?= $e($sumRow['label'] ?? '') ?></dt><dd><?= $e($sumRow['value'] ?? '') ?></dd></div><?php endforeach; ?></dl><?php endif; ?>
   <?php if (!empty($rep['details'])): ?><div class="sum-text"><h3>Részletek</h3><p><?= $e($rep['details']) ?></p></div><?php endif; ?>
   <?php if ($canRegen): ?><p class="help">Ez a korábbi formájú összefoglaló. Az <b>Újragenerálás</b> gombbal tagolt változat készül (Újdonságok, Tények, számok, Trendek), a hónap cikkeiből; néhány cent.</p><?php endif; ?>
   <?php else: ?>

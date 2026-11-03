@@ -21,7 +21,7 @@ if ($access->can('ops') && !$access->clients()) {
     $todos[] = ['warn', 'folder', 'Hozza létre az első ügyfelet', null, 'Név és weboldal; utána jöhetnek a felhasználók.', 'index.php?p=ugyfelek', 'Ügyfelek'];
 }
 if (($t['decide'] ?? 0) > 0) {
-    $todos[] = ['warn', 'list', 'Cikk vár döntésre', $t['decide'], $e($label($t['decideMonth'])) . ' · Mehet, LinkedIn poszt vagy Nem kell', 'index.php?p=cikkek&honap=' . $e($t['decideMonth']), 'Döntések'];
+    $todos[] = ['warn', 'list', 'Cikk vár döntésre', $t['decide'], $e($label($t['decideMonth'])) . ' · Mehet, LinkedIn poszt vagy Nem kell' . (($t['decideOlder'] ?? 0) > 0 ? ' · korábbi hónapokban további ' . (int) $t['decideOlder'] : ''), 'index.php?p=cikkek&honap=' . $e($t['decideMonth']), 'Döntések'];
 }
 foreach ([['postsClient', 'LinkedIn-poszt jóváhagyásra vár'], ['postsApproved', 'Közzétehető a LinkedInen'], ['postsDraft', 'LinkedIn-tervezet, ügyfélnek küldhető']] as [$k, $ttl]) {
     if (!empty($t[$k])) {

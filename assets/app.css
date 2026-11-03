@@ -833,9 +833,14 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 /* Vezetői összefoglaló: bevezető + tagolt csoportok */
 .sum-lead{ font-size:var(--fs-md, 15px); color:var(--text); max-width:80ch; line-height:1.55; }
 .sum-groups{ display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap:16px 24px; margin-top:8px; }
-.sum-group h3{ font-size:var(--fs-sm); font-weight:600; margin-bottom:6px; }
+.sum-group h3{ font-size:var(--fs-sm); font-weight:600; margin-bottom:8px; display:flex; align-items:center; gap:10px; }
+.sum-group h3 .ic-tile{ width:28px; height:28px; border-radius:8px; }
+.sum-group h3 .ic-tile .icon{ width:16px; height:16px; }
 .sum-group ul{ margin:0; padding-left:18px; display:flex; flex-direction:column; gap:6px; }
 .sum-group li{ font-size:var(--fs-sm); color:var(--text-2); line-height:1.5; }
+/* Napló: a művelet és a részletek tördelődnek, a táblázat nem lóg ki */
+.log-act{ font-weight:500; display:block; min-width:160px; max-width:260px; white-space:normal; }
+.log-det{ display:block; min-width:200px; max-width:480px; white-space:normal; overflow-wrap:anywhere; color:var(--text-2); font-size:var(--fs-sm); }
 
 /* ================= 18. TÖRÉSPONTOK (mindig a CSS végén) ================= */
 @media (max-width:1279px){ .layout{ grid-template-columns:minmax(0,1fr); } .w-8, .w-4{ grid-column:span 12; } }

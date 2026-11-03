@@ -14,6 +14,9 @@ final class Summarizer
 {
     public const SECTIONS = ['Újdonságok', 'Tények, számok', 'Trendek'];
 
+    /** Csoportonként ikon és ikoncsempe-szín a felülethez. */
+    public const ICONS = ['Újdonságok' => ['bulb', 'orange'], 'Tények, számok' => ['chart', 'blue'], 'Trendek' => ['arrow-up', 'green']];
+
     /** Stílusminta: a felhasználó által jónak ítélt korábbi összefoglaló (2026. szeptember, a Google Sheetből). */
     public const STYLE_SAMPLE = 'A hónap fő témája a látogatószámlálás és a forgalomelemzés üzleti haszna: több cikk foglalkozik a pontatlan számlálás költségeivel, '
         . 'a foglaltsági adatok épületfelügyeleti felhasználásával és a beszerzési, tenderkiírási szempontokkal. Az elemzők közül a Gartner az AI-alapú ügyfélszolgálat '

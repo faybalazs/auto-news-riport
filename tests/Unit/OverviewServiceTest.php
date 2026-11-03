@@ -66,6 +66,13 @@ final class OverviewServiceTest extends DbTestCase
         self::assertSame('Rövid.', $d['report']['details']);
         self::assertSame(1, $d['todo']['decide']);
         self::assertSame('2610', $d['todo']['decideMonth']);
+        self::assertSame(0, $d['todo']['decideOlder']);
+        // régebbi hónap nyitott cikkei nem adódnak a csempén megnevezett hónap számához
+        $this->art($this->x, '2608', 'Vemco', 'Javasolt');
+        $this->art($this->x, '2608', 'Vemco', 'Erősen javasolt');
+        $t = $this->svc->build(Access::forUser($this->db, $this->op, $this->x))['todo'];
+        self::assertSame([1, '2610', 2], [$t['decide'], $t['decideMonth'], $t['decideOlder']]);
+        $this->db->run("DELETE FROM articles WHERE month = '2608'");
         self::assertSame(1, $d['todo']['upload']);
 
         $old = $this->svc->build(Access::forUser($this->db, $this->op, $this->x), '2609');

@@ -91,6 +91,9 @@ final class AdminPagesTest extends DbTestCase
         self::assertSame('Döntések', AuditLog::category('Döntés: 2 cikk → Mehet'));
         self::assertSame('Posztok', AuditLog::category('Posztötlet beküldve'));
         self::assertSame('Felhasználók', AuditLog::category('Saját jelszó módosítva'));
+        self::assertSame('Cikkek', AuditLog::category('Cikk törölve'));
+        self::assertSame('Feltöltés', AuditLog::category('Feltöltés visszavonva'));
+        self::assertSame('Futások', AuditLog::category('Vezetői összefoglaló újragenerálva'));
         $this->audit->add($this->other, $this->op, 'Ügyfél módosítva', 'titkos');
         $this->audit->add(null, $this->op, 'Belépés');
         $mine = $this->audit->recent($this->x);

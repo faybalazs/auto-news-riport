@@ -4,7 +4,7 @@ $all = !empty($data['all']);
 $sub = $all ? 'Felhasználói műveletek (ki, mit, mikor) és a futások. Az időzített futások hibájáról e-mailt kap. Megőrzés: műveletek 2 év, futások 90 nap.'
     : 'Az ügyfél felhasználóinak műveletei: ki, mit, mikor döntött, hagyott jóvá vagy módosított. Megőrzés: 2 év.';
 require __DIR__ . '/_head.php';
-$cats = ['Döntések', 'Posztok', 'Havi e-mail', 'Feltöltés', 'Források', 'Futások', 'Felhasználók', 'Belépés', 'Beállítások'];
+$cats = ['Döntések', 'Cikkek', 'Posztok', 'Havi e-mail', 'Feltöltés', 'Források', 'Futások', 'Felhasználók', 'Belépés', 'Beállítások'];
 ?>
 <?php if ($all): ?>
 <div class="tabs" role="tablist" aria-label="Napló">

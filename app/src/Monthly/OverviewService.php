@@ -91,8 +91,10 @@ final class OverviewService
         $t['members'] = (int) $this->db->value('SELECT COUNT(*) FROM memberships WHERE client_id = ?', [$cid]);
         if ($a->can('decide')) {
             $open = $this->db->all("SELECT month, COUNT(*) AS n FROM articles WHERE client_id = ? AND decision = '' AND uploaded = 0 AND recommendation NOT LIKE 'Nem javasolt%' GROUP BY month ORDER BY month DESC", [$cid]);
-            $t['decide'] = array_sum(array_map(static fn ($r) => (int) $r['n'], $open));
+            // a csempén a legutóbbi hónap száma áll (a felirat is azt a hónapot nevezi meg); a korábbi hónapok külön
+            $t['decide'] = (int) ($open[0]['n'] ?? 0);
             $t['decideMonth'] = (string) ($open[0]['month'] ?? '');
+            $t['decideOlder'] = array_sum(array_map(static fn ($r) => (int) $r['n'], array_slice($open, 1)));
         }
         $t['upload'] = (int) $this->db->value("SELECT COUNT(*) FROM articles WHERE client_id = ? AND decision = 'mehet' AND uploaded = 0 AND wp_state <> 'hiba'", [$cid]);
         if ($a->can('ops')) {

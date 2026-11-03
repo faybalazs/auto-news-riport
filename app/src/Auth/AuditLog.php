@@ -23,6 +23,8 @@ final class AuditLog
     {
         return match (true) {
             str_starts_with($action, 'Döntés') => 'Döntések',
+            str_starts_with($action, 'Cikk') => 'Cikkek',
+            str_starts_with($action, 'Vezetői összefoglaló') => 'Futások',
             str_starts_with($action, 'Poszt') => 'Posztok',
             str_starts_with($action, 'Havi e-mail') => 'Havi e-mail',
             str_starts_with($action, 'Feltöltés') => 'Feltöltés',
