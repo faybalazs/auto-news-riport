@@ -144,6 +144,19 @@ if ($page === 'wpkiegeszito' && $access->can('ops')) {
     }
 }
 
+// ---- Felhasználói kézikönyv (minden belépett felhasználónak, új ablakban) -----------------
+if ($page === 'kezikonyv') {
+    $f = __DIR__ . '/app/resources/kezikonyv.html';
+    if (is_file($f)) {
+        // az önálló kézikönyv saját, beágyazott szkriptet és stílust használ: erre az oldalra külön szabály
+        header("Content-Security-Policy: default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'");
+        header('Cache-Control: private, max-age=3600');
+        header('Content-Type: text/html; charset=utf-8');
+        readfile($f);
+        exit;
+    }
+}
+
 // ---- Oldalak -------------------------------------------------------------------------
 $pages = [
     'attekintes' => ['Áttekintés', null],

@@ -22,7 +22,7 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 | Feltöltés a weboldalra (Xperion OAuth Bridge 0.6.0, deploy_pair): HU/EN ajánlópár Claude-fordítással, óránként és kézzel; a Havi cikkeken az ügyféladmin és a tartalomkezelő is indíthatja; Publikálva állapot; visszavonás; törlés a listából visszaállítással; belépési diagnosztika | megvalósított (0.12.0); ellenőrzött PHPUnit-tal és böngészőből helyi hamis WordPress-szel; élesben: a kapcsolat az xperion.hu-val működik, a felhasználó teszt-cikkeket feltöltött („ment”, 2026-11-03, a Vezérlőpultról, 0.12.0 előtt); az új Havi cikkek-kártya, a visszavonás és a törlés élesben még nem kipróbált | roadmap 8 |
 | LinkedIn-posztok: szabályok, ötletek, generálás (Opus 5.5), automatikus jóváhagyásra küldés, módosítási kérésre újraírás; kép rögzített sablonokból (5 elrendezés), szövege Claude nélkül javítható, „Új kép”; a forráscikkek szerkeszthetők; lista mini-mockuppal | megvalósított (0.10.1); ellenőrzött PHPUnit-tal és böngészőből; valódi Claude-dal nem ellenőrzött | roadmap 9 |
 | Források és kulcsszavak; Napló szűrőkkel, CSV-vel; hibaértesítés e-mailben; megőrzés; Ügyfelek lista + tabos részletkártya | megvalósított; ellenőrzött PHPUnit-tal és böngészőből; élesben nem ellenőrzött | roadmap 10 |
-| Felhasználói kézikönyv (ügyfél-adminisztrátor, tartalomkezelő): `docs/kezikonyv/kezikonyv.html` | elkészült (0.13.2); szövege a 0.13.1 felületéről; a felhasználó még nem nézte át | – |
+| Felhasználói kézikönyv (ügyfél-adminisztrátor, tartalomkezelő): `app/resources/kezikonyv.html`, forrás: `docs/kezikonyv/`; az alkalmazásban a menü alján, új ablakban | elkészült (0.13.3); arculat az alkalmazás szerint; böngészőben ellenőrizve; a felhasználó még nem nézte át | – |
 | Futások állapota a Vezérlőpulton (mi fut, mióta, melyik lépés; mentett eredmények); érthető hibaüzenet szerverhibánál is | megvalósított (0.10.3, 0.10.10); ellenőrzött PHPUnit-tal és böngészőből szimulált futással és hibákkal | – |
 
 ## Meglévő, repón kívüli elemek
@@ -33,6 +33,7 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 | Xperion OAuth Bridge WordPress-bővítmény 0.6.0 az xperion.hu-n | telepítve, működik (Kapcsolat ellenőrzése, 2026-11-03); HU/EN alapkategória beállítva; törlő művelete nincs | felhasználói közlés, Vezérlőpult |
 | `wordpress/mu-plugins/xperion-auth-fejlec.php` 1.1.0 az xperion.hu `wp-content/mu-plugins` mappájában | telepítve, a belépés ezzel működik | felhasználói közlés, 2026-11-03 |
 | auris-admin-sablon skill (claude.ai) | v1.6.0 feltöltve (a felület ebből épül) | a munkamenetben elérhető skill |
+| auris-admin-sablon v1.7.0 (lábléc, külső menüpont) és auris-felhasznaloi-kezikonyv 1.2.0 (betű az alkalmazás szerint) | átadva 2026-11-03; a feltöltés a felhasználóra vár; amíg nincs feltöltve, a lábléc és a menüpont stílusa a projekt saját CSS-éből jön (`tools/felulet/app-extra.css`) | skill-csomagok (zip) |
 | auris-dontesbank skill (claude.ai) | 1.2 átadva 2026-11-03 (részletes beállítási lépések; a sajtófigyelés mai döntései); a feltöltés a felhasználóra vár | a skill-csomag (zip) |
 | xperion-linkedin skill (claude.ai) | használatban, a szabályokat a Sheetből olvassa | felhasználói közlés |
 

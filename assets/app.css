@@ -841,6 +841,12 @@ dialog::backdrop{ background:rgb(15 23 42/.5); }
 /* Napló: a művelet és a részletek tördelődnek, a táblázat nem lóg ki */
 .log-act{ font-weight:500; display:block; min-width:160px; max-width:260px; white-space:normal; }
 .log-det{ display:block; min-width:200px; max-width:480px; white-space:normal; overflow-wrap:anywhere; color:var(--text-2); font-size:var(--fs-sm); }
+/* Oldalsáv alja: a kézikönyv külső (új ablakos) menüpont, elkülönítve a funkcionális menüponttól */
+.nav-ext .nav-ext-ic{ margin-left:auto; opacity:.6; }
+.shell[data-nav="closed"] .nav-ext .nav-ext-ic{ display:none; }
+/* Lábléc: copyright, alkalmazásverzió, kiadás dátuma */
+.app-foot{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 16px; padding:16px 32px 24px; border-top:1px solid var(--border); color:var(--text-3); font-size:var(--fs-xs); margin-top:auto; }
+@media (max-width:767px){ .app-foot{ padding:16px; flex-direction:column; } }
 
 /* ================= 18. TÖRÉSPONTOK (mindig a CSS végén) ================= */
 @media (max-width:1279px){ .layout{ grid-template-columns:minmax(0,1fr); } .w-8, .w-4{ grid-column:span 12; } }

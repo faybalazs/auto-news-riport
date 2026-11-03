@@ -52,6 +52,7 @@ $ini = implode('', array_map(static fn ($w) => mb_substr($w, 0, 1), array_slice(
     <?= $nav('vezerlo', 'settings', 'Vezérlőpult', 'ops') ?>
     <?= $nav('naplo', 'clock', 'Napló', 'log') ?>
     <div class="sidebar-foot">
+      <a class="nav-item nav-ext" href="index.php?p=kezikonyv" target="_blank" rel="noopener" title="Felhasználói kézikönyv (új ablakban nyílik)"><?= $ic('help', 'icon') ?><span class="nav-label">Felhasználói kézikönyv<span class="sr-only"> (új ablakban nyílik)</span></span><?= $ic('external', 'icon icon-sm nav-ext-ic') ?></a>
       <button class="nav-item collapse-btn" type="button" id="collapseBtn" aria-expanded="true" title="Menü összecsukása"><svg class="icon" aria-hidden="true" id="collapseIcon"><use href="#i-chev-left"/></svg><span class="nav-label" id="collapseLabel">Összecsukás</span></button>
     </div>
   </nav>
@@ -92,6 +93,7 @@ $ini = implode('', array_map(static fn ($w) => mb_substr($w, 0, 1), array_slice(
     <main class="content" id="main">
 <?= $content ?>
     </main>
+    <footer class="app-foot"><span>© <?= substr(XPERION_RELEASE, 0, 4) ?> Auris Dynamics Zrt. Minden jog fenntartva.</span><span>Sajtófigyelés <?= $e($version) ?> · <?= $e(str_replace('-', '. ', XPERION_RELEASE)) ?>.</span></footer>
   </div>
 </div>
 <div class="pop menu" id="rowMenu" role="menu" aria-label="Sor műveletei" hidden></div>

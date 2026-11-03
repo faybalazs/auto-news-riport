@@ -5,12 +5,14 @@ const BRAND = {
   key: 'sajtofigyeles',
   name: 'Sajtófigyelés',
   docTitle: 'Sajtófigyelés',
-  logo: '',
-  mark: '',
+  logo: 'img/logo.svg',                // az alkalmazás márkajele (oldalsáv bal felső sarka)
+  mark: 'img/mark.svg',
   supportEmail: '',
   multiLang: false,
   mockLabel: 'Szemléltető kép',
-  colors: { primary: '#2D388A', accent: '#00AEEF', accentText: '#0077A8' },
+  // az auris-admin-sablon színei és betűje, ahogy az alkalmazásban (Xperion-kék accent)
+  colors: { primary: '#2D388A', accent: '#2D388A', accentHover: '#232C6E', accentText: '#2D388A' },
+  font: { family: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif', url: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' },
 };
 
 const T = (hu, en) => ({ hu, en });
@@ -40,7 +42,7 @@ const UI = {
   openChapter: T('Fejezet megnyitása', 'Open chapter'),
   openManual: T('Kézikönyv megnyitása', 'Open manual'),
   helpTitle: T('Segítségre van szüksége?', 'Need help?'),
-  helpText: T('Kérdés, hozzáférési probléma vagy hiba esetén forduljon az alkalmazás üzemeltetőjéhez (Auris Dynamics).', 'Please contact the operator (Auris Dynamics).'),
+  helpText: T('Kérdés, hozzáférési probléma vagy hiba esetén forduljon az alkalmazás üzemeltetőjéhez (Auris Dynamics Zrt.).', 'Please contact the operator (Auris Dynamics).'),
   contact: T('Kapcsolat', 'Contact'),
   updated: T('Utolsó frissítés: 2026. november 3.', 'Last updated: 3 November 2026'),
   fig: T('kép', 'Figure'),
@@ -53,8 +55,8 @@ const UI = {
   next: T('Ezután', 'Next'),
   stuck: T('Ha elakad', 'If you get stuck'),
   enlarge: T('Kép megnyitása teljes méretben', 'Open full-size image'),
-  copyright: T('© 2026 Auris Dynamics. Minden jog fenntartva.', '© 2026 Auris Dynamics. All rights reserved.'),
-  footerMeta: T('Felhasználói kézikönyv 1.0 · Sajtófigyelés 0.13 · Magyar', 'User manual 1.0'),
+  copyright: T('© 2026 Auris Dynamics Zrt. Minden jog fenntartva.', '© 2026 Auris Dynamics Zrt. All rights reserved.'),
+  footerMeta: T('Felhasználói kézikönyv 1.1 · Sajtófigyelés 0.13.3 · 2026. 11. 03.', 'User manual 1.1'),
 };
 
 const SHOT = 'Képernyőkép';
@@ -117,7 +119,7 @@ const SURFACES = {
     lead: 'Ez a kézikönyv a Sajtófigyelés felület ügyfél-adminisztrátori használatához nyújt segítséget: a havi cikkek döntésétől és feltöltésétől a LinkedIn-posztok jóváhagyásán át a források és a felhasználók kezeléséig. Az egyes fejezetek önállóan is értelmezhetők.',
     readTime: 'Olvasási idő: kb. 20 perc',
     figLabel: 'kép',
-    helpText: 'Kérdés, hozzáférési probléma vagy hiba esetén forduljon az alkalmazás üzemeltetőjéhez (Auris Dynamics). Adja meg az érintett oldalt és a megjelenő üzenetet.',
+    helpText: 'Kérdés, hozzáférési probléma vagy hiba esetén forduljon az alkalmazás üzemeltetőjéhez (Auris Dynamics Zrt.). Adja meg az érintett oldalt és a megjelenő üzenetet.',
     quickTitle: { id: 'a-modules', text: 'A kézikönyv fejezetei' },
     intro: [
       { type: 'quick' },
@@ -138,7 +140,7 @@ const SURFACES = {
         { t: 'Publikálva:', d: 'a cikk magyar és angol ajánlója kint van a weboldalon. A Mehet döntés önmagában még nem Publikálva.' },
         { t: 'Szárazfuttatás:', d: 'próbafuttatás, amely elkészíti a szövegeket, de a weboldalra nem ír semmit.' },
         { t: 'Poszt állapotai:', d: 'Tervezet, Ügyfélnél (jóváhagyásra vár), Jóváhagyva, Megjelent.' },
-        { t: 'Szerepkörök:', d: 'ügyfél-adminisztrátor (dönt, jóváhagy, feltölt, felhasználókat hív meg), tartalomkezelő (posztötletek, szabályok, feltöltés, közzététel), olvasó (mindent lát, de nem módosít). Az üzemeltető (Auris Dynamics) a futásokat és a beállításokat kezeli.' },
+        { t: 'Szerepkörök:', d: 'ügyfél-adminisztrátor (dönt, jóváhagy, feltölt, felhasználókat hív meg), tartalomkezelő (posztötletek, szabályok, feltöltés, közzététel), olvasó (mindent lát, de nem módosít). Az üzemeltető (Auris Dynamics Zrt.) a futásokat és a beállításokat kezeli.' },
       ] },
     ],
     chapters: [
@@ -150,6 +152,7 @@ const SURFACES = {
         { type: 'h3', id: 'a-login-steps', text: 'Fiók aktiválása és belépés' },
         LOGIN_STEPS,
         fig('Belépés — e-mail-cím, jelszó és az Elfelejtett jelszó? hivatkozás'),
+        { type: 'tip', label: 'A kézikönyv elérése', text: 'A kézikönyv a felület bal oldali menüjének alján, a Felhasználói kézikönyv pontból nyílik meg, új ablakban.' },
         { type: 'p', text: 'Több ügyfélhez rendelt felhasználónál a felső sáv ügyfélváltója mutatja és váltja az aktuális ügyfelet. A felület mindig csak a kiválasztott ügyfél adatait mutatja.' },
         LOGIN_STUCK,
         { type: 'next', text: 'Belépés után az Áttekintés oldal nyílik meg a teendőkkel.' },
@@ -342,7 +345,7 @@ const SURFACES = {
     lead: 'Ez a kézikönyv a Sajtófigyelés felület tartalomkezelői használatához nyújt segítséget: a posztötletektől a jóváhagyott posztok LinkedIn-közzétételéig, valamint a cikkek weboldalra töltéséhez. Az egyes fejezetek önállóan is értelmezhetők.',
     readTime: 'Olvasási idő: kb. 12 perc',
     figLabel: 'kép',
-    helpText: 'Kérdés vagy hiba esetén forduljon az ügyfél-adminisztrátorhoz, vagy az alkalmazás üzemeltetőjéhez (Auris Dynamics). Adja meg az érintett oldalt és a megjelenő üzenetet.',
+    helpText: 'Kérdés vagy hiba esetén forduljon az ügyfél-adminisztrátorhoz, vagy az alkalmazás üzemeltetőjéhez (Auris Dynamics Zrt.). Adja meg az érintett oldalt és a megjelenő üzenetet.',
     quickTitle: { id: 't-modules', text: 'A kézikönyv fejezetei' },
     intro: [
       { type: 'quick' },
@@ -369,6 +372,7 @@ const SURFACES = {
         LOGIN_STEPS,
         fig('Belépés — e-mail-cím, jelszó és az Elfelejtett jelszó? hivatkozás'),
         { type: 'p', text: 'A saját jelszó a jobb felső profilmenü Jelszó módosítása pontjával módosítható.' },
+        { type: 'tip', label: 'A kézikönyv elérése', text: 'A kézikönyv a felület bal oldali menüjének alján, a Felhasználói kézikönyv pontból nyílik meg, új ablakban.' },
         LOGIN_STUCK,
         { type: 'next', text: 'Belépés után az Áttekintés oldal nyílik meg a tartalomkezelő teendőivel.' },
       ] },

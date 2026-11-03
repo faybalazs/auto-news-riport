@@ -18,7 +18,7 @@
   <aside class="auth-side xp">
     <div class="brand" style="padding:0"><div class="brand-mark xp" aria-hidden="true"><?= $ic('file', 'icon') ?></div><div class="brand-text"><b>Sajtófigyelés</b><span style="color:#fff">Auris Dynamics</span></div></div>
     <div><h2>A hónap cikkei és posztjai egy helyen</h2><p style="margin-top:12px">Döntsön a havi cikkekről, hagyja jóvá a LinkedIn-posztokat, és küldjön be saját posztötletet.</p></div>
-    <p style="font-size:var(--fs-xs)">© <?= date('Y') ?> Auris Dynamics</p>
+    <p style="font-size:var(--fs-xs)">© <?= substr(XPERION_RELEASE, 0, 4) ?> Auris Dynamics Zrt. · Sajtófigyelés <?= $e($version) ?> · <?= $e(str_replace('-', '. ', XPERION_RELEASE)) ?>.</p>
   </aside>
   <main class="auth-main"><?= $content ?></main>
 </div>
