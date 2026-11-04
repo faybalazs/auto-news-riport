@@ -28,6 +28,28 @@ PHP-alkalmazás saját felülettel és MySQL-adatbázissal (több ügyfélre): h
 - Ügyfélnek e-mail csak a felhasználó jóváhagyása után megy, piszkozat nélkül. Cikk élesbe csak „Mehet” jelölés után kerül.
 - Éles szerverre nem telepítesz. A kiadást a felhasználó indítja: GitHub → Actions → **Telepítés élesbe** (`.github/workflows/telepites.yml`, kézi), vagy ZIP a tárhely fájlkezelőjével. A munkafolyamatot te nem futtatod.
 
+## Commitok (ebből készül a release notes és a kézikönyv-frissítés)
+- **Egy változás = egy commit.** Több funkciót vagy javítást ne vonj össze egy commitba.
+- **Cím:** `Típus(Terület): mit lát a felhasználó` magyarul, egy sorban. Típus: `Új`, `Változás`, `Javítás` (az ügyfél is látja) vagy `Belső` (refaktor, teszt, dokumentáció, eszköz, telepítés; a release notes-ba nem kerül). Terület: a menüpont neve (Áttekintés, Havi cikkek, Posztok, Posztötletek, Posztszabályok, Források, Felhasználók, Ügyfelek, Vezérlőpult, Napló, Profil, Belépés, Kézikönyv, Rendszer).
+  Példa: `Új(Posztok): lapozó a posztlistán, oldalanként 12 poszt`
+- **Törzs:** 1–3 mondat, mit és miért; utána a záró sorok (a `Co-Authored-By` elé):
+  - `Kiadasi-jegyzet:` egy mondat az ügyfél felhasználóinak, egyszerű nyelven (a `Belső` típusnál elhagyható).
+  - `Kezikonyv:` az érintett fejezetek azonosítói a `docs/kezikonyv/content.js`-ből (pl. `a-posts, t-edit`), vagy `nem érinti`.
+  - `Szerepkor:` kit érint (ügyfél-adminisztrátor, tartalomkezelő, olvasó, üzemeltető).
+  - `Ellenorzes:` hogyan ellenőrizted (pl. `PHPUnit; böngészős próba`), vagy `nem ellenőrzött`.
+- **Kiadás:** külön commit `Kiadás X.Y.Z` címmel (verzió a `app/bootstrap.php`-ban + CHANGELOG + szükség szerint kézikönyv). Két kiadás közötti release notes: a két `Kiadás` commit közötti nem `Belső` commitok `Kiadasi-jegyzet` sorai, típus szerint csoportosítva; a kézikönyv teendőlistája a `Kezikonyv` sorokból.
+- Példa teljes üzenet:
+  ```
+  Új(Posztok): lapozó a posztlistán, oldalanként 12 poszt
+
+  Sok poszt esetén a lista túl hosszú volt; Előző/Következő gombok és darabszám.
+
+  Kiadasi-jegyzet: A LinkedIn-posztok listája lapozható; oldalanként 12 poszt látszik.
+  Kezikonyv: a-posts, t-posts
+  Szerepkor: ügyfél-adminisztrátor, tartalomkezelő
+  Ellenorzes: böngészős próba 15 poszttal
+  ```
+
 ## Ellenőrzés
 - Tesztek: `vendor/bin/phpunit` (az adatbázistesztekhez fusson a MariaDB: `service mariadb start`). Felület: a `tools/felulet/` forrásait szerkeszd, utána építs (`tools/felulet/README.md`), és futtasd az auris-admin-sablon skill `scripts/app-ellenorzes.js` felületellenőrzőjét. Élesben a szárazfuttatás a Vezérlőpulton.
 - A sandbox hálózata korlátozott: a Google Sheets, a Claude API, az MCP-szerver és az SMTP élő hívását itt nem lehet ellenőrizni. Ezeket helyettesítővel teszteld, és „megvalósított, nem ellenőrzött” állapotban jelöld, amíg a felhasználó élesben ki nem próbálja.
