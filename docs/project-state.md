@@ -1,6 +1,6 @@
 # Projektállapot
 
-- **Frissítve:** 2026-11-05 (kiadás: 0.19.1)
+- **Frissítve:** 2026-11-05 (kiadás: 0.19.2)
 - **Forrás:** felhasználói közlés (claude.ai chat), a jóváhagyott specifikáció ([product.md](product.md)) és a repó kódja.
 
 ## Cél
@@ -62,6 +62,6 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 - Frissített ütemterv: [roadmap.md](roadmap.md).
 
 ## Következő lépések
-1. Felhasználó: a 0.19.1 átnézése sötét módban és iPaden; a csengő és a kereső kipróbálása valódi adatokon.
+1. Felhasználó: a 0.19.2 telepítése, majd iPaden a belépés, a profilmenü és a bal oldali menü megnézése; a sötét mód átnézése; a csengő és a kereső kipróbálása valódi adatokon.
 2. Éles próbák: a 2610/14 cikk újbóli feltöltése (kiemeltkép-javítás); több cikkből készült poszt utasítással; a vezetői összefoglaló PDF-je és küldése; **Új források keresése** 3-as darabszámmal.
 3. Az első havi e-mail az ügyfélnek (jóváhagyás után); utána a pull request összevonása a fő ágba és az Actions-telepítés első futása.
