@@ -146,6 +146,7 @@ try {
             $app->clients()->update($access, (int) $c['id'], (string) $c['name'], (string) $c['website'], (string) $c['status'], $str('sheet'));
             return ['ok' => true, 'clients' => $app->clients()->all($access)];
         })(),
+        'ertesitesek' => ['items' => $app->audit()->notifications($access)],
         'kereses' => ['results' => $app->search()->search($access, $str('q'))],
         'forras' => ['data' => $app->sources()->saveSource($access, $int('id'), (array) ($in['source'] ?? []))],
         'forrastorles' => ['data' => $app->sources()->deleteSource($access, (int) $int('id'))],

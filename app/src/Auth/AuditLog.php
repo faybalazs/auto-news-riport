@@ -54,4 +54,45 @@ final class AuditLog
         return array_map(static fn ($r) => $r + ['category' => self::category((string) $r['action']), 'time_hu' => \Xperion\Web\View::dateHu((string) $r['created_at'])],
             $this->db->all($sql . ' ORDER BY a.id DESC LIMIT ' . max(1, min(2000, $limit)), $params));
     }
+
+    /** Az értesítésekben (csengő) is megjelenő kategóriák annak, akinek nincs Napló-joga. */
+    public const WORK_CATEGORIES = ['Döntések', 'Cikkek', 'Posztok', 'Feltöltés', 'Havi e-mail'];
+
+    /**
+     * A csengő értesítései: az ügyfél legfrissebb műveletei, a saját műveletek és a belépések nélkül. Napló-jog nélkül csak
+     * a munkához tartozó kategóriák (döntés, cikk, poszt, feltöltés, havi e-mail).
+     *
+     * @return list<array{id:int, action:string, details:string, who:string, category:string, time_hu:string, href:string}>
+     */
+    public function notifications(Access $a, int $limit = 12): array
+    {
+        $cid = $a->clientId();
+        if ($cid === null) {
+            return [];
+        }
+        $rows = $this->db->all('SELECT a.id, a.created_at, a.action, a.details, COALESCE(u.name, "Rendszer") AS who FROM audit_log a LEFT JOIN users u ON u.id = a.user_id
+            WHERE a.client_id = ? AND (a.user_id IS NULL OR a.user_id <> ?) ORDER BY a.id DESC LIMIT 200', [$cid, $a->userId()]);
+        $out = [];
+        foreach ($rows as $r) {
+            $cat = self::category((string) $r['action']);
+            if ($cat === 'Belépés' || (!$a->can('log') && !in_array($cat, self::WORK_CATEGORIES, true))) {
+                continue;
+            }
+            $details = (string) $r['details'];
+            $href = match ($cat) {
+                'Döntések', 'Cikkek', 'Feltöltés' => 'index.php?p=cikkek',
+                'Posztok' => preg_match('/\bLI-\d{4}-\d{2}\b/', (string) $r['action'] . ' ' . $details, $m) ? 'index.php?p=poszt&kod=' . $m[0] : 'index.php?p=posztok',
+                'Havi e-mail' => $a->can('ops') ? 'index.php?p=vezerlo' : 'index.php?p=attekintes',
+                'Források' => $a->can('sources') ? 'index.php?p=forrasok' : 'index.php?p=naplo',
+                'Felhasználók' => $a->can('users') ? 'index.php?p=felhasznalok' : 'index.php?p=naplo',
+                default => $a->can('log') ? 'index.php?p=naplo' : 'index.php?p=attekintes',
+            };
+            $out[] = ['id' => (int) $r['id'], 'action' => (string) $r['action'], 'details' => mb_strimwidth($details, 0, 140, '…'), 'who' => (string) $r['who'], 'category' => $cat,
+                'time_hu' => \Xperion\Web\View::dateHu((string) $r['created_at']), 'href' => $href];
+            if (count($out) >= $limit) {
+                break;
+            }
+        }
+        return $out;
+    }
 }
