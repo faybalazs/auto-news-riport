@@ -10,7 +10,7 @@ PHP-alkalmazás saját felülettel és MySQL-adatbázissal (több ügyfélre): h
    - [docs/decisions.md](docs/decisions.md): érvényes döntések
    - [docs/terminology.md](docs/terminology.md): a magyar szakkifejezések és jelentésük
 3. [docs/architecture.md](docs/architecture.md): modulok, belépési pontok, adatbázis.
-4. Ha kell: `tools/felulet/` (a felület forrásai és építése), `docs/kezikonyv/` (felhasználói kézikönyv forrása; kimenet `app/resources/kezikonyv.html`), `wordpress/mu-plugins/` (a WordPressbe kerülő belépési kiegészítő), `docs/integracio/` (WordPress-bővítmény API).
+4. Ha kell: `tools/felulet/` (a felület forrásai és építése; `app-v2.css` a v2 design rétege a régi fölött), `docs/kezikonyv/` (felhasználói kézikönyv forrása; kimenet `app/resources/kezikonyv.html`), `wordpress/mu-plugins/` (a WordPressbe kerülő belépési kiegészítő), `docs/integracio/` (WordPress-bővítmény API).
 
 ## Mérvadó források
 - **Követelmények:** docs/product.md. Ha a kód vagy egy kérés ellentmond neki, jelezd, ne dönts helyette.

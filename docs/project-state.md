@@ -1,6 +1,6 @@
 # Projektállapot
 
-- **Frissítve:** 2026-11-03 (kiadás: 0.19.0)
+- **Frissítve:** 2026-11-05 (kiadás: 0.19.1)
 - **Forrás:** felhasználói közlés (claude.ai chat), a jóváhagyott specifikáció ([product.md](product.md)) és a repó kódja.
 
 ## Cél
@@ -22,14 +22,14 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 | Feltöltés a weboldalra (Xperion OAuth Bridge 0.6.0, deploy_pair): HU/EN ajánlópár Claude-fordítással, óránként és kézzel; a Havi cikkeken az ügyféladmin és a tartalomkezelő is indíthatja; Publikálva állapot; visszavonás; törlés a listából visszaállítással; belépési diagnosztika | megvalósított (0.12.0); ellenőrzött PHPUnit-tal és böngészőből helyi hamis WordPress-szel; élesben: a kapcsolat az xperion.hu-val működik, a felhasználó teszt-cikkeket feltöltött („ment”, 2026-11-03, a Vezérlőpultról, 0.12.0 előtt); az új Havi cikkek-kártya, a visszavonás és a törlés élesben még nem kipróbált | roadmap 8 |
 | LinkedIn-posztok: szabályok, ötletek, generálás (Opus 5.5), automatikus jóváhagyásra küldés, módosítási kérésre újraírás; kép rögzített sablonokból (5 elrendezés), szövege Claude nélkül javítható, „Új kép”; a forráscikkek szerkeszthetők; lista mini-mockuppal | megvalósított (0.10.1); PHPUnit és böngésző; élesben használatban (a felhasználó a valódi posztképekről adott visszajelzést, 2026-11-02) | roadmap 9 |
 | Források és kulcsszavak; Napló szűrőkkel, CSV-vel; hibaértesítés e-mailben; megőrzés; Ügyfelek lista + tabos részletkártya | megvalósított; ellenőrzött PHPUnit-tal és böngészőből; élesben nem ellenőrzött | roadmap 10 |
-| Felhasználói kézikönyv (ügyfél-adminisztrátor, tartalomkezelő): `app/resources/kezikonyv.html`, forrás: `docs/kezikonyv/`; az alkalmazásban a menü alján, új ablakban | elkészült (0.13.3); arculat az alkalmazás szerint; böngészőben ellenőrizve; a felhasználó még nem nézte át | – |
+| Felhasználói kézikönyv (ügyfél-adminisztrátor, tartalomkezelő): `app/resources/kezikonyv.html`, forrás: `docs/kezikonyv/`; az alkalmazásban a menü alján, új ablakban | 1.3 (0.19.0): v2 arculat, új képek, „A felület részei”; böngészőben ellenőrizve; a felhasználó még nem nézte át | – |
 | Telepítés GitHub Actionsszel (`.github/workflows/telepites.yml`): kézi indítás, tesztek, FTPS-feltöltés a változott fájlokra, verzió-ellenőrzés | megvalósított, nem ellenőrzött (a beállítások – FTP-adatok, mappa, webcím – és az első futás a felhasználóra vár; a munkafolyamat csak a fő ágra kerülés után indítható) | decisions 2026-11-03 |
 | Kiemeltkép-hiba („not allowed to upload this file type”): JPEG-átalakítás a `kepek/` mappába, végső tartalék az ügyfél alapértelmezett képe (`alap_kep`) | megvalósított (0.14.0); PHPUnit és helyi hamis WordPress; élesben nem ellenőrzött | felhasználói hibajelentés (2610/14) |
 | LinkedIn: több cikkből egyetlen önálló, hírszerű poszt hivatkozás nélkül; utasítás a szöveghez és a képhez | megvalósított (0.15.0); PHPUnit és böngésző; valódi Claude-dal nem ellenőrzött | felhasználói kérés |
 | Vezetői összefoglaló mentése PDF-be (nyomtatható nézet) és küldése e-mailben | megvalósított (0.16.0); PHPUnit, böngésző, helyi teszt-SMTP | felhasználói kérés |
 | Új-forrás-figyelő (Források → Javasolt források): Claude-webkeresés, próbagyűjtés, javaslatlista jóváhagyással, beállítható darabszám | megvalósított (0.17.0); PHPUnit helyettesített Claude-dal, böngésző mintajavaslatokkal; valódi webkereséssel nem ellenőrzött | felhasználói kérés (javaslatlista jóváhagyással) |
 | (i) súgók a gombok alatti magyarázó szövegek helyett; rövid teendőcsempe-fejlécek, kék linkek | megvalósított (0.14.0); böngésző és a sablon felületellenőrzője | felhasználói kérés |
-| Megújult megjelenés (v2, Figma Make): minden oldal, sötét téma, kompakt mód; globális kereső | megvalósított (0.19.0); ellenőrzött böngészőben (Figma-összevetés, felületellenőrző, kontrasztmérés) és PHPUnit-tal; élesben nem ellenőrzött | felhasználói kérés, decisions 2026-11-05 |
+| Megújult megjelenés (v2, Figma Make): minden oldal, sötét téma, kompakt mód; globális kereső; értesítés-csengő (a napló legfrissebb bejegyzései) | megvalósított (0.19.0, javítások és csengő: 0.19.1); ellenőrzött böngészőben (Figma-összevetés, felületellenőrző, kontrasztmérés) és PHPUnit-tal; élesben telepítve, a felhasználó: „megy” (2026-11-05); a sötét mód és az iPad még nem átnézett | felhasználói kérés, decisions 2026-11-05 |
 | Futások állapota a Vezérlőpulton (mi fut, mióta, melyik lépés; mentett eredmények); érthető hibaüzenet szerverhibánál is | megvalósított (0.10.3, 0.10.10); ellenőrzött PHPUnit-tal és böngészőből szimulált futással és hibákkal | – |
 
 ## Meglévő, repón kívüli elemek
@@ -39,8 +39,8 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 | Feltöltő MCP-szerver (ChatGPT-vel készült, távoli, OAuth) | használatban | felhasználói közlés, nem vizsgált |
 | Xperion OAuth Bridge WordPress-bővítmény 0.6.0 az xperion.hu-n | telepítve, működik (Kapcsolat ellenőrzése, 2026-11-03); HU/EN alapkategória beállítva; törlő művelete nincs | felhasználói közlés, Vezérlőpult |
 | `wordpress/mu-plugins/xperion-auth-fejlec.php` 1.1.0 az xperion.hu `wp-content/mu-plugins` mappájában | telepítve, a belépés ezzel működik | felhasználói közlés, 2026-11-03 |
-| Skillek (claude.ai): auris-admin-sablon, auris-felhasznaloi-kezikonyv | a felület a sablon v1.8.0-ból épül (teendő-csempe részlettel, `.tip-end`, „gomb alatt nincs magyarázó bekezdés” szabály); átadva, feltöltésre vár: sablon v1.8.0 (a v1.7.0 helyére), kézikönyv 1.2.0 | munkamenet, skill-csomagok |
-| auris-dontesbank skill (claude.ai) | 1.2 átadva 2026-11-03 (részletes beállítási lépések; a sajtófigyelés mai döntései); a feltöltés a felhasználóra vár | a skill-csomag (zip) |
+| Skillek (claude.ai): auris-admin-sablon, auris-felhasznaloi-kezikonyv, auris-admin-migracio, auris-commit-kiadas | a felület régi rétege a sablon v1.8.0-ból, a v2 réteg a Figma Make tervből (migrációs skill); átadva 2026-11-05: auris-admin-migracio 1.9.0 (az Xperion-migráció tanulságaival); a feltöltés a felhasználóra vár | munkamenet, skill-csomagok |
+| auris-dontesbank skill (claude.ai) | 1.3 átadva 2026-11-05 (pixelpontos megújítás, működő felületi elemek, csengő, commitforma); a feltöltés a felhasználóra vár | a skill-csomag (zip) |
 | xperion-linkedin skill (claude.ai) | használatban, a szabályokat a Sheetből olvassa | felhasználói közlés |
 
 ## Kockázatok
@@ -52,6 +52,7 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 - Az új-forrás-figyelő a Claude webkeresését használja (keresésenként kb. 5–15 cent); a javaslatok minősége valódi kereséssel még nem látott. A webkeresést a Claude Console-ban a szervezet szintjén engedélyezni kell, ha le van tiltva.
 - A kiemeltkép-átalakításhoz a szerver PHP-jában kell a GD bővítmény, és az alkalmazás címe https legyen; különben csak az `alap_kep` tartalék működik.
 - A felület forrásai a `tools/felulet/` mappában vannak; az `assets/app.*` generált fájl, kézi szerkesztése a következő építéskor elveszik.
+- A v2 réteg (`app-v2.css`) a régi stílusok fölött van: ahol a Figma egy tulajdonságot nem állít, a régi érték átszivárog (pl. keret, árnyék). Új elemnél mindkét témában nézd meg.
 
 ## Blokkolók
 - A forráscikkek képeinek átvétele (képjog): Attilával tisztázandó (az átadócsomag nyitott kockázata).
@@ -61,7 +62,6 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 - Frissített ütemterv: [roadmap.md](roadmap.md).
 
 ## Következő lépések
-1. Felhasználó: a 0.19.0 telepítése (Actions → Telepítés élesbe, vagy a csatolt ZIP), majd az oldalak átnézése világos és sötét módban, iPaden is; a kereső kipróbálása (Ctrl+K).
-2. Éles próbák: a 2610/14 cikk újbóli feltöltése (kiemeltkép-javítás); több cikkből készült poszt utasítással; a vezetői összefoglaló PDF-je és küldése; **Új források keresése** 3-as darabszámmal, a javaslatok átnézése.
-3. Az első havi e-mail az ügyfélnek (jóváhagyás után); a pull request összevonása a fő ágba, ha az éles próbák rendben vannak.
-3. A pull request átnézése és összevonása (merge) a fő ágba, ha az éles próbák rendben vannak.
+1. Felhasználó: a 0.19.1 átnézése sötét módban és iPaden; a csengő és a kereső kipróbálása valódi adatokon.
+2. Éles próbák: a 2610/14 cikk újbóli feltöltése (kiemeltkép-javítás); több cikkből készült poszt utasítással; a vezetői összefoglaló PDF-je és küldése; **Új források keresése** 3-as darabszámmal.
+3. Az első havi e-mail az ügyfélnek (jóváhagyás után); utána a pull request összevonása a fő ágba és az Actions-telepítés első futása.
