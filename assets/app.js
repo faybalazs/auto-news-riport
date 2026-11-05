@@ -1319,12 +1319,15 @@ if (APP.page === 'profil'){
 /* ==================================================================
    13–14. SHELL: téma, sűrűség, oldalsáv, mobilmenü, menük, billentyűk
    ================================================================== */
-const themes = ['system','light','dark'], themeIcons = { system:'#i-monitor', light:'#i-sun', dark:'#i-moon' }, themeNames = { system:'rendszer', light:'világos', dark:'sötét' };
-function applyTheme(t){ t === 'system' ? root.removeAttribute('data-theme') : root.setAttribute('data-theme', t); const ti = $('#themeIcon'); if (!ti) return; ti.setAttribute('href', themeIcons[t]); $('#themeBtn').title = 'Téma: ' + themeNames[t]; $('#themeBtn').setAttribute('aria-label', 'Téma váltása, jelenleg: ' + themeNames[t]); }
-let theme = store.get('xp-theme') || 'system'; applyTheme(theme);
+/* Megjelenés (v2): két kapcsoló a felső sávban – téma (világos/sötét) és sűrűség (normál/kompakt). Az első
+   betöltéskor a rendszer témáját követi; a fejléc inline szkriptje már beállította, villanás nélkül. */
+function applyTheme(t){ root.setAttribute('data-theme', t); const dark = t === 'dark', b = $('#themeBtn'); if (!b) return;
+  $('#themeIcon').setAttribute('href', dark ? '#i-moon' : '#i-sun'); $('#themeLabel').textContent = dark ? 'Sötét' : 'Világos';
+  b.setAttribute('aria-pressed', String(dark)); b.title = 'Téma: ' + (dark ? 'sötét' : 'világos'); b.setAttribute('aria-label', 'Téma: ' + (dark ? 'sötét' : 'világos') + '. Váltás'); }
+let theme = store.get('xp-theme'); if (theme !== 'light' && theme !== 'dark') theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; applyTheme(theme);
 if (shell){
-  $('#themeBtn').addEventListener('click', () => { theme = themes[(themes.indexOf(theme) + 1) % 3]; applyTheme(theme); store.set('xp-theme', theme); });
-  const applyDensity = d => { root.setAttribute('data-density', d); $('#densityBtn').setAttribute('aria-pressed', d === 'compact'); };
+  $('#themeBtn').addEventListener('click', () => { theme = theme === 'dark' ? 'light' : 'dark'; applyTheme(theme); store.set('xp-theme', theme); });
+  const applyDensity = d => { const c = d === 'compact'; root.setAttribute('data-density', d); $('#densityBtn').setAttribute('aria-pressed', String(c)); $('#densityLabel').textContent = c ? 'Kompakt' : 'Normál'; $('#densityBtn').title = 'Sűrűség: ' + (c ? 'kompakt' : 'normál'); $('#densityBtn').setAttribute('aria-label', 'Sűrűség: ' + (c ? 'kompakt' : 'normál') + '. Váltás'); };
   let density = store.get('xp-density') || 'comfortable'; applyDensity(density);
   $('#densityBtn').addEventListener('click', () => { density = density === 'compact' ? 'comfortable' : 'compact'; applyDensity(density); store.set('xp-density', density); });
   const setNav = open => { shell.dataset.nav = open ? 'open' : 'closed'; $('#collapseBtn').setAttribute('aria-expanded', open); $('#collapseBtn').title = open ? 'Menü összecsukása' : 'Menü kinyitása'; $('#collapseLabel').textContent = open ? 'Összecsukás' : 'Kinyitás'; $('#collapseIcon').style.transform = open ? '' : 'rotate(180deg)'; };

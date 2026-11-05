@@ -14,7 +14,10 @@ css = '\n'.join(L[st+1:s18]) + '\n' + open(SP + '/app-extra.css', encoding='utf-
 for x, y in [('--accent:#2563EB; --accent-hover:#1D4ED8; --accent-subtle:#EFF4FF; --accent-text:#1D4ED8;', '--accent:#2D388A; --accent-hover:#232C6E; --accent-subtle:#EEF0FA; --accent-text:#2D388A;'),
              ('--focus:#2563EB;', '--focus:#2D388A;'), ('--accent-subtle:#1C2A4A; --accent-text:#9DBBFD;', '--accent-subtle:#1A2350; --accent-text:#7FD3F5;'), ('--focus:#7FA6FA;', '--focus:#7FD3F5;')]:
     assert x in css, x; css = css.replace(x, y)
-head_css = f'/*\n  Sajtófigyelés – felület stílusai.\n  Forrás: Auris admin sablon v{ver} (CSS 1–18.), Xperion-színekkel; projektrész: „P. PROJEKT”.\n  Generált fájl: a forrásrészek változásakor újra kell építeni.\n*/\n'
+head_css = f'/*\n  Sajtófigyelés – felület stílusai.\n  Forrás: Auris admin sablon v{ver} (CSS 1–18.) és projektrész „P. PROJEKT” a legacy rétegben; fölötte a v2 design (tools/felulet/app-v2.css, Figma Make).\n  Generált fájl: a forrásrészek változásakor újra kell építeni.\n*/\n'
+# v2 design: a régi stílusok a „legacy” rétegbe kerülnek, a Figma-alapú v2 stíluslap rétegen kívül, így mindig nyer
+v2 = open(SP + '/app-v2.css', encoding='utf-8').read()
+css = '@layer base, legacy;\n@layer legacy {\n' + css + '\n}\n\n' + v2
 open(ROOT + '/assets/app.css', 'w', encoding='utf-8').write(head_css + css + '\n')
 js0 = idx(lambda l: l.strip() == "'use strict';", se) + 1
 s4 = idx(lambda l: l.startswith('   4. '), js0) - 1

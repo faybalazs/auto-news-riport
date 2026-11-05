@@ -12,7 +12,7 @@ $prev = $data['prev'] ?? null;
 $rep = $data['report'] ?? null;
 $t = $data['todo'] ?? [];
 $sub = $e($client['name'] ?? 'Nincs ügyfél') . ($month !== '' ? ' · ' . $e($label($month)) : '');
-$actions = $months ? '<label class="sr-only" for="period">Időszak</label><select class="select" id="period" style="width:auto">'
+$actions = $months ? '<label class="sr-only" for="period">Időszak</label><select class="select month-select" id="period">'
     . implode('', array_map(static fn ($m) => '<option value="' . $e($m) . '"' . ($m === $month ? ' selected' : '') . '>' . $e($label($m)) . '</option>', $months)) . '</select>' : '';
 
 /* Teendők: soronként külön widget, típus szerinti színnel. [tónus, ikon, cím, szám|null, rövid meta (fejléc), részlet (HTML, a csempe tartalma), link, gomb]
@@ -55,97 +55,111 @@ if (!$todos) {
     $todos[] = ['ok', 'check', 'Nincs teendő', null, 'Minden kész', 'Minden döntés és jóváhagyás kész. Köszönjük!', 'index.php?p=cikkek', 'Havi cikkek'];
 }
 
-/* KPI-k: címke → érték → változás az előző hónaphoz → trendvonal → időszak */
-$spark = static function (array $v): string {
-    if (count($v) < 2) {
-        return '';
-    }
-    $max = max($v) ?: 1;
-    $n = count($v) - 1;
-    $pts = implode(' ', array_map(static fn ($i, $x) => round($i / $n * 100, 1) . ',' . round(28 - $x / $max * 26, 1), array_keys($v), $v));
-    return '<svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><polyline points="' . $pts . '" fill="none" stroke="var(--data-1)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>';
-};
-$kpis = [['n', 'Cikkek a hónapban', 'list', 'blue'], ['strong', 'Erősen javasolt', 'arrow-up', 'green'], ['mehet', 'Mehet (feltöltésre)', 'upload', 'orange'], ['li', 'LinkedIn poszt jelölés', 'linkedin', 'purple']];
+/* KPI-k: címke → érték → változás az előző hónaphoz → az utolsó öt hónap oszlopai → időszak */
+$kpis = [['n', 'Cikkek a hónapban', 'list', 'blue'], ['strong', 'Erősen javasolt', 'check', 'green'], ['mehet', 'Mehet (feltöltésre)', 'upload', 'amber'], ['li', 'LinkedIn poszt jelölés', 'linkedin', 'violet']];
 
 require __DIR__ . '/_head.php';
 ?>
-<section aria-labelledby="h-todo" class="todo-sec">
-  <h2 id="h-todo" class="sec-title">Teendők <span class="meta">· <?= count($todos) ?> tétel</span></h2>
-  <div class="todo-grid">
+<section class="panel todo-panel" aria-labelledby="h-todo">
+  <div class="panel-head"><div><span class="kicker">TEENDŐK</span><h2 id="h-todo">Mi vár Önre</h2><p><?= count($todos) ?> tétel · jogosultsága szerint</p></div></div>
+  <div class="todo-rows">
     <?php foreach ($todos as $ti => [$tone, $icon, $twTitle, $n, $twMeta, $twDetail, $href, $cta]): ?>
-    <?php $tc = ['warn' => 't-orange', 'info' => 't-blue', 'li' => 't-li', 'ok' => 't-green', 'ai' => 't-purple'][$tone] ?? 't-blue'; ?>
-    <section class="card widget todo-w" aria-labelledby="tw-<?= $ti ?>">
-      <div class="widget-head"><div class="wh"><span class="ic-tile <?= $tc ?>" aria-hidden="true"><?= $ic($icon, 'icon') ?></span><div><h2 id="tw-<?= $ti ?>"><?= $e($twTitle) ?></h2><p class="meta"><?= $twMeta ?></p></div></div></div>
-      <p class="tw-detail"><?= $twDetail ?></p>
-      <div class="tw-body"><?php if ($n !== null): ?><span class="tw-n"><?= (int) $n ?></span><?php endif; ?><a class="btn btn-ghost sm tw-link" href="<?= $e($href) ?>"><?= $e($cta) ?><?= $ic('chev-right') ?></a></div>
-    </section>
+    <?php $tc = ['warn' => 'amber', 'info' => 'blue', 'li' => 'blue', 'ok' => 'green', 'ai' => 'violet'][$tone] ?? 'blue'; ?>
+    <div class="todo-row">
+      <span class="icon-tile <?= $tc ?>" aria-hidden="true"><?= $ic($icon, 'icon') ?></span>
+      <div><h3 id="tw-<?= $ti ?>"><?= $e($twTitle) ?></h3><p><?= $twMeta ?> · <?= $twDetail ?></p></div>
+      <span class="todo-n"><?= $n !== null ? (int) $n : '' ?></span>
+      <a class="btn btn-secondary sm" href="<?= $e($href) ?>" aria-describedby="tw-<?= $ti ?>"><?= $e($cta) ?><?= $ic('chev-right') ?></a>
+    </div>
     <?php endforeach; ?>
   </div>
 </section>
 
 <?php if (!$months): ?>
-<section class="card widget" aria-labelledby="w-sum">
-  <div class="widget-head"><div class="wh"><span class="ic-tile t-purple" aria-hidden="true"><?= $ic('sparkle', 'icon') ?></span><div><h2 id="w-sum">Vezetői összefoglaló</h2><p class="meta">A havi futás készíti</p></div></div></div>
+<section class="panel sum-panel" aria-labelledby="w-sum">
+  <div class="panel-head"><div><span class="kicker">VEZETŐI ÖSSZEFOGLALÓ</span><h2 id="w-sum">A hónap összefoglalója</h2><p>A havi futás készíti</p></div></div>
   <div class="empty-state"><b>Még nincs havi adat</b><span>Az adatátvétel vagy az első havi futás után itt jelenik meg a hónap összefoglalója, alatta a számok, a döntések megoszlása és a cikkek forrásonként.</span></div>
 </section>
 <?php else: ?>
 <?php $monthLabel = $label($month); require __DIR__ . '/_osszefoglalo.php'; ?>
 
-<div class="kpis" aria-label="A hónap számai">
+<section class="kpis" aria-label="A hónap számai">
   <?php foreach ($kpis as [$k, $kl, $kic, $kc]):
       $c = (int) ($s[$k] ?? 0);
       $p = $prev === null ? null : (int) ($prev[$k] ?? 0);
       if ($p === null) {
           $delta = '<span class="delta flat">Nincs összehasonlító adat</span>';
       } elseif ($c === $p) {
-          $delta = '<span class="delta flat">Változatlan az előző hónaphoz</span>';
+          $delta = '<span class="delta flat">= <small>változatlan az előző hónaphoz</small></span>';
       } else {
           $up = $c > $p;
-          $delta = '<span class="delta ' . ($up ? 'good' : 'bad') . '">' . $ic($up ? 'arrow-up' : 'arrow-down') . ($up ? '+' : '−') . abs($c - $p) . ' db <span style="font-weight:400">az előző hónaphoz</span></span>';
-      } ?>
-  <div class="card kpi k-<?= $kc ?>"><div class="kpi-top"><span class="k"><?= $e($kl) ?></span><span class="ic-tile t-<?= $kc ?>" aria-hidden="true"><?= $ic($kic, 'icon') ?></span></div><span class="v"><?= $c ?></span><?= $delta ?><?= $spark($data['series'][$k] ?? []) ?><span class="per meta"><?= $e($label($month)) ?></span></div>
+          $delta = '<span class="delta' . ($up ? '' : ' down') . '">' . ($up ? '↗ +' : '↘ −') . abs($c - $p) . ' db <small>az előző hónaphoz</small></span>';
+      }
+      $ser = array_slice(array_values($data['series'][$k] ?? []), -5);
+      $ser = array_merge(array_fill(0, 5 - count($ser), 0), $ser);
+      $smax = max(1, ...$ser); ?>
+  <div class="kpi">
+    <div class="kpi-top"><span><?= $e($kl) ?></span><span class="icon-tile <?= $kc ?>" aria-hidden="true"><?= $ic($kic, 'icon') ?></span></div>
+    <strong><?= $c ?></strong>
+    <?= $delta ?>
+    <div class="sparkline" role="img" aria-label="Az utolsó öt hónap: <?= $e(implode(', ', $ser)) ?>"><?php foreach ($ser as $v): ?><i style="height:<?= max(8, (int) round($v / $smax * 100)) ?>%"></i><?php endforeach; ?></div>
+    <small><?= $e($label($month)) ?></small>
+  </div>
   <?php endforeach; ?>
-</div>
+</section>
 
-<div class="dash-grid">
+<div class="overview-bottom">
   <?php
-  $colors = ['mehet' => 'var(--data-3)', 'li' => 'var(--data-1)', 'nem' => 'var(--data-6)', 'open' => 'var(--data-4)', 'notrec' => 'var(--data-7)'];
-  $tot = max(1, (int) ($s['n'] ?? 0));
+  $colors = ['mehet' => '#4f8a68', 'li' => '#4b7da2', 'nem' => '#ad6173', 'open' => '#c79338', 'notrec' => '#8a929b'];
+  $tot = (int) ($s['n'] ?? 0);
   $parts = [];
   foreach (OverviewService::DECISION_PARTS as $k => $kl) {
       $parts[] = [$kl, (int) ($s[$k] ?? 0), $colors[$k]];
   }
+  $decided = (int) ($s['mehet'] ?? 0) + (int) ($s['li'] ?? 0) + (int) ($s['nem'] ?? 0);
+  $grad = [];
+  $acc = 0.0;
+  foreach ($parts as [, $v, $col]) {
+      if ($v > 0 && $tot > 0) {
+          $from = $acc;
+          $acc += $v / $tot * 100;
+          $grad[] = $col . ' ' . round($from, 2) . '% ' . round($acc, 2) . '%';
+      }
+  }
   ?>
-  <section class="card widget w-4" aria-labelledby="w-dec">
-    <div class="widget-head"><div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('chart', 'icon') ?></span><div><h2 id="w-dec">Döntések megoszlása</h2><p class="meta"><?= $e($label($month)) ?> · <?= (int) ($s['n'] ?? 0) ?> cikk</p></div></div></div>
-    <?php if (($s['n'] ?? 0) > 0): ?>
-    <div class="stack100" role="img" aria-label="<?= $e(implode(', ', array_map(static fn ($d) => $d[0] . ': ' . $d[1] . ' db', $parts))) ?>">
-      <?php foreach ($parts as [, $v, $col]): if ($v > 0): ?><span style="width:<?= round($v / $tot * 100, 2) ?>%;background:<?= $col ?>"></span><?php endif; endforeach; ?>
+  <section class="panel distribution" aria-labelledby="w-dec">
+    <div class="panel-head">
+      <div><span class="kicker">DÖNTÉSEK</span><h2 id="w-dec">Döntések megoszlása</h2><p><?= $e($label($month)) ?> · <?= $tot ?> cikk</p></div>
+      <span class="total-pill"><?= $tot ?> cikk</span>
     </div>
-    <ul class="legend-list">
-      <?php foreach ($parts as [$kl, $v, $col]): ?><li><span class="sw" style="background:<?= $col ?>"></span><?= $e($kl) ?><b><?= $v ?> db</b><span class="meta"><?= round($v / $tot * 100) ?>%</span></li><?php endforeach; ?>
-    </ul>
+    <?php if ($tot > 0): ?>
+    <div class="donut-wrap">
+      <div class="donut" style="background:conic-gradient(<?= $e(implode(', ', $grad)) ?>)" role="img" aria-label="<?= $e(implode(', ', array_map(static fn ($d) => $d[0] . ': ' . $d[1] . ' db', $parts))) ?>"><div><strong><?= $decided ?></strong><span>döntéssel</span></div></div>
+      <ul class="legend">
+        <?php foreach ($parts as [$kl, $v, $col]): ?><li><i style="background:<?= $col ?>"></i><span><?= $e($kl) ?></span><b><?= $v ?> db</b><small><?= round($v / $tot * 100) ?>%</small></li><?php endforeach; ?>
+      </ul>
+    </div>
     <?php else: ?>
-    <div class="empty-state"><b>Nincs cikk ebben a hónapban</b></div>
+    <div class="empty-state"><h3>Nincs cikk ebben a hónapban</h3></div>
     <?php endif; ?>
   </section>
 
   <?php $src = $data['sources'] ?? []; $max = max(1, ...array_map(static fn ($r) => $r['n'], $src ?: [['n' => 1]])); ?>
-  <section class="card widget w-8" aria-labelledby="w-src">
-    <div class="widget-head">
-      <div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('list', 'icon') ?></span><div><h2 id="w-src">Cikkek forrásonként</h2><p class="meta"><?= $e($label($month)) ?> · a duplikátumok és a kizárt témák nélkül</p></div></div>
-      <?php if ($src): ?><div class="head-actions"><div class="seg" role="group" aria-label="Megjelenítés" id="srcView"><button type="button" data-sv="chart" aria-pressed="true">Diagram</button><button type="button" data-sv="table" aria-pressed="false">Táblázat</button></div></div><?php endif; ?>
+  <section class="panel source-panel" aria-labelledby="w-src">
+    <div class="panel-head">
+      <div><span class="kicker">FORRÁSOK</span><h2 id="w-src">Cikkek forrásonként</h2><p>A duplikátumok és kizárt témák nélkül</p></div>
+      <?php if ($src): ?><div class="seg mini" role="group" aria-label="Megjelenítés" id="srcView"><button type="button" data-sv="chart" aria-pressed="true">Diagram</button><button type="button" data-sv="table" aria-pressed="false">Táblázat</button></div><?php endif; ?>
     </div>
     <?php if ($src): ?>
-    <ul class="hbar" id="srcBars">
-      <?php foreach ($src as $r): ?><li><span><?= $e($r['name']) ?></span><span class="track"><span style="width:<?= round($r['n'] / $max * 100, 2) ?>%"></span></span><b><?= $r['n'] ?> db</b></li><?php endforeach; ?>
-    </ul>
-    <div class="mini-table table-wrap" id="srcTable" hidden style="border:1px solid var(--border);border-radius:var(--r-lg)">
-      <table><caption class="sr-only">Cikkek forrásonként</caption><thead><tr><th scope="col">Forrás</th><th scope="col" class="num">Cikkek</th><th scope="col" class="num">Arány</th></tr></thead>
-      <tbody><?php foreach ($src as $r): ?><tr><td><?= $e($r['name']) ?></td><td class="num"><?= $r['n'] ?> db</td><td class="num"><?= round($r['n'] / $tot * 100) ?>%</td></tr><?php endforeach; ?></tbody></table>
+    <div class="bars" id="srcBars">
+      <?php foreach ($src as $r): ?><div class="bar-row"><span><?= $e($r['name']) ?></span><div><i style="width:<?= round($r['n'] / $max * 100, 2) ?>%"></i></div><b><?= $r['n'] ?> db</b></div><?php endforeach; ?>
+    </div>
+    <div class="table-wrap mini" id="srcTable" hidden>
+      <table><caption class="sr-only">Cikkek forrásonként</caption><thead><tr><th scope="col">Forrás</th><th scope="col">Cikkek</th><th scope="col">Arány</th></tr></thead>
+      <tbody><?php foreach ($src as $r): ?><tr><td><?= $e($r['name']) ?></td><td><?= $r['n'] ?> db</td><td><?= $tot ? round($r['n'] / $tot * 100) : 0 ?>%</td></tr><?php endforeach; ?></tbody></table>
     </div>
     <?php else: ?>
-    <div class="empty-state"><b>Nincs cikk ebben a hónapban</b></div>
+    <div class="empty-state"><h3>Nincs cikk ebben a hónapban</h3></div>
     <?php endif; ?>
   </section>
 </div>

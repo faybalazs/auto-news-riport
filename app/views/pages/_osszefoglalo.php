@@ -8,9 +8,9 @@
 $canRegen = $access->can('decide');
 $when = $rep ? ($rep['updated_at'] !== '' ? $rep['updated_at'] : $rep['created_at']) : '';
 ?>
-<section class="card widget sum-card" aria-labelledby="w-sum" id="sumCard">
-  <div class="widget-head">
-    <div class="wh"><span class="ic-tile t-purple" aria-hidden="true"><?= $ic('sparkle', 'icon') ?></span><div><h2 id="w-sum">Vezetői összefoglaló</h2><p class="meta"><?= $e($monthLabel) ?><?= $when !== '' ? ' · ' . $e(\Xperion\Web\View::dateHu($when)) . ($rep['updated_at'] !== '' ? ' (újragenerálva)' : '') : '' ?></p></div></div>
+<section class="panel sum-panel" aria-labelledby="w-sum" id="sumCard">
+  <div class="panel-head">
+    <div><span class="kicker">VEZETŐI ÖSSZEFOGLALÓ</span><h2 id="w-sum">A hónap összefoglalója</h2><p><?= $e($monthLabel) ?><?= $when !== '' ? ' · ' . $e(\Xperion\Web\View::dateHu($when)) . ($rep['updated_at'] !== '' ? ' (újragenerálva)' : '') : '' ?></p></div>
     <div class="head-actions">
       <?php if ($rep): ?><span class="badge b-ai"><?= $ic('sparkle', 'icon') ?>AI által generált</span><?php endif; ?>
       <?php if ($rep): ?><a class="btn btn-ghost sm" href="index.php?p=osszefoglalo&amp;honap=<?= $e($month) ?>" target="_blank" rel="noopener" title="Nyomtatható nézet új ablakban; onnan menthető PDF-be"><?= $ic('download') ?>PDF</a><?php endif; ?>
