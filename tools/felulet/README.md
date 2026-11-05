@@ -5,6 +5,7 @@ Az `assets/app.css` és az `assets/app.js` **generált** fájl: ne kézzel szerk
 | Fájl | Mi ez |
 |---|---|
 | `app-extra.css` | a projekt saját stílusai („P. PROJEKT” rész), a sablon CSS 18. szakasza elé kerül |
+| `app-v2.css` | a v2 design (Figma Make): a Figma `src/index.css`-e Tailwind nélkül (`.app-root` → `:root`), utána az „X. XPERION” rész az app saját elemeivel; a régi stílusok fölé kerül (a régiek a `legacy` rétegben) |
 | `app-pages.js` | a projekt oldalankénti szkriptjei (12–14. szekció) |
 | `build-app.py` | összeállító: a sablon szakaszjelölői alapján kivágja a közös részeket, Xperion-színekre cseréli az accentet, és hozzáfűzi a projektrészeket |
 

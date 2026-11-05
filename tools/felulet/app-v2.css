@@ -787,3 +787,33 @@ ol.checklist .onb-link { font-size: var(--fs-2xs); font-weight: 700; }
 .gs-item small { color: var(--text-3); font-size: var(--fs-2xs); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gs-item:hover, .gs-item.on { background: var(--surface-muted); }
 .gs-note { padding: 12px 8px; color: var(--text-3); font-size: var(--fs-2xs); }
+
+/* ---- X.13 Érintőképernyő (iPad, telefon): 44 px-es célterület; asztalon a Figma-méretek ---- */
+@media (pointer: coarse) {
+  .btn, .btn.sm, .nav-item, .tabs button, .card-views button, .admin-tabs button, .seg button, .display-control, .workspace, .profile-btn, .back-link { min-height: 44px; }
+  .icon-btn, .pager .pg-btn, #postPager button, .bulkbar button, td.rule-acts .icon-btn { min-width: 44px; min-height: 44px; }
+  .input, .select, select.select, .field input, .field select, .toolbar input, .toolbar select, .topbar-search input, .pager select, .pager input, .month-select, .page-actions .select { min-height: 44px; height: 44px; }
+  textarea.input { height: auto; }
+  td select, td .select { min-height: 44px; height: 44px; }
+  .bulkbar button { height: 44px; }
+  .tabs, .card-views { height: auto; }
+}
+@media (pointer: coarse) { #runState .rs-list .btn { min-height: 44px; } }
+
+/* ---- X.14 Sötét téma: a Figma beégetett világos színei ---- */
+:root[data-theme='dark'] .donut::before { background: var(--surface); }
+:root[data-theme='dark'] .bar-row > div { background: var(--surface-muted); }
+:root[data-theme='dark'] .seg button[aria-pressed='true'] { color: var(--accent-text); background: var(--surface); }
+:root[data-theme='dark'] :where(.pager select, .pager input, .pager > div button, .pager .pg-btn:not([aria-current='page']), .bulkbar button:not(.primary), .open-opt, .art-opt, .image-placeholder, .mail-preview) { background: var(--surface); color: var(--text); }
+:root[data-theme='dark'] tbody tr.is-sel { background: var(--accent-subtle); }
+:root[data-theme='dark'] thead { background: var(--surface-subtle); }
+:root[data-theme='dark'] .b-neutral { color: #c7d5e8; background: #26364b; }
+:root[data-theme='dark'] .topbar-search kbd { color: var(--text-2); background: var(--surface); }
+:root[data-theme='dark'] .has-dot::after { border-color: var(--surface); }
+:root[data-theme='dark'] .eyebrow, :root[data-theme='dark'] .kicker { color: #d8b875; }
+:root[data-theme='dark'] .li-card { background: var(--surface); }
+:root[data-theme='dark'] .rules-guide { border-color: var(--border-strong); background: var(--accent-subtle); }
+:root[data-theme='dark'] .continuation-note, :root[data-theme='dark'] .bn-info, :root[data-theme='dark'] .bn-success { border-color: var(--border); }
+:root[data-theme='dark'] .account-avatar { background: var(--accent-subtle); }
+.li-card .li-logo { display: grid; place-items: center; color: var(--color-text-on-accent); background: var(--accent); font-weight: 800; }
+:root[data-theme='dark'] .li-text .linklike { color: var(--info-text); }

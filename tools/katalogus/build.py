@@ -238,7 +238,7 @@ body = f'''{sprite}
 
 head_common = f'''<title>Sajtófigyelés komponenskatalógus</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap">
 <style>{css}</style>
 <style>{KAT_CSS}</style>'''
 open(out_artifact, 'w', encoding='utf-8').write(head_common + '\n' + body + f'\n<script>{JS}</script>\n')

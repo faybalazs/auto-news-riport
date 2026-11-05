@@ -1,5 +1,5 @@
 // Sajtófigyelés – felhasználói kézikönyv az ügyféloldali felhasználóknak (ügyfél-adminisztrátor, tartalomkezelő).
-// Forrás: az alkalmazás kódja (0.18.0) és a helyi próbafelület, kitalált tesztadatokkal.
+// Forrás: az alkalmazás kódja (0.19.0) és a helyi próbafelület, kitalált tesztadatokkal.
 // Építés: python3 <auris-felhasznaloi-kezikonyv skill>/scripts/build.py docs/kezikonyv docs/kezikonyv/kezikonyv.html
 const BRAND = {
   key: 'sajtofigyeles',
@@ -10,9 +10,9 @@ const BRAND = {
   supportEmail: '',
   multiLang: false,
   mockLabel: 'Szemléltető kép',
-  // az auris-admin-sablon színei és betűje, ahogy az alkalmazásban (Xperion-kék accent)
-  colors: { primary: '#2D388A', accent: '#2D388A', accentHover: '#232C6E', accentText: '#2D388A' },
-  font: { family: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif', url: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' },
+  // a v2 design színei és betűje, ahogy az alkalmazásban (sötétzöld akcentus, DM Sans)
+  colors: { primary: '#214c3f', accent: '#214c3f', accentHover: '#18392f', accentText: '#214c3f' },
+  font: { family: '"DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif', url: 'https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap' },
 };
 
 const T = (hu, en) => ({ hu, en });
@@ -56,11 +56,11 @@ const UI = {
   stuck: T('Ha elakad', 'If you get stuck'),
   enlarge: T('Kép megnyitása teljes méretben', 'Open full-size image'),
   copyright: T('© 2026 Auris Dynamics Zrt. Minden jog fenntartva.', '© 2026 Auris Dynamics Zrt. All rights reserved.'),
-  footerMeta: T('Felhasználói kézikönyv 1.2 · Sajtófigyelés 0.18.1 · 2026. 11. 03.', 'User manual 1.1'),
+  footerMeta: T('Felhasználói kézikönyv 1.3 · Sajtófigyelés 0.19.0 · 2026. 11. 05.', 'User manual 1.1'),
 };
 
 const SHOT = 'Képernyőkép';
-const IMG_SIZES = [[1200,750],[1200,750],[880,1120],[1200,750],[1200,750],[1200,812],[880,1412],[1200,520],[1200,750],[880,580],[1200,750],[1200,750],[880,628],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[880,412],[780,1688],[1200,750],[1200,750],[1200,750]];
+const IMG_SIZES = [[1200,750],[1200,750],[880,956],[1200,750],[1200,750],[1200,598],[880,1172],[1200,650],[1200,750],[880,560],[1200,750],[1200,750],[880,592],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[880,404],[780,1688],[1200,750],[1200,750],[1200,750]];
 let FIGN = 0;
 const fig = (caption, opts = {}) => { const n = ++FIGN; const [w, h] = IMG_SIZES[n - 1]; return { type: 'figure', label: SHOT, caption, src: `img/${String(n).padStart(2, '0')}.webp`, w, h, ...opts }; };
 const who = text => ({ type: 'tip', label: 'Kinek szól?', text });
@@ -154,6 +154,13 @@ const SURFACES = {
         LOGIN_STEPS,
         fig('Belépés — e-mail-cím, jelszó és az Elfelejtett jelszó? hivatkozás'),
         { type: 'tip', label: 'A kézikönyv elérése', text: 'A kézikönyv a felület bal oldali menüjének alján, a Felhasználói kézikönyv pontból nyílik meg, új ablakban.' },
+        { type: 'h3', id: 'a-frame', text: 'A felület részei' },
+        { type: 'list', items: [
+          { t: 'Bal oldali menü:', d: 'a sötétzöld oldalsáv; a számok a teendőket jelzik (döntésre váró cikkek, jóváhagyásra váró posztok). Alul a Felhasználói kézikönyv és az Összecsukás.' },
+          { t: 'Keresés mindenhol:', d: 'a felső sáv keresője (vagy Ctrl+K, Macen és iPaden billentyűzettel ⌘K) a cikkek, posztok, ötletek, források és menüpontok között keres; a találatra kattintva megnyílik, a cikkeknél és forrásoknál a szűrő is kitöltődik.' },
+          { t: 'Világos / Normál:', d: 'a felső sáv két kapcsolója: a téma (világos vagy sötét) és a sűrűség (normál vagy kompakt). A választás ezen az eszközön megmarad.' },
+          { t: 'Profil:', d: 'jobbra fent a név és a szerepkör; a menüből a Profil és jelszó és a Kilépés érhető el.' },
+        ] },
         { type: 'p', text: 'Több ügyfélhez rendelt felhasználónál a felső sáv ügyfélváltója mutatja és váltja az aktuális ügyfelet. A felület mindig csak a kiválasztott ügyfél adatait mutatja.' },
         LOGIN_STUCK,
         { type: 'next', text: 'Belépés után az Áttekintés oldal nyílik meg a teendőkkel.' },
@@ -162,19 +169,19 @@ const SURFACES = {
         { type: 'p', text: 'Az Áttekintés a kezdőoldal. Fent a teendők, alatta a választott hónap vezetői összefoglalója, a hónap számai és a cikkek megoszlása látszik. A hónap a jobb felső választóval váltható.' },
         who('Ügyfél-adminisztrátornak.'),
         { type: 'h3', id: 'a-ov-todo', text: 'Teendők' },
-        { type: 'p', text: 'A teendőcsempék a szerepkör szerint jelennek meg, számmal és egy gombbal a feladathoz. Ügyfél-adminisztrátornál jellemzően: Cikk vár döntésre (a megnevezett hónap száma; ha korábbi hónapban is maradt döntés nélküli cikk, azt a csempe külön írja), LinkedIn-poszt jóváhagyásra vár, Posztötlet generálásra vár.' },
+        { type: 'p', text: 'A Teendők panel sorai a szerepkör szerint jelennek meg, számmal és egy gombbal a feladathoz. Ügyfél-adminisztrátornál jellemzően: Cikk vár döntésre (a megnevezett hónap száma; ha korábbi hónapban is maradt döntés nélküli cikk, azt a csempe külön írja), LinkedIn-poszt jóváhagyásra vár, Posztötlet generálásra vár.' },
         fig('Áttekintés — teendők és a vezetői összefoglaló'),
         { type: 'h3', id: 'a-ov-sum', text: 'Vezetői összefoglaló' },
         { type: 'p', text: 'Az összefoglaló egy rövid bevezetőből és három csoportból áll: Újdonságok, Tények, számok, Trendek. A pontok megnevezik a forrást. A cikkszámokat nem ismétli, azokat a hónap számai mutatják.' },
         { type: 'steps', items: [
-          { t: 'Újragenerálás indítása.', d: 'Az összefoglaló kártyájának Újragenerálás gombja a hónap cikkeiből és a mostani döntésekből írja újra a szöveget. A gomb a Havi cikkek oldalon is megtalálható.' },
+          { t: 'Újragenerálás indítása.', d: 'Az összefoglaló paneljének Újragenerálás gombja a hónap cikkeiből és a mostani döntésekből írja újra a szöveget. A Havi cikkek oldalon az összefoglaló a Vezetői összefoglaló kártya Megnyitás gombjával nyílik ki; ott is megvannak a gombjai.' },
           { t: 'Megerősítés.', d: 'A megerősítés után 20–40 másodperc a készítés, utána az oldal újratöltődik. A meta sorban az „(újragenerálva)” jelölés és az időpont látszik.' },
         ] },
         { type: 'warning', text: 'Az újragenerálás felülírja a korábbi összefoglalót. A régi szöveg nem állítható vissza.' },
         { type: 'p', text: 'Ha egy hónaphoz még nincs összefoglaló (például a Google Sheetből átvett hónapoknál), az Összefoglaló készítése gombbal elkészíthető.' },
         { type: 'h3', id: 'a-ov-share', text: 'Mentés PDF-be és küldés e-mailben' },
         { type: 'steps', items: [
-          { t: 'Mentés PDF-be.', d: 'Az összefoglaló kártyájának PDF gombja új ablakban nyomtatható nézetet nyit. Ott a Nyomtatás / mentés PDF-be gomb után a nyomtatóválasztóban a Mentés PDF-ként a célállomás. iPaden: Megosztás → Nyomtatás, majd a megosztás gombbal menthető a Fájlokba.' },
+          { t: 'Mentés PDF-be.', d: 'Az összefoglaló paneljének PDF gombja új ablakban nyomtatható nézetet nyit. Ott a Nyomtatás / mentés PDF-be gomb után a nyomtatóválasztóban a Mentés PDF-ként a célállomás. iPaden: Megosztás → Nyomtatás, majd a megosztás gombbal menthető a Fájlokba.' },
           { t: 'Küldés e-mailben.', d: 'A Küldés gomb ablakában a Címzett mező kötelező (több cím vesszővel elválasztva), a Másolat és a Kísérőszöveg nem kötelező. A levél az összefoglalót és a hónap cikkeinek linkjét tartalmazza.' },
           { t: 'Elküldés.', d: 'A Küldés gomb azonnal elküldi a levelet, egyszer. A küldés a Naplóba is bekerül (Vezetői összefoglaló elküldve).' },
         ] },
@@ -184,7 +191,7 @@ const SURFACES = {
           ['Nem látszik az Újragenerálás vagy a Küldés gomb?', 'A gombok csak ügyfél-adminisztrátornak és az üzemeltetőnek jelennek meg. A PDF mindenkinek elérhető.'],
           ['Hibaüzenet jelenik meg az újragenerálásnál?', 'Az üzenet megnevezi az okot. Ismétlődő hiba esetén az üzemeltető tud segíteni.'],
         ]),
-        { type: 'next', text: 'A döntésre váró cikkek a Cikk vár döntésre csempe Döntések gombjával nyithatók meg.' },
+        { type: 'next', text: 'A döntésre váró cikkek a Teendők panel Cikk vár döntésre sorának Döntések gombjával nyithatók meg.' },
       ] },
       { id: 'a-articles', title: 'Havi cikkek – döntés', summary: 'Döntés cikkenként és tömegesen; törlés a listából.', heading: 'Havi cikkek – döntés', blocks: [
         { type: 'p', text: 'A Havi cikkek oldal a hónap begyűjtött cikkeit mutatja a Claude javaslatával és indoklásával. Itt dönt az ügyfél-adminisztrátor arról, melyik cikk kerüljön a weboldalra, melyikből készüljön LinkedIn-poszt, és melyik nem kell.' },
@@ -224,7 +231,7 @@ const SURFACES = {
         bullets(['Legalább egy Mehet döntésű cikket.', 'A weboldal-kapcsolatot; ezt az üzemeltető állítja be. Amíg nincs beállítva, a kártya jelzi, és a gombok tiltottak.']),
         { type: 'h3', id: 'a-up-steps', text: 'Szövegek és élesítés' },
         { type: 'steps', items: [
-          { t: 'Szövegek elkészítése.', d: 'A Szövegek elkészítése (szárazon) gomb megíratja a Claude-dal a Mehet cikkek magyar és angol címét és ajánlóját (cikkenként 2–3 cent). A weboldalra nem kerül semmi.' },
+          { t: 'Szövegek elkészítése.', d: 'A Szövegek elkészítése gomb megíratja a Claude-dal a Mehet cikkek magyar és angol címét és ajánlóját (cikkenként 2–3 cent). A weboldalra nem kerül semmi.' },
           { t: 'Szövegek átnézése.', d: 'Az eredmény a kártya alatt táblázatban, a Havi cikkek sorában pedig az Elkészült szöveg (HU / EN) résznél olvasható.' },
           { t: 'Feltöltés élesben.', d: 'A Feltöltés élesben gomb a megerősítés után kiteszi a cikkeket a weboldalra, a kész szöveggel (újra nem fizet érte). Futásonként legfeljebb 10 cikk kerül fel.' },
           { t: 'Eredmény ellenőrzése.', d: 'A feltöltött cikk Publikálva jelvényt és HU, EN linket kap, és a Publikálva nézetben jelenik meg.' },
@@ -347,7 +354,7 @@ const SURFACES = {
         { type: 'next', text: 'A letöltött CSV-fájl táblázatkezelőben szűrhető és archiválható.' },
       ] },
       { id: 'a-profile', title: 'Fiók és jelszó', summary: 'Saját adatok és jelszócsere.', heading: 'Fiók és jelszó', blocks: [
-        { type: 'p', text: 'A Profil oldal a jobb felső profilmenü Jelszó módosítása pontjával nyílik meg. A Fiók kártya a nevet, az e-mail-címet, a szerepkört és az utolsó belépést mutatja.' },
+        { type: 'p', text: 'A Profil oldal a jobb felső profilmenü Profil és jelszó pontjával nyílik meg; jobbra fent a Kilépés gomb. A Fiók kártya a nevet, az e-mail-címet, a szerepkört és az utolsó belépést mutatja.' },
         who('Minden felhasználónak.'),
         { type: 'steps', items: [
           { t: 'Jelenlegi jelszó megadása.', d: 'A Jelenlegi jelszó mezőben a mostani jelszó szükséges.' },
@@ -396,8 +403,15 @@ const SURFACES = {
         { type: 'h3', id: 't-login-steps', text: 'Fiók aktiválása és belépés' },
         LOGIN_STEPS,
         fig('Belépés — e-mail-cím, jelszó és az Elfelejtett jelszó? hivatkozás'),
-        { type: 'p', text: 'A saját jelszó a jobb felső profilmenü Jelszó módosítása pontjával módosítható.' },
-        { type: 'tip', label: 'A kézikönyv elérése', text: 'A kézikönyv a felület bal oldali menüjének alján, a Felhasználói kézikönyv pontból nyílik meg, új ablakban.' },
+        { type: 'p', text: 'A saját jelszó a jobb felső profilmenü Profil és jelszó pontjával módosítható.' },
+        { type: 'h3', id: 't-frame', text: 'A felület részei' },
+        { type: 'list', items: [
+          { t: 'Bal oldali menü:', d: 'a sötétzöld oldalsáv; a számok a teendőket jelzik (döntésre váró cikkek, jóváhagyásra váró posztok). Alul a Felhasználói kézikönyv és az Összecsukás.' },
+          { t: 'Keresés mindenhol:', d: 'a felső sáv keresője (vagy Ctrl+K, Macen és iPaden billentyűzettel ⌘K) a cikkek, posztok, ötletek, források és menüpontok között keres; a találatra kattintva megnyílik, a cikkeknél és forrásoknál a szűrő is kitöltődik.' },
+          { t: 'Világos / Normál:', d: 'a felső sáv két kapcsolója: a téma (világos vagy sötét) és a sűrűség (normál vagy kompakt). A választás ezen az eszközön megmarad.' },
+          { t: 'Profil:', d: 'jobbra fent a név és a szerepkör; a menüből a Profil és jelszó és a Kilépés érhető el.' },
+        ] },
+                { type: 'tip', label: 'A kézikönyv elérése', text: 'A kézikönyv a felület bal oldali menüjének alján, a Felhasználói kézikönyv pontból nyílik meg, új ablakban.' },
         LOGIN_STUCK,
         { type: 'next', text: 'Belépés után az Áttekintés oldal nyílik meg a tartalomkezelő teendőivel.' },
       ] },
@@ -413,7 +427,7 @@ const SURFACES = {
         who('Tartalomkezelőnek.'),
         { type: 'steps', items: [
           { t: 'Mehet cikkek megnyitása.', d: 'A Mehet nézet a feltöltésre váró cikkeket mutatja.' },
-          { t: 'Szövegek elkészítése.', d: 'A Feltöltés a weboldalra kártya Szövegek elkészítése (szárazon) gombja megíratja a magyar és angol címet és ajánlót. A weboldalra nem kerül semmi.' },
+          { t: 'Szövegek elkészítése.', d: 'A Feltöltés a weboldalra kártya Szövegek elkészítése gombja megíratja a magyar és angol címet és ajánlót. A weboldalra nem kerül semmi.' },
           { t: 'Feltöltés élesben.', d: 'A Feltöltés élesben gomb a megerősítés után kiteszi a cikkeket; utána Publikálva állapotúak, HU és EN linkkel.' },
         ] },
         fig('Havi cikkek — a Feltöltés a weboldalra kártya és a Mehet nézet'),

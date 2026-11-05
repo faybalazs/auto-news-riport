@@ -1,6 +1,6 @@
 # Projektállapot
 
-- **Frissítve:** 2026-11-03 (kiadás: 0.18.0)
+- **Frissítve:** 2026-11-03 (kiadás: 0.19.0)
 - **Forrás:** felhasználói közlés (claude.ai chat), a jóváhagyott specifikáció ([product.md](product.md)) és a repó kódja.
 
 ## Cél
@@ -29,6 +29,7 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 | Vezetői összefoglaló mentése PDF-be (nyomtatható nézet) és küldése e-mailben | megvalósított (0.16.0); PHPUnit, böngésző, helyi teszt-SMTP | felhasználói kérés |
 | Új-forrás-figyelő (Források → Javasolt források): Claude-webkeresés, próbagyűjtés, javaslatlista jóváhagyással, beállítható darabszám | megvalósított (0.17.0); PHPUnit helyettesített Claude-dal, böngésző mintajavaslatokkal; valódi webkereséssel nem ellenőrzött | felhasználói kérés (javaslatlista jóváhagyással) |
 | (i) súgók a gombok alatti magyarázó szövegek helyett; rövid teendőcsempe-fejlécek, kék linkek | megvalósított (0.14.0); böngésző és a sablon felületellenőrzője | felhasználói kérés |
+| Megújult megjelenés (v2, Figma Make): minden oldal, sötét téma, kompakt mód; globális kereső | megvalósított (0.19.0); ellenőrzött böngészőben (Figma-összevetés, felületellenőrző, kontrasztmérés) és PHPUnit-tal; élesben nem ellenőrzött | felhasználói kérés, decisions 2026-11-05 |
 | Futások állapota a Vezérlőpulton (mi fut, mióta, melyik lépés; mentett eredmények); érthető hibaüzenet szerverhibánál is | megvalósított (0.10.3, 0.10.10); ellenőrzött PHPUnit-tal és böngészőből szimulált futással és hibákkal | – |
 
 ## Meglévő, repón kívüli elemek
@@ -60,7 +61,7 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 - Frissített ütemterv: [roadmap.md](roadmap.md).
 
 ## Következő lépések
-1. Felhasználó: a 0.18.0 telepítése (a 0.17.0 élesben fut, „megy”) (Actions → Telepítés élesbe); a skillcsomagok feltöltése.
+1. Felhasználó: a 0.19.0 telepítése (Actions → Telepítés élesbe, vagy a csatolt ZIP), majd az oldalak átnézése világos és sötét módban, iPaden is; a kereső kipróbálása (Ctrl+K).
 2. Éles próbák: a 2610/14 cikk újbóli feltöltése (kiemeltkép-javítás); több cikkből készült poszt utasítással; a vezetői összefoglaló PDF-je és küldése; **Új források keresése** 3-as darabszámmal, a javaslatok átnézése.
 3. Az első havi e-mail az ügyfélnek (jóváhagyás után); a pull request összevonása a fő ágba, ha az éles próbák rendben vannak.
 3. A pull request átnézése és összevonása (merge) a fő ágba, ha az éles próbák rendben vannak.
