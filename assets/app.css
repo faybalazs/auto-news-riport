@@ -1809,3 +1809,8 @@ td .dec-cell, td .dec-cell .select { min-width: 0; }
 .mail-preview > .mail-edit { display: grid; }
 .task-foot .tip { margin: 0; }
 
+
+/* ---- X.16 Javítások (0.19.2) ---- */
+/* Belépés: érintőképernyőn a jelszómező 44 px magas; a köré tett csoport ne vágja le az alsó keretét */
+.auth-card .ig { height: auto; overflow: visible; }
+
