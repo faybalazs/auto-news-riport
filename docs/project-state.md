@@ -39,7 +39,7 @@ Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkész�
 | Feltöltő MCP-szerver (ChatGPT-vel készült, távoli, OAuth) | használatban | felhasználói közlés, nem vizsgált |
 | Xperion OAuth Bridge WordPress-bővítmény 0.6.0 az xperion.hu-n | telepítve, működik (Kapcsolat ellenőrzése, 2026-11-03); HU/EN alapkategória beállítva; törlő művelete nincs | felhasználói közlés, Vezérlőpult |
 | `wordpress/mu-plugins/xperion-auth-fejlec.php` 1.1.0 az xperion.hu `wp-content/mu-plugins` mappájában | telepítve, a belépés ezzel működik | felhasználói közlés, 2026-11-03 |
-| Skillek (claude.ai): auris-admin-sablon, auris-felhasznaloi-kezikonyv, auris-admin-migracio, auris-commit-kiadas | a felület régi rétege a sablon v1.8.0-ból, a v2 réteg a Figma Make tervből (migrációs skill); átadva 2026-11-05: auris-admin-migracio 1.9.0 (az Xperion-migráció tanulságaival); a feltöltés a felhasználóra vár | munkamenet, skill-csomagok |
+| Skillek (claude.ai): auris-admin-sablon, auris-felhasznaloi-kezikonyv, auris-admin-migracio, auris-commit-kiadas | a felület régi rétege a sablon v1.8.0-ból, a v2 réteg a Figma Make tervből (migrációs skill); átadva 2026-11-05: auris-admin-migracio 1.9.0 (az Xperion-migráció tanulságaival), auris-admin-sablon 1.11.0 (működő globális kereső és értesítés-csengő komponensként); a feltöltés a felhasználóra vár | munkamenet, skill-csomagok |
 | auris-dontesbank skill (claude.ai) | 1.3 átadva 2026-11-05 (pixelpontos megújítás, működő felületi elemek, csengő, commitforma); a feltöltés a felhasználóra vár | a skill-csomag (zip) |
 | xperion-linkedin skill (claude.ai) | használatban, a szabályokat a Sheetből olvassa | felhasználói közlés |
 
