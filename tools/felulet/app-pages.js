@@ -1040,6 +1040,43 @@ if (APP.page === 'profil'){
 }
 
 /* ==================================================================
+   12/S. GLOBÁLIS KERESŐ (felső sáv, ⌘K / Ctrl+K)
+   ================================================================== */
+if ($('#gsQ')){
+  const q = $('#gsQ'), pop = $('#gsPop'), list = $('#gsList'); let timer = 0, seq = 0, items = [], cur = -1;
+  const close = () => { pop.hidden = true; q.setAttribute('aria-expanded', 'false'); q.removeAttribute('aria-activedescendant'); cur = -1; };
+  const mark = i => { cur = i; items.forEach((a, k) => a.classList.toggle('on', k === i)); if (items[i]){ q.setAttribute('aria-activedescendant', items[i].id); items[i].scrollIntoView({ block:'nearest' }); } };
+  const show = html => { list.innerHTML = html; pop.hidden = false; q.setAttribute('aria-expanded', 'true'); items = $$('.gs-item', list); cur = -1; };
+  const run = async () => {
+    const term = q.value.trim(); if (term.length < 2){ close(); return; }
+    const my = ++seq; show('<div class="gs-note">Keresés…</div>');
+    try {
+      const r = (await api('kereses', { q:term })).results; if (my !== seq) return;
+      let n = 0;
+      show(r.length ? r.map(g => `<div class="gs-group" role="group" aria-label="${esc(g.group)}"><div class="gs-gt">${esc(g.group)}</div>${g.items.map(it => `<a class="gs-item" role="option" id="gs-${n++}" href="${esc(it.href)}"><b>${esc(it.title)}</b><small>${esc(it.sub)}</small></a>`).join('')}</div>`).join('')
+        : `<div class="gs-note">Nincs találat erre: „${esc(term)}”.</div>`);
+    } catch(err){ if (my === seq) show(`<div class="gs-note">${esc(err.message)}</div>`); }
+  };
+  q.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(run, 220); });
+  q.addEventListener('focus', () => { if (q.value.trim().length >= 2 && list.innerHTML) { pop.hidden = false; q.setAttribute('aria-expanded', 'true'); } });
+  q.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown' && items.length){ e.preventDefault(); mark((cur + 1) % items.length); }
+    else if (e.key === 'ArrowUp' && items.length){ e.preventDefault(); mark((cur - 1 + items.length) % items.length); }
+    else if (e.key === 'Enter'){ const t = items[cur] || items[0]; if (t){ e.preventDefault(); location.href = t.href; } }
+    else if (e.key === 'Escape'){ if (!pop.hidden){ e.stopPropagation(); close(); } else q.blur(); }
+  });
+  document.addEventListener('click', e => { if (!e.target.closest('.topbar-search')) close(); });
+  document.addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k' && !q.disabled){ e.preventDefault(); q.focus(); q.select(); } });
+  const kbd = $('.topbar-search kbd'); if (kbd && !/Mac|iPhone|iPad/.test(navigator.platform)) kbd.textContent = 'Ctrl K';
+}
+/* Keresőből érkezve: a cél oldal szűrőjébe kerül a keresett szó (?q=) */
+const urlQ = new URLSearchParams(location.search).get('q');
+if (urlQ){
+  if (APP.page === 'cikkek' && $('#artQ')){ $('#artQ').value = urlQ; $('#artViews [data-v="all"]')?.click(); $('#artQ').dispatchEvent(new Event('input')); }
+  if (APP.page === 'forrasok' && $('#srcQ')){ $('#srcQ').value = urlQ; $('#srcQ').dispatchEvent(new Event('input')); }
+}
+
+/* ==================================================================
    13–14. SHELL: téma, sűrűség, oldalsáv, mobilmenü, menük, billentyűk
    ================================================================== */
 /* Megjelenés (v2): két kapcsoló a felső sávban – téma (világos/sötét) és sűrűség (normál/kompakt). Az első

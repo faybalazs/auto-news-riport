@@ -1696,3 +1696,14 @@ ol.checklist .onb-link { font-size: var(--fs-2xs); font-weight: 700; }
 .auth-card .ig .pw-toggle { top: 50%; transform: translateY(-50%); }
 .auth-main { grid-template-columns: minmax(0, 1fr); justify-items: center; }
 
+
+/* ---- X.12 Globális kereső ---- */
+.topbar-search .gs-pop { position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 40; max-height: min(70vh, 520px); overflow: auto; padding: 6px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); box-shadow: var(--shadow-md); }
+.gs-group + .gs-group { margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--border); }
+.gs-gt { padding: 6px 8px 4px; color: var(--text-3); font-size: var(--fs-2xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.gs-item { display: grid; gap: 1px; padding: 7px 8px; border-radius: 6px; color: var(--text); text-decoration: none; }
+.gs-item b { font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gs-item small { color: var(--text-3); font-size: var(--fs-2xs); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gs-item:hover, .gs-item.on { background: var(--surface-muted); }
+.gs-note { padding: 12px 8px; color: var(--text-3); font-size: var(--fs-2xs); }
+

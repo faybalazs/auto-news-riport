@@ -365,6 +365,11 @@ final class App
         return new \Xperion\Collect\SourceDiscovery($this->db(), $this->audit(), $this->claude(), new \Xperion\Collect\Collector(new CurlHttpClient(1, 20, null, 'Mozilla/5.0 (compatible; XperionSajtofigyelo/1.0; +https://xperion.hu)')));
     }
 
+    public function search(): \Xperion\Web\GlobalSearch
+    {
+        return new \Xperion\Web\GlobalSearch($this->db());
+    }
+
     public function sources(): \Xperion\Collect\SourceService
     {
         return new \Xperion\Collect\SourceService($this->db(), $this->audit(), new \Xperion\Collect\Collector(new CurlHttpClient(1, 20, null, 'Mozilla/5.0 (compatible; XperionSajtofigyelo/1.0; +https://xperion.hu)')));
