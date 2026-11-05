@@ -894,3 +894,17 @@ td .dec-cell, td .dec-cell .select { min-width: 0; }
 /* ---- X.16 Javítások (0.19.2) ---- */
 /* Belépés: érintőképernyőn a jelszómező 44 px magas; a köré tett csoport ne vágja le az alsó keretét */
 .auth-card .ig { height: auto; overflow: visible; }
+/* Oldalsáv: fix, és alacsony képernyőn (iPad fekvő, Safari-sávokkal) is görgetés nélkül kifér.
+   A menüpontok érintésre 44 px-esek maradnak; a csoportcímek, a térközök és a fejléc tömörebb. */
+.sidebar .nav-item + .nav-item, .sidebar .nav-group-title + .nav-item { margin-top: 0; }
+@media (max-height: 900px) {
+  .sidebar { padding-top: 14px; padding-bottom: 10px; }
+  .sidebar .brand { padding-bottom: 10px; }
+  .sidebar .nav-group-title { padding-top: 12px; padding-bottom: 4px; }
+  .sidebar-foot { padding-top: 6px; }
+}
+@media (max-height: 720px) {
+  /* a csoportcím vékony elválasztóvá válik; a szöveg a képernyőolvasónak megmarad */
+  .sidebar .nav-group-title { position: relative; height: 13px; padding: 0; overflow: hidden; color: transparent; font-size: 1px; }
+  .sidebar .nav-group-title::after { content: ''; position: absolute; left: 11px; right: 11px; top: 6px; border-top: 1px solid rgb(255 255 255 / .14); }
+}
