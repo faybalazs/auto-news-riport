@@ -1128,7 +1128,16 @@ if (shell){
   $('#sidebar').addEventListener('focusin', e => { const a = e.target.closest('.nav-item'); if (!a || shell.dataset.nav !== 'closed' || mq.matches || !a.matches(':focus-visible')) return; const r = a.getBoundingClientRect(); navTip.textContent = a.title; navTip.style.top = (r.top + r.height / 2) + 'px'; navTip.style.left = (r.right + 8) + 'px'; navTip.hidden = false; });
   $('#sidebar').addEventListener('focusout', () => { navTip.hidden = true; });
   $('#skipLink').addEventListener('click', e => { e.preventDefault(); $('#h-page')?.focus(); });
-  popover($('#profileBtn'), $('#profileMenu'));
-  popover($('#wsBtn'), $('#wsMenu'));
+  /* Menük: billentyűzettel nyitva a fókusz az első pontra kerül, egérrel vagy érintéssel nyitva a gombon marad
+     (a Safari a gombra kattintáskor nem ad fókuszt, ezért a programból áthelyezett fókuszt billentyűzetesnek veszi, és keretet rajzol). */
+  const menuPop = (btn, pop) => {
+    if (!btn || !pop) return;
+    const first = () => pop.querySelector('[role=menuitem], [role=menuitemradio]');
+    popover(btn, pop, { focusFirst:false });
+    btn.addEventListener('click', e => { if (e.detail === 0 && !pop.hidden) first()?.focus(); });
+    btn.addEventListener('keydown', e => { if (e.key === 'ArrowDown' && !pop.hidden){ e.preventDefault(); first()?.focus(); } });
+  };
+  menuPop($('#profileBtn'), $('#profileMenu'));
+  menuPop($('#wsBtn'), $('#wsMenu'));
   document.addEventListener('keydown', e => { if (e.key !== 'Escape' || $('dialog[open]')) return; navTip.hidden = true; if (shell.dataset.mobileOpen === 'true') setMobile(false); closeAll(); });
 }
