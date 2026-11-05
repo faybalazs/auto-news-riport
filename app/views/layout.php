@@ -35,6 +35,14 @@ $nav = static function (string $p, string $icon, string $label, ?string $perm = 
 };
 $roleLabel = \Xperion\Auth\Roles::LABELS[$access->role() ?? ''] ?? 'nincs ügyfél';
 $ini = implode('', array_map(static fn ($w) => mb_substr($w, 0, 1), array_slice(preg_split('/\s+/', trim((string) $access->user['name'])) ?: [], 0, 2)));
+$notifTop = 0;
+if ($cid !== null) {
+    try {
+        $nt = $app->audit()->notifications($access, 1);
+        $notifTop = (int) ($nt[0]['id'] ?? 0);
+    } catch (\Throwable) {
+    }
+}
 $mono = static fn (string $name): string => mb_strtoupper(mb_substr(trim($name), 0, 1)) ?: '–';
 ?><!doctype html>
 <html lang="hu">
@@ -106,6 +114,14 @@ $mono = static fn (string $name): string => mb_strtoupper(mb_substr(trim($name),
         <div class="display-controls" role="group" aria-label="Megjelenési beállítások">
           <button type="button" class="display-control" id="themeBtn" aria-pressed="false" title="Téma: világos"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-sun" id="themeIcon"/></svg><span id="themeLabel">Világos</span></button>
           <button type="button" class="display-control" id="densityBtn" aria-pressed="false" title="Sűrűség: normál"><?= $ic('rows') ?><span id="densityLabel">Normál</span></button>
+        </div>
+        <div class="pop-wrap">
+          <button class="icon-btn notif-btn" type="button" id="notifBtn" aria-haspopup="dialog" aria-expanded="false" aria-controls="notifMenu" aria-label="Értesítések" title="Értesítések" data-top="<?= $notifTop ?>"<?= $cid === null ? ' disabled' : '' ?>><?= $ic('bell', 'icon') ?></button>
+          <div class="pop right notif-pop" id="notifMenu" role="dialog" aria-label="Értesítések" hidden>
+            <div class="notif-head"><b>Értesítések</b><span class="meta">a legfrissebb műveletek</span></div>
+            <div class="notif-list" id="notifList"><p class="notif-empty">Betöltés…</p></div>
+            <?php if ($access->can('log')): ?><a class="notif-all" href="index.php?p=naplo">Teljes napló<?= $ic('chev-right') ?></a><?php endif; ?>
+          </div>
         </div>
         <span class="top-divider" aria-hidden="true"></span>
         <div class="pop-wrap">

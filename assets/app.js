@@ -623,7 +623,7 @@ if (APP.page === 'vezerlo'){
   }
   function renderRS(){
     const r = RS.running;
-    $('#rsBadge').innerHTML = r ? `<span class="badge b-info">${ic('clock','icon')}fut</span>` : `<span class="badge b-success">${ic('check','icon')}nincs futás</span>`;
+    $('#rsBadge').innerHTML = r ? `<span class="badge b-info">${ic('clock','icon')}fut</span>` : `<span class="badge b-neutral">${ic('minus','icon')}nincs futás</span>`;
     $('#rsNow').hidden = !r;
     if (r){
       const el = (r.elapsed || 0) + (tick ? Math.round((Date.now() - tick) / 1000) : 0);
@@ -632,7 +632,7 @@ if (APP.page === 'vezerlo'){
     }
     $$(RUN_BTNS).forEach(b => { if (b.dataset.base === undefined) b.dataset.base = b.disabled ? '1' : '0'; if (!b.hasAttribute('aria-busy')){ b.disabled = !!r || b.dataset.base === '1'; b.title = r ? 'Már fut egy feladat; várja meg a végét.' : ''; } });
     const res = RS.results || [];
-    $('#rsList').innerHTML = res.length ? res.map((x, i) => `<li><span class="badge ${x.ok ? 'b-success' : 'b-danger'}">${ic(x.ok ? 'check' : 'x-circle','icon')}${x.ok ? 'OK' : 'Hiba'}</span><div><b>${esc(x.label)}</b>${x.dry ? ' <span class="meta">(szárazon)</span>' : ''}<span class="meta">${esc(x.finished_hu)} · ${esc(x.duration_hu)} · ${esc(x.by)}</span></div><button class="btn btn-ghost sm" type="button" data-rs="${i}">Eredmény${ic('chev-right')}</button></li>`).join('') : '<li class="meta">Még nincs mentett futáseredmény.</li>';
+    $('#rsList').innerHTML = res.length ? res.slice(0, 6).map((x, i) => `<button type="button" data-rs="${i}" aria-label="${esc(x.label)}: eredmény megnyitása"><span class="run-dot ${x.ok ? 'ok' : 'error'}" aria-hidden="true"></span><div><b>${esc(x.label)}</b><small>${x.dry ? '(szárazon) · ' : ''}${esc(x.finished_hu)} · ${esc(x.duration_hu)} · ${esc(x.by)}</small></div><span class="badge ${x.ok ? 'b-success' : 'b-danger'}">${ic(x.ok ? 'check' : 'alert','icon')}${x.ok ? 'OK' : 'Hiba'}</span>${ic('chev-right','icon')}</button>`).join('') : '<p class="empty-copy">Még nincs mentett futáseredmény.</p>';
   }
   async function pollRS(){
     try {
@@ -752,7 +752,7 @@ if (APP.page === 'cikkek' && $('#artTable')){
       openRowMenu(btn, r, { revert:revertUpload, del:removeArticle }, items);
     } : undefined,
     onSelect:n => { $('#bulk').hidden = !n; $('#bulkCount').innerHTML = `<span>${n}</span> kiválasztva`; const lp = postable(); $('#bulkPost').hidden = !can('decide') || !lp.length; $('#bulkPost span').textContent = lp.length > 1 ? `Poszt készítése a kijelöltekből (${lp.length})` : 'Poszt készítése ebből a cikkből'; },
-    onRender:() => { $('#cntTodo').textContent = rows.filter(isTodo).length; $('#artFound').textContent = `${rows.filter(curPred).length} találat`; const w = rows.filter(r => r.decision === 'linkedin' && !r.post_code).length; $('#liWait').textContent = w; $('#liHint').hidden = !(can('decide') && w && view === 'linkedin'); }
+    onRender:() => { $('#cntTodo').textContent = rows.filter(isTodo).length; $('#artFound').textContent = `${rows.filter(curPred).length} találat`; const w = rows.filter(r => r.decision === 'linkedin' && !r.post_code).length; $('#liWait').textContent = w; $('#liHint').hidden = !(can('decide') && w); }
   });
   function postable(){ try { return rows.filter(r => table.selected.includes(r.id) && r.decision === 'linkedin' && !r.post_code); } catch(e){ return []; } }
   $('#bulkPost').addEventListener('click', async () => {
@@ -1349,6 +1349,24 @@ if ($('#gsQ')){
   document.addEventListener('click', e => { if (!e.target.closest('.topbar-search')) close(); });
   document.addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k' && !q.disabled){ e.preventDefault(); q.focus(); q.select(); } });
   const kbd = $('.topbar-search kbd'); if (kbd && !/Mac|iPhone|iPad/.test(navigator.platform)) kbd.textContent = 'Ctrl K';
+}
+/* Értesítések (csengő): az ügyfél legfrissebb műveletei; a pont az utolsó megnézés óta érkezettet jelzi */
+if ($('#notifBtn')){
+  const nb = $('#notifBtn'), menu = $('#notifMenu'), top = +nb.dataset.top || 0, seen = +(store.get('xp-notif-seen') || 0);
+  nb.classList.toggle('has-dot', top > seen);
+  let loaded = false;
+  const close = () => { menu.hidden = true; nb.setAttribute('aria-expanded', 'false'); };
+  nb.addEventListener('click', async e => {
+    e.stopPropagation(); if (!menu.hidden){ close(); return; }
+    closeAll && closeAll(); menu.hidden = false; nb.setAttribute('aria-expanded', 'true');
+    if (!loaded){ try {
+      const items = (await api('ertesitesek')).items; loaded = true;
+      $('#notifList').innerHTML = items.length ? items.map(n => `<a class="notif-item${n.id > seen ? ' new' : ''}" href="${esc(n.href)}"><span class="notif-dot" aria-hidden="true"></span><div><b>${esc(n.action)}</b>${n.details ? `<span>${esc(n.details)}</span>` : ''}<small>${esc(n.who)} · ${esc(n.time_hu)}</small></div></a>`).join('') : '<p class="notif-empty">Még nincs értesítés.</p>';
+    } catch(err){ $('#notifList').innerHTML = `<p class="notif-empty">${esc(err.message)}</p>`; } }
+    store.set('xp-notif-seen', String(top)); nb.classList.remove('has-dot');
+  });
+  document.addEventListener('click', e => { if (!menu.hidden && !e.target.closest('#notifMenu')) close(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !menu.hidden){ close(); nb.focus(); } });
 }
 /* Keresőből érkezve: a cél oldal szűrőjébe kerül a keresett szó (?q=) */
 const urlQ = new URLSearchParams(location.search).get('q');

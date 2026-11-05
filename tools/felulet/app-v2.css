@@ -817,3 +817,75 @@ ol.checklist .onb-link { font-size: var(--fs-2xs); font-weight: 700; }
 :root[data-theme='dark'] .account-avatar { background: var(--accent-subtle); }
 .li-card .li-logo { display: grid; place-items: center; color: var(--color-text-on-accent); background: var(--accent); font-weight: 800; }
 :root[data-theme='dark'] .li-text .linklike { color: var(--info-text); }
+
+
+/* ---- X.15 Visszajelzés utáni javítások (0.19.1) ---- */
+/* Márkajel: a betű a négyzettel együtt 45°-ban elforgatva */
+.brand-mark span { transform: none; }
+/* Mezők kerete: a Figma-terv világosabb kontrollkerete */
+:root { --field-border: #bdc5ce; }
+:root[data-theme='dark'] { --field-border: #65746d; }
+.input, .select, select.select, textarea.input, .toolbar input, .toolbar select, td select, .field input, .field select, .field textarea, .month-select, .pager select, .pager input, #postPager select, #postPager input { border-color: var(--field-border); }
+/* Szegmensválasztó: keret nélkül (komponensszinten) */
+.seg { border: 0; }
+/* Táblázatcellák: a hosszú cím nem lóg át a szomszéd oszlopba */
+td { overflow: hidden; }
+td .cell-stack { min-width: 0; max-width: 100%; }
+td .cell-stack a { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+td .cell-stack a .ext-ic { display: inline-block; vertical-align: -1px; margin-left: 4px; }
+td .cell-stack small, td .cell-stack b { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+td .cell-stack .badge { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+td .dec-cell, td .dec-cell .select { min-width: 0; }
+/* Vezérlőpult a Figma szerint */
+.run-status-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.run-status-list button { cursor: pointer; color: var(--text); border-bottom: 1px solid var(--border); }
+.run-status-list button:nth-child(3n) { border-right: 0; }
+.run-status-list button > div { min-width: 0; }
+.run-status-list small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.run-status-list .icon { width: 14px; height: 14px; color: var(--text-3); }
+.run-status-list .badge .icon { color: inherit; }
+.run-status .empty-copy { grid-column: 1 / -1; }
+.run-status .rs-now { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--info-bg); color: var(--info-text); font-size: var(--fs-2xs); }
+.run-status .rs-now[hidden] { display: none; }
+.run-status .rs-now > div { display: grid; gap: 2px; }
+.task-panel .panel-head .icon-tile, .mail-panel .panel-head .icon-tile { flex: none; }
+.task-body .acts-row .btn .icon { width: 15px; height: 15px; }
+.task-body .banner { margin: 0; }
+.task-result { display: grid; gap: 10px; }
+.task-result .table-card { box-shadow: none; }
+.inline-field { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; }
+.inline-field .field { width: 220px; }
+.mail-panel .task-body { padding-bottom: 0; }
+.mail-panel > .empty-state, .mail-panel > .banner { margin: 14px 17px 0; }
+.mail-preview > div:first-child b { font: 700 15px var(--font-display); }
+.mail-preview .mail-body { padding: 14px; font-size: var(--fs-2xs); line-height: 1.6; white-space: pre-wrap; }
+.mail-preview .mail-edit { padding: 12px; display: grid; gap: 10px; }
+.mail-actions .btn .icon { width: 15px; height: 15px; }
+.task-foot { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 0 17px 16px; }
+.task-foot #smtpOut { flex-basis: 100%; }
+.system-state dl div { border-bottom: 1px solid var(--border); }
+.system-state dl div:last-child { border-bottom: 0; }
+.cron-card .copy-row .btn .icon { width: 14px; height: 14px; }
+.task-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.task .last { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; color: var(--text-3); font-size: var(--fs-2xs); }
+@media (max-width: 1100px) { .run-status-list { grid-template-columns: 1fr; } .run-status-list button { border-right: 0; } .task-grid { grid-template-columns: 1fr; } }
+/* Értesítések (csengő) */
+.notif-btn .icon { width: 19px; height: 19px; }
+.notif-pop { width: min(380px, calc(100vw - 32px)); top: calc(100% + 8px); padding: 0; overflow: hidden; }
+.notif-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--border); }
+.notif-head b { font: 700 13px var(--font-display); }
+.notif-list { max-height: min(60vh, 440px); overflow: auto; }
+.notif-item { display: grid; grid-template-columns: 8px minmax(0, 1fr); gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text); text-decoration: none; }
+.notif-item:hover { background: var(--surface-subtle); }
+.notif-item .notif-dot { width: 7px; height: 7px; margin-top: 5px; border-radius: 50%; background: transparent; }
+.notif-item.new .notif-dot { background: #bd604f; }
+.notif-item div { display: grid; gap: 2px; min-width: 0; }
+.notif-item b { font-size: 12px; font-weight: 600; }
+.notif-item span { color: var(--text-2); font-size: var(--fs-2xs); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.notif-item small { color: var(--text-3); font-size: var(--fs-2xs); }
+.notif-empty { padding: 18px 14px; color: var(--text-3); font-size: var(--fs-2xs); }
+.notif-all { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 10px; font-size: var(--fs-2xs); font-weight: 700; color: var(--accent-text); text-decoration: none; }
+.notif-all .icon { width: 14px; height: 14px; }
+.mail-preview > .mail-body, .mail-preview > .mail-edit { display: block; padding: 14px; border: 0; background: var(--surface); }
+.mail-preview > .mail-edit { display: grid; }
+.task-foot .tip { margin: 0; }

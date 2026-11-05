@@ -69,7 +69,7 @@ $hasUp = isset($data['upWait']);
     <button type="button" data-v="nemkell" aria-pressed="false">Nem kell</button>
     <button type="button" data-v="new" aria-pressed="false">Új források</button>
   </div>
-  <div class="banner bn-info" id="liHint" role="status" hidden><?= $ic('linkedin', 'icon') ?><div class="b-body"><span><b><span id="liWait">0</span> LinkedIn-cikk vár posztra.</b> Jelöljön ki egyet vagy többet (bármikor kiegészítheti a jelöléseket), majd: <b>Poszt készítése a kijelöltekből</b>. Egy cikkből egy poszt, több cikkből egyetlen önálló, hírszerű poszt készül, és magától jóváhagyásra kerül.</span></div></div>
+  <div class="banner bn-info" id="liHint" role="status" hidden><?= $ic('linkedin', 'icon') ?><div><b><span id="liWait">0</span> LinkedIn-cikk vár posztra.</b><span>Jelöljön ki egyet vagy többet a LinkedIn poszt nézetben, majd készítsen posztot a kijelöltekből.</span></div></div>
   <div class="bulkbar" id="bulk" hidden>
     <b id="bulkCount"><span>0</span> kiválasztva</b>
     <button type="button" data-bulk="mehet">Mehet</button>
