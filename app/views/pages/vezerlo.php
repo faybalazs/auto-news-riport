@@ -26,6 +26,8 @@ for ($i = 1; $i <= 6; $i++) {
     $months[$d->format('ym')] = \Xperion\Web\View::monthHu($d);
 }
 ?>
+<div class="control-grid">
+<div class="control-main">
 <section class="card widget" aria-labelledby="h-collect">
   <div class="widget-head">
     <div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('list', 'icon') ?></span><div><h2 id="h-collect">Havi futás és cikkgyűjtés</h2><p class="meta"><?= $e($access->client()['name'] ?? 'Nincs kiválasztott ügyfél') ?> · a cron minden hónap 1-jén élesben futtatja az Aktív ügyfelekre</p></div></div>
@@ -108,8 +110,6 @@ for ($i = 1; $i <= 6; $i++) {
   </div>
 </section>
 <?php endif; ?>
-<div class="layout">
-  <div class="stack">
     <div class="task-grid" role="list" aria-label="Feladatok">
       <?php foreach ($app->runner()->tasks() as $t): $last = $log->last($t->id()); ?>
       <section class="card widget task" role="listitem" aria-labelledby="t-<?= $e($t->id()) ?>" data-task="<?= $e($t->id()) ?>" data-label="<?= $e($t->label()) ?>">
@@ -124,7 +124,7 @@ for ($i = 1; $i <= 6; $i++) {
       <ol class="run-lines" id="resultLines"></ol>
     </section>
   </div>
-  <aside class="stack">
+  <aside class="control-side">
     <section class="card widget" aria-labelledby="h-sys">
       <div class="widget-head"><div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('settings', 'icon') ?></span><div><h2 id="h-sys">Beállítások állapota</h2><p class="meta">config.php · értékek nélkül</p></div></div></div>
       <dl class="kv">

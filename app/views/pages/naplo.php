@@ -3,11 +3,12 @@
 $all = !empty($data['all']);
 $sub = $all ? 'Felhasználói műveletek (ki, mit, mikor) és a futások. Az időzített futások hibájáról e-mailt kap. Megőrzés: műveletek 2 év, futások 90 nap.'
     : 'Az ügyfél felhasználóinak műveletei: ki, mit, mikor döntött, hagyott jóvá vagy módosított. Megőrzés: 2 év.';
+$actions = '<button class="btn btn-secondary" type="button" id="aCsv">' . $ic('download') . 'Letöltés (CSV)</button>';
 require __DIR__ . '/_head.php';
 $cats = ['Döntések', 'Cikkek', 'Posztok', 'Havi e-mail', 'Feltöltés', 'Források', 'Futások', 'Felhasználók', 'Belépés', 'Beállítások'];
 ?>
 <?php if ($all): ?>
-<div class="tabs" role="tablist" aria-label="Napló">
+<div class="tabs admin-tabs" role="tablist" aria-label="Napló">
   <button class="tab" role="tab" id="tab-audit" aria-selected="true" aria-controls="p-audit" tabindex="0"><?= $ic('users') ?>Műveletek</button>
   <button class="tab" role="tab" id="tab-runs" aria-selected="false" aria-controls="p-runs" tabindex="-1"><?= $ic('clock') ?>Futások <span class="count" id="runErrCount" hidden></span></button>
 </div>
@@ -18,10 +19,8 @@ $cats = ['Döntések', 'Cikkek', 'Posztok', 'Havi e-mail', 'Feltöltés', 'Forr�
     <?php if ($all): ?><label class="sr-only" for="aClient">Ügyfél</label><select class="select" id="aClient"><option value="">Minden ügyfél</option></select><?php endif; ?>
     <label class="sr-only" for="aUser">Felhasználó</label><select class="select" id="aUser"><option value="">Mindenki</option></select>
     <label class="sr-only" for="aCat">Művelettípus</label><select class="select" id="aCat"><option value="">Minden művelet</option><?php foreach ($cats as $c): ?><option><?= $e($c) ?></option><?php endforeach; ?></select>
-    <label class="date-f"><span>Ettől</span><input class="input" type="date" id="aFrom"></label>
-    <label class="date-f"><span>Eddig</span><input class="input" type="date" id="aTo"></label>
-    <span class="spacer"></span>
-    <button class="btn btn-secondary sm" type="button" id="aCsv"><?= $ic('download') ?>Letöltés (CSV)</button>
+    <label class="date-f"><span class="sr-only">Ettől</span><input class="input" type="date" id="aFrom"></label>
+    <label class="date-f"><span class="sr-only">Eddig</span><input class="input" type="date" id="aTo"></label>
   </div>
   <div class="table-wrap" id="auditTable"></div><div class="pager" id="auditPager"></div>
 </div>

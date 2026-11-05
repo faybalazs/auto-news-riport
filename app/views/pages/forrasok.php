@@ -3,7 +3,7 @@
 $sub = 'A havi gyűjtés ezekből dolgozik: a figyelt oldalak (hírlista vagy RSS) és a kulcsszavak. A kizáró kulcsszóval jelölt témájú cikkek kimaradnak.';
 require __DIR__ . '/_head.php';
 ?>
-<div class="tabs" role="tablist" aria-label="Források és kulcsszavak">
+<div class="tabs admin-tabs" role="tablist" aria-label="Források és kulcsszavak">
   <button class="tab" role="tab" id="tab-src" aria-selected="true" aria-controls="p-src" tabindex="0"><?= $ic('globe') ?>Források <span class="count" id="srcCount">0</span></button>
   <button class="tab" role="tab" id="tab-kw" aria-selected="false" aria-controls="p-kw" tabindex="-1"><?= $ic('search') ?>Kulcsszavak <span class="count" id="kwCount">0</span></button>
   <button class="tab" role="tab" id="tab-sug" aria-selected="false" aria-controls="p-sug" tabindex="-1"><?= $ic('sparkle') ?>Javasolt források <span class="count" id="sugCount">0</span></button>

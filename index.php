@@ -227,7 +227,8 @@ if ($perm !== null && !$access->can($perm)) {
     } elseif ($page === 'posztok') {
         $cl = $access->client();
         $data = ['posts' => $app->posts()->all($access), 'openMonths' => $app->posts()->openMonths($access), 'jobs' => $app->posts()->pendingJobs($access),
-            'company' => $cl ? (string) ($app->db()->value("SELECT value FROM client_settings WHERE client_id = ? AND name = 'linkedin_nev'", [$cl['id']]) ?: $cl['name']) : ''];
+            'company' => $cl ? (string) ($app->db()->value("SELECT value FROM client_settings WHERE client_id = ? AND name = 'linkedin_nev'", [$cl['id']]) ?: $cl['name']) : '',
+            'followers' => $cl ? (string) ($app->db()->value("SELECT value FROM client_settings WHERE client_id = ? AND name = 'linkedin_kovetok'", [$cl['id']]) ?: '') : ''];
     } elseif ($page === 'poszt') {
         $post = $app->posts()->get($access, (string) ($_GET['kod'] ?? ''));
         if ($post === null) {

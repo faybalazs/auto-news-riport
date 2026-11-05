@@ -4,9 +4,12 @@ $sub = 'A posztgenerálás egyetlen szabályforrása: hangnem, szerkezet, hossz,
 $actions = '<button class="btn btn-primary" type="button" id="ruleAdd">' . $ic('plus') . 'Új szabály</button>';
 require __DIR__ . '/_head.php';
 ?>
+<div class="rules-layout">
 <div class="card table-card">
   <div class="toolbar" role="search" aria-label="Szabályok szűrése"><div class="search"><?= $ic('search', 'icon') ?><label class="sr-only" for="ruleQ">Keresés a szabályok között</label><input class="input" id="ruleQ" type="search" placeholder="Keresés megnevezésben, értékben…" autocomplete="off"></div><span class="spacer"></span><span class="meta" id="ruleCount"></span></div>
   <div class="table-wrap" id="ruleTable"></div>
+</div>
+<aside class="rules-guide"><?= $ic('info', 'icon') ?><div><b>Egyetlen szabályforrás</b><p>A sorrend a generálás logikáját is tükrözi. A módosítás a következő generálásnál már érvényes.</p></div></aside>
 </div>
 <dialog id="ruleDlg" aria-labelledby="ruleDlgTitle">
   <form id="ruleForm" novalidate>

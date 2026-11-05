@@ -478,7 +478,7 @@ if (APP.page === 'felhasznalok'){
     finally { busy(b, false); }
   });
   const rk = Object.keys(R.labels);
-  $('#roleMatrix').innerHTML = `<table class="matrix"><caption class="sr-only">Jogosultságok szerepkörönként</caption><thead><tr><th scope="col">Jogosultság</th>${rk.map(k => `<th scope="col">${esc(R.labels[k])}</th>`).join('')}</tr></thead><tbody>${Object.entries(R.perms).map(([p, l]) => `<tr><th scope="row" style="font-weight:500">${esc(l)}</th>${rk.map(k => (R.grants[k] || []).includes(p) ? `<td class="yes">${ic('check')}<span class="sr-only">igen</span></td>` : `<td class="no">${ic('minus')}<span class="sr-only">nem</span></td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  $('#roleMatrix').innerHTML = `<table class="matrix"><caption class="sr-only">Jogosultságok szerepkörönként</caption><thead><tr><th scope="col">Jogosultság</th>${rk.map(k => `<th scope="col">${esc(R.labels[k])}</th>`).join('')}</tr></thead><tbody>${Object.entries(R.perms).map(([p, l]) => `<tr><th scope="row" class="perm-name">${esc(l)}</th>${rk.map(k => (R.grants[k] || []).includes(p) ? `<td><span class="permission yes">${ic('check')}igen</span></td>` : `<td><span class="permission no">${ic('minus')}nem</span></td>`).join('')}</tr>`).join('')}</tbody></table>`;
 }
 
 /* ==================================================================
@@ -713,7 +713,7 @@ if (APP.page === 'cikkek' && $('#artTable')){
   const DEC = { '':'Nincs döntés', mehet:'Mehet', linkedin:'LinkedIn poszt', nemkell:'Nem kell' };
   const canDecide = can('decide');
   const rows = (APP.data.articles || []).map(a => ({ ...a, id:String(a.id) }));
-  let view = 'todo';
+  let view = 'todo', curPred = () => true;
   const isTodo = r => !r.decision && !r.uploaded && !String(r.recommendation || '').startsWith('Nem javasolt');
   const decCell = r => {
     if (r.uploaded) return `<span class="badge b-success" title="A döntés a feltöltés visszavonása után módosítható (a sor ⋯ menüje).">${ic('check','icon')}Publikálva</span>`;
@@ -738,9 +738,9 @@ if (APP.page === 'cikkek' && $('#artTable')){
     id:'cikkek', caption:'Havi cikkek', rows, labelKey:'title', selectable:canDecide, table:$('#artTable'), pager:$('#artPager'), sort:{ key:'no', dir:'asc' }, pageSize:50,
     columns:[
       { key:'no', label:'No', align:'right', render:r => r.no ?? '–', sortValue:r => (r.from_new_source ? 10000 : 0) + (r.no || 0) },
-      { key:'source_name', label:'Forrás és dátum', render:r => `<div class="src-cell">${esc(r.source_name)}<span class="meta">${esc(r.published_on ? r.published_on.replace(/-/g, '. ') + '.' : '–')}</span>${r.from_new_source ? `<span class="badge b-ai">${ic('plus','icon')}új forrás</span>` : ''}</div>`, sortValue:r => r.published_on || '' },
-      { key:'title', label:'Cím és leírás', render:r => `<div class="cell-title"><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a><span>${esc(r.description || '')}</span></div>` },
-      { key:'recommendation', label:'Javaslat és indoklás', render:r => `<div class="rec-cell">${recBadge(r.recommendation)}<span class="cell-why">${esc(r.reason || '')}</span></div>`, sortValue:r => REC_ORDER.indexOf(r.recommendation || '') },
+      { key:'source_name', label:'Forrás és dátum', render:r => `<div class="cell-stack"><b>${esc(r.source_name)}</b><small>${esc(r.published_on ? r.published_on.replace(/-/g, '. ') + '.' : '–')}</small>${r.from_new_source ? `<span class="badge b-ai">${ic('plus','icon')}új forrás</span>` : ''}</div>`, sortValue:r => r.published_on || '' },
+      { key:'title', label:'Cím és leírás', render:r => `<div class="cell-stack"><a href="${esc(r.url)}" target="_blank" rel="noopener" title="${esc(r.title)}">${esc(r.title)}${ic('external','icon ext-ic')}</a><small title="${esc(r.description || '')}">${esc(r.description || '')}</small></div>` },
+      { key:'recommendation', label:'Javaslat és indoklás', render:r => `<div class="cell-stack">${recBadge(r.recommendation)}<small title="${esc(r.reason || '')}">${esc(r.reason || '')}</small></div>`, sortValue:r => REC_ORDER.indexOf(r.recommendation || '') },
       { key:'decision', label:'Ügyfél döntése', sortable:false, render:r => `<div class="dec-cell">${decCell(r)}${upCell(r)}</div>` }
     ],
     emptyHtml:() => view === 'todo' ? 'Minden javasolt cikkről döntött. Köszönjük!' : 'Nincs a szűrésnek megfelelő cikk.',
@@ -751,8 +751,8 @@ if (APP.page === 'cikkek' && $('#artTable')){
       if (!items.length){ toast(r.uploaded ? 'Publikált cikk: a feltöltést a feltöltési joggal rendelkező felhasználó vonhatja vissza.' : 'Ehhez a cikkhez nincs elérhető művelet.', { type:'info' }); return; }
       openRowMenu(btn, r, { revert:revertUpload, del:removeArticle }, items);
     } : undefined,
-    onSelect:n => { $('#bulk').hidden = !n; $('#artToolbar').hidden = !!n; $('#bulkCount').textContent = `${n} kiválasztva`; const lp = postable(); $('#bulkPost').hidden = !can('decide') || !lp.length; $('#bulkPost').lastChild.textContent = lp.length > 1 ? `Poszt készítése a kijelöltekből (${lp.length})` : 'Poszt készítése ebből a cikkből'; },
-    onRender:() => { $('#cntTodo').textContent = rows.filter(isTodo).length; const w = rows.filter(r => r.decision === 'linkedin' && !r.post_code).length; $('#liWait').textContent = w; $('#liHint').hidden = !(can('decide') && w && view === 'linkedin'); }
+    onSelect:n => { $('#bulk').hidden = !n; $('#bulkCount').innerHTML = `<span>${n}</span> kiválasztva`; const lp = postable(); $('#bulkPost').hidden = !can('decide') || !lp.length; $('#bulkPost span').textContent = lp.length > 1 ? `Poszt készítése a kijelöltekből (${lp.length})` : 'Poszt készítése ebből a cikkből'; },
+    onRender:() => { $('#cntTodo').textContent = rows.filter(isTodo).length; $('#artFound').textContent = `${rows.filter(curPred).length} találat`; const w = rows.filter(r => r.decision === 'linkedin' && !r.post_code).length; $('#liWait').textContent = w; $('#liHint').hidden = !(can('decide') && w && view === 'linkedin'); }
   });
   function postable(){ try { return rows.filter(r => table.selected.includes(r.id) && r.decision === 'linkedin' && !r.post_code); } catch(e){ return []; } }
   $('#bulkPost').addEventListener('click', async () => {
@@ -767,11 +767,12 @@ if (APP.page === 'cikkek' && $('#artTable')){
   });
   const pred = () => {
     const q = norm($('#artQ').value.trim()), rec = $('#artRec').value;
-    table.setPred(r => (!q || norm(`${r.title} ${r.description || ''} ${r.source_name}`).includes(q)) && (!rec || r.recommendation === rec) && ({ todo:isTodo(r), all:true, mehet:r.decision === 'mehet' && !r.uploaded, publikalva:!!r.uploaded, linkedin:r.decision === 'linkedin', nemkell:r.decision === 'nemkell', new:!!r.from_new_source })[view]);
+    table.setPred(curPred = r => (!q || norm(`${r.title} ${r.description || ''} ${r.source_name}`).includes(q)) && (!rec || r.recommendation === rec) && ({ todo:isTodo(r), all:true, mehet:r.decision === 'mehet' && !r.uploaded, publikalva:!!r.uploaded, linkedin:r.decision === 'linkedin', nemkell:r.decision === 'nemkell', new:!!r.from_new_source })[view]);
   };
   $$('#artViews [data-v]').forEach(b => b.addEventListener('click', () => { view = b.dataset.v; $$('#artViews [data-v]').forEach(x => x.setAttribute('aria-pressed', x === b)); pred(); }));
   $('#artQ').addEventListener('input', pred); $('#artRec').addEventListener('change', pred);
   $('#monthSel')?.addEventListener('change', e => { location.href = 'index.php?p=cikkek&honap=' + encodeURIComponent(e.target.value); });
+  $('#sumToggle')?.addEventListener('click', e => { const w = $('#sumWrap'), o = w.hidden; w.hidden = !o; e.currentTarget.setAttribute('aria-expanded', String(o)); e.currentTarget.textContent = o ? 'Bezárás' : 'Megnyitás'; if (o) w.scrollIntoView({ block:'nearest', behavior:'smooth' }); });
   async function decide(list, val){
     const prev = list.filter(r => !r.uploaded).map(r => ({ id:+r.id, decision:r.decision || '' }));
     if (!prev.length){ toast('Feltöltött cikk döntése nem módosítható.', { type:'info' }); return; }
@@ -1008,19 +1009,22 @@ if (APP.page === 'otlet' && $('#ideaForm')){
 const POST_ST = { tervezet:['b-neutral','edit'], ugyfelnel:['b-warning','clock'], jovahagyva:['b-success','check'], megjelent:['b-info','linkedin'] };
 const postBadge = p => { const x = POST_ST[p.status] || ['b-neutral','info']; return `<span class="badge ${x[0]}">${ic(x[1],'icon')}${esc(p.status_label)}</span>`; };
 if (APP.page === 'posztok' && $('#postGrid')){
-  const posts = APP.data.posts || []; let f = '', page = 1; const SIZE = 12;
+  const posts = APP.data.posts || []; let f = '', page = 1, SIZE = 12;
+  const co = APP.data.company || 'X', fol = APP.data.followers || '';
   const render = () => {
     const all = posts.filter(p => !f || p.status === f), pages = Math.max(1, Math.ceil(all.length / SIZE)); page = Math.min(page, pages);
     const list = all.slice((page - 1) * SIZE, page * SIZE);
     const svgSrc = s => 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(s)));
-    $('#postGrid').innerHTML = list.map(p => `<a class="card post-card" href="index.php?p=poszt&amp;kod=${encodeURIComponent(p.code)}"><div class="row"><span class="id">${esc(p.code)}</span>${postBadge(p)}</div><h2>${esc(p.topic || '(téma nélkül)')}</h2>
-      <div class="mini-li" aria-hidden="true"><div class="mini-head"><span class="mini-logo">${esc((APP.data.company || 'X').slice(0, 1))}</span><b>${esc(APP.data.company || '')}</b></div><p>${esc(p.opening)}</p>${p.thumb ? `<img src="${svgSrc(p.thumb)}" alt="" loading="lazy">` : '<div class="mini-noimg">kép még nincs</div>'}</div>
-      <span class="meta">${esc({ cikkek:'Cikkekből', cikk:'Egy cikkből', otlet:'Ötletből' + (p.idea_code ? ': ' + p.idea_code : '') }[p.source_kind] || 'Átvett poszt')} · ${esc(p.created_hu)}</span></a>`).join('');
+    const origin = p => ({ cikkek:'Cikkekből', cikk:'Egy cikkből', otlet:'Ötletből' + (p.idea_code ? ': ' + p.idea_code : '') }[p.source_kind] || 'Átvett poszt');
+    $('#postGrid').innerHTML = list.map(p => `<article class="post-card"><div class="post-card-head"><span class="post-code">${esc(p.code)}</span>${postBadge(p)}</div><h2>${esc(p.topic || '(téma nélkül)')}</h2>
+      <div class="mini-li" aria-hidden="true"><div class="mini-head"><span>${esc(co.slice(0, 1).toUpperCase())}</span><div><b>${esc(co)}</b><small>${fol ? esc(fol) + ' követő · ' : ''}Most</small></div></div><p>${esc(p.opening)}</p>${p.thumb ? `<img class="mini-img" src="${svgSrc(p.thumb)}" alt="" loading="lazy">` : `<div class="image-placeholder compact">${ic('image','icon')}<span>Kép még nincs</span><small>Az AI-generálás menüből készíthető.</small></div>`}</div>
+      <div class="post-card-foot"><span>${esc(origin(p))} · ${esc(p.created_hu)}</span><a class="btn btn-ghost sm" href="index.php?p=poszt&amp;kod=${encodeURIComponent(p.code)}" aria-label="${esc(p.code)} megnyitása">Megnyitás${ic('chev-right','icon icon-sm')}</a></div></article>`).join('');
     $('#postEmpty').hidden = list.length > 0;
-    $('#postPager').hidden = pages < 2;
-    $('#postPager').innerHTML = `<span class="pg-info">${(page - 1) * SIZE + 1}–${Math.min(page * SIZE, all.length)} / ${all.length} poszt</span><span class="spacer"></span><button class="btn btn-ghost sm" type="button" data-pp="${page - 1}"${page < 2 ? ' disabled title="Ez az első oldal"' : ''}>${ic('chev-left','icon icon-sm')}Előző</button><span class="pg-info">${page}. oldal / ${pages}</span><button class="btn btn-ghost sm" type="button" data-pp="${page + 1}"${page >= pages ? ' disabled title="Ez az utolsó oldal"' : ''}>Következő${ic('chev-right','icon icon-sm')}</button>`;
+    const nums = Array.from({ length:pages }, (_, i) => i + 1);
+    $('#postPager').innerHTML = `<label>Posztok oldalanként <select class="pp-size">${[12, 24, 48].map(n => `<option${n === SIZE ? ' selected' : ''}>${n}</option>`).join('')}</select></label><span>${all.length ? `${(page - 1) * SIZE + 1}–${Math.min(page * SIZE, all.length)} / ${all.length} poszt` : '0 poszt'}</span><div><button type="button" data-pp="${page - 1}" aria-label="Előző oldal"${page < 2 ? ' disabled' : ''}>‹</button>${nums.map(n => `<button type="button" data-pp="${n}"${n === page ? ' class="current" aria-current="page"' : ''} aria-label="${n}. oldal">${n}</button>`).join('')}<button type="button" data-pp="${page + 1}" aria-label="Következő oldal"${page >= pages ? ' disabled' : ''}>›</button></div><label>Ugrás <input class="pp-jump" type="number" min="1" max="${pages}" value="${page}" aria-label="Oldalszám"> / ${pages}</label>`;
   };
   $('#postPager').addEventListener('click', e => { const b = e.target.closest('[data-pp]'); if (!b || b.disabled) return; page = +b.dataset.pp; render(); $('#postGrid').scrollIntoView({ block:'start', behavior:'smooth' }); });
+  $('#postPager').addEventListener('change', e => { if (e.target.matches('.pp-size')){ SIZE = +e.target.value; page = 1; render(); } if (e.target.matches('.pp-jump')){ page = Math.max(1, Math.round(+e.target.value) || 1); render(); } });
   $$('#postFilter [data-pf]').forEach(b => b.addEventListener('click', () => { f = b.dataset.pf; page = 1; $$('#postFilter [data-pf]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); render(); }));
   $('#genMonthly')?.addEventListener('click', async () => {
     const b = $('#genMonthly'); busy(b, true); announce('A poszt készül, ez fél–egy percig tart…');
@@ -1085,17 +1089,17 @@ if (APP.page === 'poszt' && $('#liText')){
     renderText(); showImage();
     const opts = [['opening', 'Jelenlegi'], ['alt_opening_1', 'Alternatív 1'], ['alt_opening_2', 'Alternatív 2']].filter(([k]) => String(P[k] || '').trim());
     const canEdit = can('ideas') && (P.status === 'tervezet' || P.status === 'ugyfelnel' || (P.status === 'jovahagyva' && can('ops')));
-    $('#openChoices').innerHTML = '<legend class="sr-only">Nyitó sor választása</legend>' + opts.map(([k, l], i) => `<label class="open-opt"><input type="radio" name="openopt" value="${k}"${i === 0 ? ' checked' : ''}${canEdit ? '' : ' disabled'}><span><b>${l}</b><br>${esc(P[k])}</span></label>`).join('') + (canEdit && opts.length > 1 ? '<span class="help">Másik nyitó sor választásakor a jelenlegi az alternatívák közé kerül.</span>' : '');
+    $('#openChoices').innerHTML = '<legend class="sr-only">Nyitó sor választása</legend>' + opts.map(([k, l], i) => `<label class="open-opt"><input type="radio" name="openopt" value="${k}"${i === 0 ? ' checked' : ''}${canEdit ? '' : ' disabled'}><span><b>${l}</b>${esc(P[k])}</span></label>`).join('') + (canEdit && opts.length > 1 ? '<span class="help">Másik nyitó sor választásakor a jelenlegi az alternatívák közé kerül.</span>' : '');
     $('#copyLink').hidden = !P.source_link;
     const cands = P.candidates || [], canArts = can('decide') && (P.status === 'tervezet' || P.status === 'ugyfelnel') && cands.length > 0;
     $('#artsCard').hidden = !(cands.length > 0);
-    $('#artsList').innerHTML = '<legend class="sr-only">Forráscikkek kiválasztása</legend>' + cands.map(c => `<label class="art-opt"><input type="checkbox" value="${c.id}"${c.in ? ' checked' : ''}${canArts ? '' : ' disabled'}><span><b>${esc(c.source_name)}</b> · ${esc(c.month)}<br>${esc(c.title)}</span></label>`).join('');
+    $('#artsList').innerHTML = '<legend class="sr-only">Forráscikkek kiválasztása</legend>' + cands.map(c => `<label class="art-opt"><input type="checkbox" value="${c.id}"${c.in ? ' checked' : ''}${canArts ? '' : ' disabled'}><span><b>${esc(c.source_name)} · ${esc(c.month)}</b>${esc(c.title)}</span></label>`).join('');
     $('#artsActs').hidden = !canArts; $('#artsHint').hidden = !canArts; syncArts();
     const srcs = P.articles && P.articles.length ? P.articles.map(a => `<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.source_name)}: ${esc(a.title)}</a>`).join('<br>') : P.idea_code ? `<a href="index.php?p=otlet&amp;kod=${encodeURIComponent(P.idea_code)}">${esc(P.idea_code)}: ${esc(P.idea_topic || '')}</a>` : esc(P.source_articles || '–');
     $('#postKv').innerHTML = [['Témakör', esc(P.topic || '–')], ['Forrás', srcs], ['Forráslink', P.source_link ? `<a href="${esc(P.source_link)}" target="_blank" rel="noopener">${esc(P.source_link)}</a>` : '–'], ['Létrehozva', esc(P.created_hu)], ['Modell', esc(P.model || 'átvett / kézi')], ['Utasítás a szöveghez', esc(P.instr_text || '–')], ['Utasítás a képhez', esc(P.instr_image || '–')], ['Megjegyzés', esc(P.note || '–')]].map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
     const ev = P.events || [];
     $('#histCount').textContent = ev.length;
-    $('#postHist').innerHTML = ev.length ? ev.map((e, i) => `<li class="tl-item${i === ev.length - 1 ? ' last' : ''}"><span class="tl-dot badge b-neutral">${ic('clock','icon')}</span><div class="tl-body"><div class="tl-title">${esc(e.action)}</div><div class="tl-desc">${esc(e.user)} · ${esc(e.time_hu)}${e.details ? ' · ' + esc(e.details) : ''}</div></div></li>`).join('') : '<li class="meta">Még nincs bejegyzés.</li>';
+    $('#postHist').innerHTML = ev.length ? ev.map(e => `<li><i></i><div><b>${esc(e.action)}</b><span>${esc(e.user)} · ${esc(e.time_hu)}${e.details ? ' · ' + esc(e.details) : ''}</span></div></li>`).join('') : '<li class="empty-copy">Még nincs bejegyzés.</li>';
     $('#crBanner').hidden = !(P.change_request && P.status === 'tervezet'); $('#crText').textContent = P.change_request || '';
     const st = POST_ST[P.status] || ['b-neutral','info']; $('#postStatus').className = 'badge ' + st[0]; $('#postStatus').innerHTML = ic(st[1],'icon') + esc(P.status_label);
     const acts = [];
@@ -1325,6 +1329,12 @@ function applyTheme(t){ root.setAttribute('data-theme', t); const dark = t === '
   $('#themeIcon').setAttribute('href', dark ? '#i-moon' : '#i-sun'); $('#themeLabel').textContent = dark ? 'Sötét' : 'Világos';
   b.setAttribute('aria-pressed', String(dark)); b.title = 'Téma: ' + (dark ? 'sötét' : 'világos'); b.setAttribute('aria-label', 'Téma: ' + (dark ? 'sötét' : 'világos') + '. Váltás'); }
 let theme = store.get('xp-theme'); if (theme !== 'light' && theme !== 'dark') theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; applyTheme(theme);
+if (!shell && $('#themeBtn')){
+  $('#themeBtn').addEventListener('click', () => { theme = theme === 'dark' ? 'light' : 'dark'; applyTheme(theme); store.set('xp-theme', theme); });
+  const ad = d => { const c = d === 'compact'; root.setAttribute('data-density', d); $('#densityBtn').setAttribute('aria-pressed', String(c)); $('#densityLabel').textContent = c ? 'Kompakt' : 'Normál'; };
+  let dn = store.get('xp-density') || 'comfortable'; ad(dn);
+  $('#densityBtn').addEventListener('click', () => { dn = dn === 'compact' ? 'comfortable' : 'compact'; ad(dn); store.set('xp-density', dn); });
+}
 if (shell){
   $('#themeBtn').addEventListener('click', () => { theme = theme === 'dark' ? 'light' : 'dark'; applyTheme(theme); store.set('xp-theme', theme); });
   const applyDensity = d => { const c = d === 'compact'; root.setAttribute('data-density', d); $('#densityBtn').setAttribute('aria-pressed', String(c)); $('#densityLabel').textContent = c ? 'Kompakt' : 'Normál'; $('#densityBtn').title = 'Sűrűség: ' + (c ? 'kompakt' : 'normál'); $('#densityBtn').setAttribute('aria-label', 'Sűrűség: ' + (c ? 'kompakt' : 'normál') + '. Váltás'); };

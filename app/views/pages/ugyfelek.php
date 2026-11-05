@@ -10,9 +10,10 @@ $cur = $access->client();
   <div class="pager" id="clientPager"></div>
 </div>
 <?php if ($cur): $ms = $cur ? $app->emails()->settings((int) $cur['id']) : ['to' => '', 'cc' => '', 'style' => '']; ?>
-<section class="card widget client-detail" aria-labelledby="h-cd">
-  <div class="widget-head"><div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('folder', 'icon') ?></span><div><h2 id="h-cd"><?= $e($cur['name']) ?></h2><p class="meta">A kiválasztott ügyfél részletei · másik ügyfélhez: a sor ⋯ menüje → Váltás erre az ügyfélre</p></div></div></div>
-  <div class="tabs" role="tablist" aria-label="Ügyfél részletei" id="cdTabs">
+<section class="panel client-detail" aria-labelledby="h-cd">
+  <?php $cst = (string) ($cur['status'] ?? ''); $cstCls = ['aktiv' => 'b-success', 'beallitas' => 'b-warning', 'szunetel' => 'b-neutral'][$cst] ?? 'b-neutral'; $cstIc = ['aktiv' => 'check', 'beallitas' => 'clock', 'szunetel' => 'minus'][$cst] ?? 'info'; ?>
+  <div class="client-detail-head"><div><span class="kicker">KIVÁLASZTOTT ÜGYFÉL</span><h2 id="h-cd"><?= $e($cur['name']) ?></h2><p>A sor ⋯ menüjéből válthat másik ügyfélre.</p></div><span class="badge <?= $cstCls ?>"><?= $ic($cstIc, 'icon') ?><?= $e($clientStatus[$cst] ?? $cst) ?></span></div>
+  <div class="tabs admin-tabs" role="tablist" aria-label="Ügyfél részletei" id="cdTabs">
     <button class="tab" role="tab" id="tab-lepesek" aria-selected="true" aria-controls="p-lepesek" tabindex="0"><?= $ic('check') ?>Beállítási lépések<?php if (!empty($data['onb'])): ?> <span class="count"><?= count(array_filter($data['onb'], static fn ($x) => $x['done'])) ?>/<?= count($data['onb']) ?></span><?php endif; ?></button>
     <button class="tab" role="tab" id="tab-adatatvetel" aria-selected="false" aria-controls="p-adatatvetel" tabindex="-1"><?= $ic('download') ?>Adatátvétel</button>
     <button class="tab" role="tab" id="tab-havi-email" aria-selected="false" aria-controls="p-havi-email" tabindex="-1"><?= $ic('send') ?>Havi e-mail</button>

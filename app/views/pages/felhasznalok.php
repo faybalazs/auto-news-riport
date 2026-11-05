@@ -21,9 +21,9 @@ require __DIR__ . '/_head.php';
   <div class="table-wrap" id="userTable"></div>
   <div class="pager" id="userPager"></div>
 </div>
-<section class="card widget" aria-labelledby="h-roles">
-  <div class="widget-head"><div class="wh"><span class="ic-tile t-blue" aria-hidden="true"><?= $ic('users', 'icon') ?></span><div><h2 id="h-roles">Szerepkörök és jogosultságok</h2><p class="meta">Ügyfelenként adható; az üzemeltető minden ügyfélhez hozzáfér</p></div></div></div>
-  <div class="table-wrap mini-table" style="border:1px solid var(--border);border-radius:var(--r-lg)" id="roleMatrix"></div>
+<section class="panel permissions" aria-labelledby="h-roles">
+  <div class="panel-head"><div><span class="kicker">HOZZÁFÉRÉS</span><h2 id="h-roles">Szerepkörök és jogosultságok</h2><p>Ügyfelenként adható; az üzemeltető minden ügyfélhez hozzáfér</p></div></div>
+  <div class="table-wrap" id="roleMatrix"></div>
 </section>
 
 <dialog id="userDlg" aria-labelledby="userDlgTitle">

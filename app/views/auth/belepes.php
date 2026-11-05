@@ -1,5 +1,5 @@
 <form class="auth-card" method="post" action="index.php?p=belepes" aria-labelledby="h-belepes" data-form="auth">
-  <div><h1 id="h-belepes" tabindex="-1">Belépés</h1><p class="page-sub">Lépjen be a saját fiókjával.</p></div>
+  <div><span class="eyebrow">ÜDVÖZÖLJÜK ÚJRA</span><h1 id="h-belepes" tabindex="-1">Belépés</h1><p>Lépjen be a saját fiókjával.</p></div>
   <?php $errorTitle = 'Sikertelen belépés'; require __DIR__ . '/_error.php'; ?>
   <input type="hidden" name="csrf" value="<?= $e($csrf) ?>">
   <div class="field"><label for="l-email">E-mail-cím</label><input class="input" id="l-email" name="email" type="email" autocomplete="username" required value="<?= $e($email) ?>" <?= $error ? 'aria-invalid="true" aria-describedby="formErr"' : '' ?>></div>
