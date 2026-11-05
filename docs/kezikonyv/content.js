@@ -1,5 +1,5 @@
 // Sajtófigyelés – felhasználói kézikönyv az ügyféloldali felhasználóknak (ügyfél-adminisztrátor, tartalomkezelő).
-// Forrás: az alkalmazás kódja (0.19.0) és a helyi próbafelület, kitalált tesztadatokkal.
+// Forrás: az alkalmazás kódja (0.19.1) és a helyi próbafelület, kitalált tesztadatokkal.
 // Építés: python3 <auris-felhasznaloi-kezikonyv skill>/scripts/build.py docs/kezikonyv docs/kezikonyv/kezikonyv.html
 const BRAND = {
   key: 'sajtofigyeles',
@@ -56,11 +56,11 @@ const UI = {
   stuck: T('Ha elakad', 'If you get stuck'),
   enlarge: T('Kép megnyitása teljes méretben', 'Open full-size image'),
   copyright: T('© 2026 Auris Dynamics Zrt. Minden jog fenntartva.', '© 2026 Auris Dynamics Zrt. All rights reserved.'),
-  footerMeta: T('Felhasználói kézikönyv 1.3 · Sajtófigyelés 0.19.0 · 2026. 11. 05.', 'User manual 1.1'),
+  footerMeta: T('Felhasználói kézikönyv 1.3 · Sajtófigyelés 0.19.1 · 2026. 11. 06.', 'User manual 1.1'),
 };
 
 const SHOT = 'Képernyőkép';
-const IMG_SIZES = [[1200,750],[1200,750],[880,956],[1200,750],[1200,750],[1200,598],[880,1172],[1200,650],[1200,750],[880,560],[1200,750],[1200,750],[880,592],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[880,404],[780,1688],[1200,750],[1200,750],[1200,750]];
+const IMG_SIZES = [[1200,750],[1200,750],[880,956],[1200,750],[1200,750],[1200,666],[880,1172],[1200,650],[1200,750],[880,560],[1200,750],[1200,750],[880,592],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[1200,750],[880,404],[780,1688],[1200,750],[1200,750],[1200,750]];
 let FIGN = 0;
 const fig = (caption, opts = {}) => { const n = ++FIGN; const [w, h] = IMG_SIZES[n - 1]; return { type: 'figure', label: SHOT, caption, src: `img/${String(n).padStart(2, '0')}.webp`, w, h, ...opts }; };
 const who = text => ({ type: 'tip', label: 'Kinek szól?', text });
@@ -158,6 +158,7 @@ const SURFACES = {
         { type: 'list', items: [
           { t: 'Bal oldali menü:', d: 'a sötétzöld oldalsáv; a számok a teendőket jelzik (döntésre váró cikkek, jóváhagyásra váró posztok). Alul a Felhasználói kézikönyv és az Összecsukás.' },
           { t: 'Keresés mindenhol:', d: 'a felső sáv keresője (vagy Ctrl+K, Macen és iPaden billentyűzettel ⌘K) a cikkek, posztok, ötletek, források és menüpontok között keres; a találatra kattintva megnyílik, a cikkeknél és forrásoknál a szűrő is kitöltődik.' },
+          { t: 'Értesítések (csengő):', d: 'a legfrissebb műveletek az ügyfélnél, a sajátjai nélkül (pl. jóváhagyott poszt, döntés, feltöltés). A piros pont jelzi, ha a legutóbbi megnézés óta új érkezett; a tételre kattintva megnyílik az érintett oldal.' },
           { t: 'Világos / Normál:', d: 'a felső sáv két kapcsolója: a téma (világos vagy sötét) és a sűrűség (normál vagy kompakt). A választás ezen az eszközön megmarad.' },
           { t: 'Profil:', d: 'jobbra fent a név és a szerepkör; a menüből a Profil és jelszó és a Kilépés érhető el.' },
         ] },
@@ -408,6 +409,7 @@ const SURFACES = {
         { type: 'list', items: [
           { t: 'Bal oldali menü:', d: 'a sötétzöld oldalsáv; a számok a teendőket jelzik (döntésre váró cikkek, jóváhagyásra váró posztok). Alul a Felhasználói kézikönyv és az Összecsukás.' },
           { t: 'Keresés mindenhol:', d: 'a felső sáv keresője (vagy Ctrl+K, Macen és iPaden billentyűzettel ⌘K) a cikkek, posztok, ötletek, források és menüpontok között keres; a találatra kattintva megnyílik, a cikkeknél és forrásoknál a szűrő is kitöltődik.' },
+          { t: 'Értesítések (csengő):', d: 'a legfrissebb műveletek az ügyfélnél, a sajátjai nélkül (pl. jóváhagyott poszt, döntés, feltöltés). A piros pont jelzi, ha a legutóbbi megnézés óta új érkezett; a tételre kattintva megnyílik az érintett oldal.' },
           { t: 'Világos / Normál:', d: 'a felső sáv két kapcsolója: a téma (világos vagy sötét) és a sűrűség (normál vagy kompakt). A választás ezen az eszközön megmarad.' },
           { t: 'Profil:', d: 'jobbra fent a név és a szerepkör; a menüből a Profil és jelszó és a Kilépés érhető el.' },
         ] },

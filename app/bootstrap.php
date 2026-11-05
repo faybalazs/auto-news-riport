@@ -16,9 +16,9 @@ if (PHP_VERSION_ID < 80100) {
 }
 
 define('XPERION_ROOT', dirname(__DIR__));
-define('XPERION_VERSION', '0.19.0');
+define('XPERION_VERSION', '0.19.1');
 /** A kiadás dátuma (a lábléc mutatja): a CHANGELOG.md adott sorával egyezik. */
-define('XPERION_RELEASE', '2026-11-05');
+define('XPERION_RELEASE', '2026-11-06');
 
 require __DIR__ . '/autoload.php';
 
