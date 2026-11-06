@@ -1,33 +1,67 @@
 # Projektállapot
 
-- **Frissítve:** 2026-11-02
-- **Forrás:** felhasználói közlés (claude.ai chat) és a jóváhagyott specifikáció ([product.md](product.md)). Kód még nincs a repóban.
+- **Frissítve:** 2026-11-05 (kiadás: 0.19.2)
+- **Forrás:** felhasználói közlés (claude.ai chat), a jóváhagyott specifikáció ([product.md](product.md)) és a repó kódja.
 
 ## Cél
-Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkészítés automatizálása PHP-ban, a meglévő Google Sheetre építve.
+Az eddig kézzel, chatben végzett havi sajtófigyelés és LinkedIn-posztkészítés automatizálása PHP-ban, **saját felülettel és adatbázissal**, több ügyfélre felkészítve (döntés: 2026-11-02; a Google Sheetből egyszeri adatátvétel lesz).
 
 ## Funkciók
 | Funkció | Állapot | Forrás |
 |---|---|---|
-| Havi gyűjtés és havi lap | tervezett | product.md 6.1 |
-| Havi e-mail jóváhagyással | tervezett | product.md 6.1, 6.4 |
-| Óránkénti döntésfigyelés, élő feltöltés két nyelven | tervezett | product.md 6.2 |
-| Posztgenerálás cikkekből és ötletekből | tervezett | product.md 6.3 |
-| Poszt-előnézeti felület képpel és mockuppal | tervezett | product.md 6.5 |
-| E-mailes válaszok feldolgozása | tervezett (3. ütem) | product.md 6.6 |
+| Alap: konfiguráció, zárolás, futásnapló, szárazfuttatás, cron | ellenőrzött élesben (1. lépés, a felhasználó futtatta) | roadmap 1 |
+| Adatbázis (MySQL) automatikus migrációval | megvalósított; ellenőrzött a sandboxban MariaDB 10.11-en (PHPUnit + böngészős végponttól végpontig teszt); élesben nem ellenőrzött | roadmap 2 |
+| Első beállítás, belépés, meghívó és jelszólink, jelszócsere | megvalósított; ellenőrzött a sandboxban (böngészős teszt); élesben nem ellenőrzött | roadmap 2 |
+| Ügyfelek, felhasználók, szerepkörök, ügyfélváltó, napló | megvalósított; az ügyfélelválasztás PHPUnit-tesztekkel és böngészőből (API-hívással) ellenőrizve a sandboxban | roadmap 2 |
+| Adatátvétel ügyfelenkénti Google Sheetből (források, kulcsszavak, havi lapok cikkei, posztok, ötletek, szabályok, beállítások) | ellenőrzött: PHPUnit helyettesített Sheettel; élesben a felhasználó lefuttatta a valódi Sheettel (0.5.2, „Megy”) | roadmap 3 |
+| Cikkgyűjtés (RSS, HubSpot, listaoldal; hónap-, duplikátum- és kizáró szűrés), egyelőre mentés nélkül | megvalósított; ellenőrzött mintaoldalakkal (PHPUnit) és helyi mintaforrásokkal böngészőből; valódi forrásoldalakon nem ellenőrzött | roadmap 4 |
+| Havi futás: Claude-értékelés (Haiku 5.5), mentés; Havi cikkek oldal döntésekkel | élesben lefutott (2026. október, valódi forrásokkal és Claude-dal; a felhasználó az eredményből dolgozott); PHPUnit helyettesített Claude-dal | roadmap 5 |
+| Vezetői összefoglaló tagoltan (bevezető; Újdonságok, Tények, számok, Trendek, forrásmegnevezéssel), Újragenerálás gomb (üzemeltető, ügyféladmin) | megvalósított (0.13.0); ellenőrzött PHPUnit-tal és böngészőből; valódi Claude-dal nem ellenőrzött, a szöveg minőségét a felhasználó még nem látta | decisions 2026-11-03 |
+| Áttekintés valódi adatokkal (időszak, teendők, összefoglaló, KPI-k, megoszlások) | ellenőrzött: PHPUnit, böngésző; élesben a felhasználó kipróbálta (0.6.0, „Működik”) | roadmap 6 |
+| Havi e-mail: generálás, szerkesztés, teszt e-mail, jóváhagyás utáni küldés; SMTP-kapcsolat ellenőrzése a Vezérlőpulton | megvalósított; ellenőrzött PHPUnit-tal és helyi teszt-SMTP-vel; az SMTP-kapcsolat élesben működik (a felhasználó: „smtp jó”, 2026-11-03); ügyfélnek küldött levél még nem ment | roadmap 7 |
+| Feltöltés a weboldalra (Xperion OAuth Bridge 0.6.0, deploy_pair): HU/EN ajánlópár Claude-fordítással, óránként és kézzel; a Havi cikkeken az ügyféladmin és a tartalomkezelő is indíthatja; Publikálva állapot; visszavonás; törlés a listából visszaállítással; belépési diagnosztika | megvalósított (0.12.0); ellenőrzött PHPUnit-tal és böngészőből helyi hamis WordPress-szel; élesben: a kapcsolat az xperion.hu-val működik, a felhasználó teszt-cikkeket feltöltött („ment”, 2026-11-03, a Vezérlőpultról, 0.12.0 előtt); az új Havi cikkek-kártya, a visszavonás és a törlés élesben még nem kipróbált | roadmap 8 |
+| LinkedIn-posztok: szabályok, ötletek, generálás (Opus 5.5), automatikus jóváhagyásra küldés, módosítási kérésre újraírás; kép rögzített sablonokból (5 elrendezés), szövege Claude nélkül javítható, „Új kép”; a forráscikkek szerkeszthetők; lista mini-mockuppal | megvalósított (0.10.1); PHPUnit és böngésző; élesben használatban (a felhasználó a valódi posztképekről adott visszajelzést, 2026-11-02) | roadmap 9 |
+| Források és kulcsszavak; Napló szűrőkkel, CSV-vel; hibaértesítés e-mailben; megőrzés; Ügyfelek lista + tabos részletkártya | megvalósított; ellenőrzött PHPUnit-tal és böngészőből; élesben nem ellenőrzött | roadmap 10 |
+| Felhasználói kézikönyv (ügyfél-adminisztrátor, tartalomkezelő): `app/resources/kezikonyv.html`, forrás: `docs/kezikonyv/`; az alkalmazásban a menü alján, új ablakban | 1.3 (0.19.0): v2 arculat, új képek, „A felület részei”; böngészőben ellenőrizve; a felhasználó még nem nézte át | – |
+| Telepítés GitHub Actionsszel (`.github/workflows/telepites.yml`): kézi indítás, tesztek, FTPS-feltöltés a változott fájlokra, verzió-ellenőrzés | megvalósított, nem ellenőrzött (a beállítások – FTP-adatok, mappa, webcím – és az első futás a felhasználóra vár; a munkafolyamat csak a fő ágra kerülés után indítható) | decisions 2026-11-03 |
+| Kiemeltkép-hiba („not allowed to upload this file type”): JPEG-átalakítás a `kepek/` mappába, végső tartalék az ügyfél alapértelmezett képe (`alap_kep`) | megvalósított (0.14.0); PHPUnit és helyi hamis WordPress; élesben nem ellenőrzött | felhasználói hibajelentés (2610/14) |
+| LinkedIn: több cikkből egyetlen önálló, hírszerű poszt hivatkozás nélkül; utasítás a szöveghez és a képhez | megvalósított (0.15.0); PHPUnit és böngésző; valódi Claude-dal nem ellenőrzött | felhasználói kérés |
+| Vezetői összefoglaló mentése PDF-be (nyomtatható nézet) és küldése e-mailben | megvalósított (0.16.0); PHPUnit, böngésző, helyi teszt-SMTP | felhasználói kérés |
+| Új-forrás-figyelő (Források → Javasolt források): Claude-webkeresés, próbagyűjtés, javaslatlista jóváhagyással, beállítható darabszám | megvalósított (0.17.0); PHPUnit helyettesített Claude-dal, böngésző mintajavaslatokkal; valódi webkereséssel nem ellenőrzött | felhasználói kérés (javaslatlista jóváhagyással) |
+| (i) súgók a gombok alatti magyarázó szövegek helyett; rövid teendőcsempe-fejlécek, kék linkek | megvalósított (0.14.0); böngésző és a sablon felületellenőrzője | felhasználói kérés |
+| Megújult megjelenés (v2, Figma Make): minden oldal, sötét téma, kompakt mód; globális kereső; értesítés-csengő (a napló legfrissebb bejegyzései) | megvalósított (0.19.0, javítások és csengő: 0.19.1); ellenőrzött böngészőben (Figma-összevetés, felületellenőrző, kontrasztmérés) és PHPUnit-tal; élesben telepítve, a felhasználó: „megy” (2026-11-05); a sötét mód és az iPad még nem átnézett | felhasználói kérés, decisions 2026-11-05 |
+| Futások állapota a Vezérlőpulton (mi fut, mióta, melyik lépés; mentett eredmények); érthető hibaüzenet szerverhibánál is | megvalósított (0.10.3, 0.10.10); ellenőrzött PHPUnit-tal és böngészőből szimulált futással és hibákkal | – |
 
 ## Meglévő, repón kívüli elemek
 | Elem | Állapot | Forrás |
 |---|---|---|
-| Google Sheet (havi lapok 2408–2609, LinkedIn posztok, LinkedIn szabályok) | kézzel vezetve, használatban | felhasználói közlés |
+| Google Sheet (havi lapok 2408–2609, LinkedIn posztok, LinkedIn szabályok) | az adatátvétel forrása (átvéve, 0.5.2); a munka azóta az alkalmazásban folyik | decisions 2026-11-02 |
 | Feltöltő MCP-szerver (ChatGPT-vel készült, távoli, OAuth) | használatban | felhasználói közlés, nem vizsgált |
-| Xperion OAuth Bridge WordPress-plugin (PHP 7.4) az xperion.hu-n | a sajtópublikálás élesben tesztelve | felhasználói közlés, nem vizsgált |
+| Xperion OAuth Bridge WordPress-bővítmény 0.6.0 az xperion.hu-n | telepítve, működik (Kapcsolat ellenőrzése, 2026-11-03); HU/EN alapkategória beállítva; törlő művelete nincs | felhasználói közlés, Vezérlőpult |
+| `wordpress/mu-plugins/xperion-auth-fejlec.php` 1.1.0 az xperion.hu `wp-content/mu-plugins` mappájában | telepítve, a belépés ezzel működik | felhasználói közlés, 2026-11-03 |
+| Skillek (claude.ai): auris-admin-sablon, auris-felhasznaloi-kezikonyv, auris-admin-migracio, auris-commit-kiadas | a felület régi rétege a sablon v1.8.0-ból, a v2 réteg a Figma Make tervből (migrációs skill); átadva 2026-11-05: auris-admin-migracio 1.9.0 (az Xperion-migráció tanulságaival), auris-admin-sablon 1.11.0 (működő globális kereső és értesítés-csengő komponensként); a feltöltés a felhasználóra vár | munkamenet, skill-csomagok |
+| auris-dontesbank skill (claude.ai) | 1.3 átadva 2026-11-05 (pixelpontos megújítás, működő felületi elemek, csengő, commitforma); a feltöltés a felhasználóra vár | a skill-csomag (zip) |
 | xperion-linkedin skill (claude.ai) | használatban, a szabályokat a Sheetből olvassa | felhasználói közlés |
 
+## Kockázatok
+- Az Xperion OAuth Bridge 0.6.0 beállítóoldala a kategórialistákat az admin Polylang-nyelvszűrője szerint szűri: más nyelvi szűrővel mentve a másik nyelv alapkategóriája elveszhet. Kerülőút: „Az összes nyelv megjelenítése”. Javítás a bővítményben (ChatGPT-s beszélgetés), ha a felhasználó kéri.
+- Az Apache `.htaccess` 2.4-es szintaxist használ; tárhelyváltásnál a `config.php`, az `app/` és a `storage/` védelmét ellenőrizni kell.
+- A Claude-értékelés és a tagolt összefoglaló minőségét érdemes havonta az ügyfél döntéseivel és visszajelzésével összevetni (az első éles összefoglalót a felhasználó gyengének találta, ezért készült a 0.13.0).
+- A listaoldalak szerkezete forrásonként eltér: az általános felismerés egyes oldalakon kevés vagy hibás eredményt adhat; ezt a szárazfuttatás forrásonkénti kimutatása mutatja meg, és célzottan javítható.
+- A bővítménynek nincs törlő művelete: a feltöltés visszavonásakor a bejegyzéseket a WordPressben kell törölni (Lomtárból is véglegesen), különben egy későbbi feltöltés kint lévőnek látja.
+- Az új-forrás-figyelő a Claude webkeresését használja (keresésenként kb. 5–15 cent); a javaslatok minősége valódi kereséssel még nem látott. A webkeresést a Claude Console-ban a szervezet szintjén engedélyezni kell, ha le van tiltva.
+- A kiemeltkép-átalakításhoz a szerver PHP-jában kell a GD bővítmény, és az alkalmazás címe https legyen; különben csak az `alap_kep` tartalék működik.
+- A felület forrásai a `tools/felulet/` mappában vannak; az `assets/app.*` generált fájl, kézi szerkesztése a következő építéskor elveszik.
+- A v2 réteg (`app-v2.css`) a régi stílusok fölött van: ahol a Figma egy tulajdonságot nem állít, a régi érték átszivárog (pl. keret, árnyék). Új elemnél mindkét témában nézd meg.
+
 ## Blokkolók
-A [product.md](product.md) 11. pontjának 1–4. kérdése: PHP-verzió és cron a sunserveren, a feltöltő program adatai (URL, eszközök, OAuth), a fordítás felelőse, SMTP-adatok.
+- A forráscikkek képeinek átvétele (képjog): Attilával tisztázandó (az átadócsomag nyitott kockázata).
+
+## Terv
+- Kattintható prototípus (v3, többügyfeles, a valós posztszabályokkal): [terv/ugyfelfelulet-prototipus.html](terv/ugyfelfelulet-prototipus.html), publikálva: https://claude.ai/artifact/NuS6Vvt9oKrgHBjjJrvsxe. Állapot: a felhasználó átnézte, a saját felület mellett döntött.
+- Frissített ütemterv: [roadmap.md](roadmap.md).
 
 ## Következő lépések
-1. A blokkoló kérdések megválaszolása (felhasználó).
-2. Rövid terv az 1. ütemre, jóváhagyással.
-3. Sheets-kapcsolat és a szárazfuttatásos admin oldal.
+1. Felhasználó: a 0.19.2 telepítése, majd iPaden a belépés, a profilmenü és a bal oldali menü megnézése; a sötét mód átnézése; a csengő és a kereső kipróbálása valódi adatokon.
+2. Éles próbák: a 2610/14 cikk újbóli feltöltése (kiemeltkép-javítás); több cikkből készült poszt utasítással; a vezetői összefoglaló PDF-je és küldése; **Új források keresése** 3-as darabszámmal.
+3. Az első havi e-mail az ügyfélnek (jóváhagyás után); utána a pull request összevonása a fő ágba és az Actions-telepítés első futása.

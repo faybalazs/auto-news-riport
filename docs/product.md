@@ -1,5 +1,7 @@
 # Követelmények: Xperion sajtófigyelés és LinkedIn-automatizálás (PHP)
 
+> **Módosítás, 2026-11-02 (felhasználói döntés):** a rendszer **saját felülettel és adatbázissal** készül, a Google Sheet helyett. Az ügyfél és a munkatársai az alkalmazásban dolgoznak (döntések, jóváhagyás, ötletek, szabályok). Ahol ez a dokumentum Sheetet, munkalapot vagy oszlopot említ (4. pont, 6. pont), ott az alkalmazás megfelelő oldala és adattáblája értendő; a mezők és az állapotok változatlanok. A felület mintája: [terv/ugyfelfelulet-prototipus.html](terv/ugyfelfelulet-prototipus.html). Új elemek: több ügyfél, felhasználókezelés szerepkörökkel, „Nem kell” döntés, „Új források” elnevezés. A Sheetből egyszeri adatátvétel lesz. A részletes, frissített fejlesztési terv a [roadmap.md](roadmap.md)-ben van.
+
 Jóváhagyott specifikáció. A munkaszabályok az [AGENTS.md](../AGENTS.md)-ben, az aktuális állapot a [project-state.md](project-state.md)-ben van.
 
 ## 1. Cél

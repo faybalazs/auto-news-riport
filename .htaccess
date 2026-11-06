@@ -1,0 +1,8 @@
+# Xperion automatizálás – webes védelem (Apache 2.4)
+Options -Indexes
+DirectoryIndex index.php
+
+# Konfiguráció, kulcsok, fejlesztői fájlok: kívülről nem elérhetők
+<FilesMatch "(^config.*\.php$|^xperion-config\.php$|\.json$|\.lock$|\.md$|\.xml$|\.dist$|\.key$|\.env$|^\.)">
+    Require all denied
+</FilesMatch>

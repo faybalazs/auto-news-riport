@@ -1,0 +1,21 @@
+{
+    "name": "auris/xperion-automatizalas",
+    "description": "Xperion sajtófigyelés és LinkedIn-automatizálás",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.1",
+        "ext-curl": "*",
+        "ext-json": "*",
+        "ext-openssl": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5"
+    },
+    "autoload-dev": {
+        "psr-4": { "Xperion\\Tests\\": "tests/" }
+    },
+    "scripts": {
+        "test": "phpunit"
+    }
+}

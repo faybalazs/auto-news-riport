@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" width="1200" height="1200">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0A1630"/><stop offset="1" stop-color="#13295A"/></linearGradient>
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M60 0H0V60" fill="none" stroke="#1E3566" stroke-width="1" opacity="0.45"/></pattern>
+  </defs>
+  <rect width="1200" height="1200" fill="url(#bg)"/>
+  <rect width="1200" height="1200" fill="url(#grid)"/>
+  <g font-family="Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif">
+    <text x="90" y="124" font-size="26" font-weight="700" fill="#00A6EA" letter-spacing="0.5">VISITOR ANALYTICS</text>
+    <rect x="90" y="140" width="70" height="6" fill="#00A6EA"/>
+    <text font-size="76" font-weight="700" fill="#FFFFFF"><tspan x="90" y="265">Mennyit ér egy</tspan><tspan x="90" dy="96">pontatlan látogatószám?</tspan></text>
+    <text x="90" y="432" font-size="36" fill="#9FB3D1">Az adat önmagában még nem döntés.</text>
+    <rect x="91" y="507" width="288" height="42" rx="21" fill="none" stroke="#00A6EA" stroke-width="2"/>
+    <text x="235" y="535" font-size="19" font-weight="700" fill="#00A6EA" text-anchor="middle" letter-spacing="0.5">ILLUSZTRATÍV PÉLDA</text>
+    <rect x="90" y="575" width="440" height="230" rx="24" fill="#15305E"/>
+    <text x="130" y="642" font-size="23" font-weight="700" fill="#B7C6DE" letter-spacing="0.3">MÉRT KONVERZIÓ</text>
+    <text x="130" y="760" font-size="104" font-weight="700" fill="#A9BCD9">12%</text>
+    <line x1="550" y1="690" x2="622" y2="690" stroke="#FFFFFF" stroke-width="4"/>
+    <polygon points="620,676 650,690 620,704" fill="#FFFFFF"/>
+    <rect x="670" y="575" width="440" height="230" rx="24" fill="#00A6EA"/>
+    <text x="710" y="642" font-size="23" font-weight="700" fill="#0A1A3A" letter-spacing="0.3">VALÓS KONVERZIÓ</text>
+    <text x="710" y="760" font-size="104" font-weight="800" fill="#0A1A3A">13,2%</text>
+    <text x="600" y="862" font-size="28" fill="#B7C6DE" text-anchor="middle">ha a számláló 10%-kal több látogatót mér a valósnál</text>
+    <g font-size="30" font-weight="700" text-anchor="middle">
+      <rect x="191" y="939" width="124" height="72" rx="36" fill="#12295A" stroke="#00A6EA" stroke-width="3"/><text x="253" y="986" fill="#FFFFFF">Adat</text>
+      <line x1="328" y1="975" x2="364" y2="975" stroke="#00A6EA" stroke-width="3"/><polygon points="362,968 376,975 362,982" fill="#00A6EA"/>
+      <rect x="378" y="939" width="210" height="72" rx="36" fill="#12295A" stroke="#00A6EA" stroke-width="3"/><text x="483" y="986" fill="#FFFFFF">Információ</text>
+      <line x1="601" y1="975" x2="637" y2="975" stroke="#00A6EA" stroke-width="3"/><polygon points="635,968 649,975 635,982" fill="#00A6EA"/>
+      <rect x="651" y="939" width="140" height="72" rx="36" fill="#12295A" stroke="#00A6EA" stroke-width="3"/><text x="721" y="986" fill="#FFFFFF">Tudás</text>
+      <line x1="804" y1="975" x2="840" y2="975" stroke="#00A6EA" stroke-width="3"/><polygon points="838,968 852,975 838,982" fill="#00A6EA"/>
+      <rect x="852" y="939" width="158" height="72" rx="36" fill="#00A6EA"/><text x="931" y="986" fill="#0A1A3A">Döntés</text>
+    </g>
+    <line x1="90" y1="1070" x2="1110" y2="1070" stroke="#2A3F6B" stroke-width="2"/>
+    <text x="90" y="1126" font-size="28" fill="#9FB3D1">Pontos mérés a fizikai ügyfélterekben</text>
+    <text x="1110" y="1126" font-size="32" font-weight="700" fill="#FFFFFF" text-anchor="end">xperion.hu</text>
+  </g>
+</svg>
